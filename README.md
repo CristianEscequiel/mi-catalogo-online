@@ -34,6 +34,20 @@ Este proyecto está pensado como pieza de portfolio técnica y de producto.
 - Actualizar stock.
 
 ---
+## 🤖 Asistente IA integrado al repositorio
+
+Este proyecto está instrumentado con un asistente de desarrollo basado en IA (codex / aide CLI).  
+El asistente tiene contexto sobre:
+- Arquitectura frontend (Angular 20 + Tailwind + servicios).
+- Arquitectura backend (NestJS modular con auth, products, cart).
+- Convenciones de estilo y nombres de servicios.
+
+Uso el asistente para:
+- Analizar errores y proponer fixes concretos.
+- Generar scaffolding consistente (nuevos módulos, componentes, endpoints).
+- Mantener documentación técnica actualizada en `/docs`.
+
+El comportamiento esperado del asistente y el contexto técnico viven en `/ai/`.
 
 ## 🏗️ Arquitectura
 
@@ -41,7 +55,7 @@ El proyecto está dividido en dos aplicaciones dentro del mismo repo:
 
 ```text
 /mi-catalogo-online
-  /frontend  → Aplicación Angular 17 (standalone components + Tailwind)
+  /frontend  → Aplicación Angular 20 (standalone components + Tailwind)
   /backend   → API REST en Node/NestJS (auth, products, cart)
   /docs      → Documentación técnica (arquitectura, endpoints)
   README.md  → Este archivo
