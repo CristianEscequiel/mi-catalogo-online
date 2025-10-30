@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: my_blog_db
-      POSTGRES_USER: blog_user
-      POSTGRES_PASSWORD: blog_password
+      POSTGRES_DB: my_catalog_db
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_password
     ports:
       - '5432:5432'
     volumes:
