@@ -1,0 +1,24 @@
+<form [formGroup]="profileForm" class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+  <legend class="text-center">Bienvenido</legend>
+  <div class="avatar flex flex-col items-center justify-center">
+    <div class="w-20 rounded-full">
+      <img [src]="avatar" />
+    </div>
+  </div>
+
+  <label for="name" class="label">Nombre</label>
+  <input id="name" formControlName="name" type="text" class="input" placeholder="Nombre" />
+
+  <label for="lastName" class="label">Apellido</label>
+  <input id="lastName" formControlName="lastName" type="text" class="input" placeholder="Apellido" />
+
+  <!-- <label for="email" class="label">Email</label>
+  <input id="email" formControlName="email" type="email" class="input" placeholder="Email" /> -->
+
+  @if (enableEdit) {
+  <button [disabled]="!profileForm.valid" class="btn btn-neutral mt-4">Guardar</button>
+  }@else {
+  <button (click)="edit()" class="btn btn-neutral mt-4">Editar</button>
+  }
+
+</form>
