@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 import { Profile } from './profile.entity';
 import { Post } from '../../post/entities/post.entity';
+import { Role } from '../../auth/roles/roles.enum';
 
 @Entity({
   name: 'users',
@@ -17,6 +18,9 @@ export class User {
 
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
+
+  @Column({ type: 'enum', enum: Role, default: Role.CLIENT })
+  role: Role;
 
   @CreateDateColumn({
     type: 'timestamp',

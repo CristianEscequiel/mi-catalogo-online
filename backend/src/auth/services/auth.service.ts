@@ -10,7 +10,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-) {}
+  ) {}
 
   async validateUser(email: string, pass: string) {
     const user = await this.usersService.getUserByEmail(email);
@@ -24,7 +24,7 @@ export class AuthService {
     return user;
   }
   generateToken(user: User) {
-    const payload: Payload = { sub: user.id };
+    const payload: Payload = { sub: user.id, role: user.role };
     return this.jwtService.sign(payload);
   }
 }

@@ -1,7 +1,8 @@
 import { Type } from 'class-transformer';
-import { IsString, IsEmail, IsNotEmpty, MinLength, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength, ValidateNested, IsOptional, IsEnum } from 'class-validator';
 import { CreateProfileDto, UpdateProfileDto } from './profile.dto';
 import { OmitType, PartialType } from '@nestjs/mapped-types';
+import { Role } from 'src/auth/roles/roles.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -12,6 +13,10 @@ export class CreateUserDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+
+  @IsOptional()
+  @IsEnum(Role)
+  role?: Role;
 
   @ValidateNested()
   @Type(() => CreateProfileDto)

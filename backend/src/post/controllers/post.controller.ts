@@ -6,6 +6,7 @@ import { UpdatePostDto } from '../dto/update-post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Payload } from 'src/auth/models/payload.model';
 import { Post as PostEntity } from '../entities/post.entity';
+import { Roles } from 'src/auth/roles/roles.decorator';
 
 @Controller('posts')
 export class PostController {
@@ -13,6 +14,7 @@ export class PostController {
 
   @ApiOperation({ summary: 'Create a new Post' })
   @UseGuards(AuthGuard('jwt'))
+  @Roles('ADMIN')
   @Post()
   create(@Body() createPostDto: CreatePostDto, @Request() req) {
     const payload = req.user as Payload;
