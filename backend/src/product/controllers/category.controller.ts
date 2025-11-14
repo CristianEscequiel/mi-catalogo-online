@@ -2,13 +2,13 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { PostService } from '../services/post.service';
+import { ProductService } from '../services/product.service';
 
 @Controller('categories')
 export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService,
-    private readonly postService: PostService,
+    private readonly productService: ProductService,
   ) {}
 
   @Post()
@@ -28,7 +28,7 @@ export class CategoryController {
 
   @Get(':id/posts')
   findPosts(@Param('id', ParseIntPipe) id: number) {
-    return this.postService.findPostByCategoryId(id);
+    return this.productService.findProductByCategoryId(id);
   }
 
   @Put(':id')

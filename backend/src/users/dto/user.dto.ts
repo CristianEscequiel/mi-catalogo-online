@@ -16,7 +16,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsEnum(Role)
-  role?: Role;
+  role: Role;
 
   @ValidateNested()
   @Type(() => CreateProfileDto)

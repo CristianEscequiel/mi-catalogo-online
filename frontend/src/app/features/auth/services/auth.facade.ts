@@ -25,6 +25,11 @@ async loginUser(email:string , password:string) {
   this.router.navigate(['/home']);
 }
 
+async newPost (){
+  const res = await firstValueFrom(this.authService.postItems())
+  return res
+}
+
   async hydrate() {
     const token = localStorage.getItem('token');
     const userLiteRaw = localStorage.getItem('userLite');

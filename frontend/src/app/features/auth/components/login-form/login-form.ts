@@ -21,4 +21,7 @@ export class LoginForm {
     this.authFacade.loginUser(email, password)
     this.loginForm.reset();
   }
+  postItems(){
+    this.authFacade.newPost()
+  }
 }

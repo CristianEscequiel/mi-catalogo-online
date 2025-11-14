@@ -4,34 +4,42 @@ import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({
-  name: 'posts',
+  name: 'products',
 })
-export class Post {
-  @ApiProperty({ description: 'The ID number of the post' })
+export class Product {
+  @ApiProperty({ description: 'The ID number of the product' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: 'The ID number of the post' })
+  @ApiProperty({ description: '' })
   @Column({ type: 'varchar', length: 255 })
-  title: string;
+  name: string;
 
-  @ApiProperty({ description: 'The ID number of the post' })
+  @ApiProperty({ description: '' })
+  @Column({ type: 'varchar', length: 255 })
+  slug: string;
+
+  @ApiProperty({ description: '' })
   @Column({ type: 'text', nullable: true })
-  content: string;
+  description: string;
 
   @ApiProperty({ description: 'The ID number of the post' })
-  @Column({ type: 'varchar', length: 900, name: 'cover_image', nullable: true })
-  coverImage: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  sku: string;
 
   @ApiProperty({ description: 'The ID number of the post' })
-  @Column({ type: 'varchar', length: 255, name: 'summary', nullable: true })
-  summary: string;
+  @Column({ type: 'float', nullable: true })
+  price: number;
 
   @ApiProperty({ description: 'The ID number of the post' })
-  @Column({ type: 'boolean', default: true, name: 'is_draft' })
-  isDraft: boolean;
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'thumbnail_url' })
+  thumbnailUrl: string;
 
   @ApiProperty({ description: 'The ID number of the post' })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+  @ApiProperty({ description: '' })
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
@@ -39,7 +47,7 @@ export class Post {
   })
   createdAt: Date;
 
-  @ApiProperty({ description: 'The ID number of the post' })
+  @ApiProperty({ description: '' })
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
@@ -51,10 +59,10 @@ export class Post {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToMany(() => Category, (category) => category.posts)
+  @ManyToMany(() => Category, (category) => category.products)
   @JoinTable({
-    name: 'posts_categories',
-    joinColumn: { name: 'post_id', referencedColumnName: 'id' },
+    name: 'product_categories',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
   })
   categories: Category[];

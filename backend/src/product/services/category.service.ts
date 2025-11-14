@@ -30,9 +30,9 @@ export class CategoryService {
     return this.findCategoryById(id);
   }
 
-  async getCategoryByPostId(id: number) {
+  async getCategoryByProductId(id: number) {
     const category = await this.findOne(id);
-    return category.posts;
+    return category.products;
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {

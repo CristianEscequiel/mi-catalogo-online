@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Env } from './env.model';
-import { PostModule } from './post/post.module';
+import { ProductModule } from './product/product.module';
 import { AuthModule } from './auth/auth.module';
 import { AiModule } from './ai/ai.module';
 
@@ -26,7 +26,7 @@ import { AiModule } from './ai/ai.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    PostModule,
+    ProductModule,
     AuthModule,
     AiModule,
   ],

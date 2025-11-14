@@ -2,7 +2,7 @@ import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, OneToMany, 
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 import { Profile } from './profile.entity';
-import { Post } from '../../post/entities/post.entity';
+import { Product } from '../../product/entities/product.entity';
 import { Role } from '../../auth/roles/roles.enum';
 
 @Entity({
@@ -39,8 +39,8 @@ export class User {
   @JoinColumn({ name: 'profile_id' })
   profile: Profile;
 
-  @OneToMany(() => Post, (post) => post.user)
-  posts: Post[];
+  @OneToMany(() => Product, (post) => post.user)
+  posts: Product[];
 
   @BeforeInsert()
   async hashPassword() {

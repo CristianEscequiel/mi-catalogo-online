@@ -1,22 +1,23 @@
 import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Put, UseGuards, Request } from '@nestjs/common';
-import { PostService } from '../services/post.service';
+import { ProductService } from '../services/product.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreatePostDto } from '../dto/create-post.dto';
-import { UpdatePostDto } from '../dto/update-post.dto';
+import { CreateProductDto } from '../dto/create-product.dto';
+import { UpdateProductDto } from '../dto/update-product.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Payload } from 'src/auth/models/payload.model';
-import { Post as PostEntity } from '../entities/post.entity';
+import { Product as ProductEntity } from '../entities/product.entity';
 import { Roles } from 'src/auth/roles/roles.decorator';
+import { RolesGuard } from 'src/auth/roles/roles.guard';
 
-@Controller('posts')
-export class PostController {
-  constructor(private readonly postService: PostService) {}
+@Controller('products')
+export class ProductController {
+  constructor(private readonly postService: ProductService) {}
 
   @ApiOperation({ summary: 'Create a new Post' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @Post()
-  create(@Body() createPostDto: CreatePostDto, @Request() req) {
+  create(@Body() createPostDto: CreateProductDto, @Request() req) {
     const payload = req.user as Payload;
     const userID = payload.sub;
     return this.postService.create(createPostDto, userID);
@@ -30,7 +31,7 @@ export class PostController {
   }
 
   @ApiOperation({ summary: 'Get a Post by id' })
-  @ApiResponse({ status: 200, description: 'The post', type: PostEntity })
+  @ApiResponse({ status: 200, description: 'The post', type: ProductEntity })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.postService.findOne(id);
@@ -39,8 +40,8 @@ export class PostController {
   @ApiOperation({ summary: 'Update a Post by id' })
   @UseGuards(AuthGuard('jwt'))
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(id, updatePostDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto) {
+    return this.postService.update(id, updateProductDto);
   }
 
   @ApiOperation({ summary: 'Publish a post Post by id with AI' })

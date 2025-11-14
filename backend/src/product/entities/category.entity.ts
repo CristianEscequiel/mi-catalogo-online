@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Post } from './post.entity';
+import { Product } from './product.entity';
 
 @Entity({
   name: 'categories',
@@ -11,11 +11,11 @@ export class Category {
   @Column({ type: 'varchar', length: 255, unique: true })
   name: string;
 
-  @Column({ type: 'varchar', length: 800, nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   descripcion: string;
 
-  @Column({ type: 'varchar', length: 800, nullable: true, name: 'cover_image' })
-  coverImage: string;
+  @Column({ type: 'varchar', length: 800, nullable: true, name: 'image_url' })
+  imageUrl: string;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -29,6 +29,6 @@ export class Category {
   })
   updateAt: Date;
 
-  @ManyToMany(() => Post, (post) => post.categories)
-  posts: Post[];
+  @ManyToMany(() => Product, (product) => product.categories)
+  products: Product[];
 }
