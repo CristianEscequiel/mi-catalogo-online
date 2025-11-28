@@ -13,12 +13,14 @@ export class ProductService {
   ) {}
 
   async create(body: CreateProductDto, userId: number) {
+    console.log(body, userId);
     try {
       const newProduct = await this.postRepository.save({
         ...body,
         user: { id: userId },
         categories: body.categoryIds?.map((id) => ({ id })),
       });
+      console.log(newProduct);
       return this.findOne(newProduct.id);
     } catch {
       throw new BadRequestException('Error creating product');

@@ -39,8 +39,8 @@ export class User {
   @JoinColumn({ name: 'profile_id' })
   profile: Profile;
 
-  @OneToMany(() => Product, (post) => post.user)
-  posts: Product[];
+  @OneToMany(() => Product, (product) => product.user)
+  products: Product[];
 
   @BeforeInsert()
   async hashPassword() {

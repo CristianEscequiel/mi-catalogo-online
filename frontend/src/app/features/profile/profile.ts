@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 interface ProfileForm {
 name:FormControl;
 lastName:FormControl;
-email:FormControl;
+// email:FormControl;
 }
 
 @Component({
@@ -20,7 +20,7 @@ export class Profile implements AfterViewInit {
   profileForm = new FormGroup<ProfileForm>({
     name: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     lastName: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
-    email: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    // email: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
   })
 
 private store = inject(AuthStore)
@@ -29,11 +29,10 @@ avatar = this.profile?.avatar;
 enableEdit:boolean = false;
 
 ngAfterViewInit(){
-  console.log(this.profile)
   this.profileForm.patchValue({
     name: this.profile?.name,
     lastName:this.profile?.lastName,
-    email:this.profile?.email
+    // email:this.profile?.email
   })
   this.profileForm.disable()
 }
@@ -41,5 +40,4 @@ edit(){
   this.profileForm.enable()
   this.enableEdit = true;
 }
-
 }

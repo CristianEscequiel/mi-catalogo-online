@@ -1,0 +1,107 @@
+<div class="flex flex-col w-full justify-center items-start p-4">
+
+  <form [formGroup]="productForm" (ngSubmit)="createProduct()"
+    class="fieldset bg-base-200 border-base-300 rounded-box w-sm border p-4">
+    <legend class="fieldset-legend">NUEVO PRODUCTO</legend>
+
+    <label for="name" class="label">Nombre</label>
+    <div class="relative">
+      <input id="name" formControlName="name" type="text" placeholder="Nombre" class="input w-full" />
+
+      @let nameCtrl = productForm.get('name');
+
+      @if (nameCtrl?.touched && nameCtrl?.hasError('required')) {
+      <div class="hidden sm:block absolute top-1/2 -right-2 -translate-y-1/2">
+        <div class="tooltip tooltip-error tooltip-open tooltip-right" data-tip="El nombre es obligatorio"></div>
+      </div>
+      <p class="sm:hidden text-error text-sm mt-1">
+        El nombre es obligatorio.
+      </p>
+      }
+    </div>
+    <label class="label">Descripcion</label>
+    <input formControlName="description" type="text" class="textarea w-full" placeholder="Descripcion">
+
+    @if (loadingCategories) {
+    <span class="loading loading-spinner loading-xs">Cargando categorías</span>
+    } @else if (categories.length > 0) {
+    <label class="label">Categories</label>
+    <div class="dropdown w-full">
+      <div tabindex="0" role="button" class="btn bg-base-100 border-gray-600 w-full justify-between ">
+        <span class="">
+          {{ selectedCategoriesNames }}
+        </span>
+      </div>
+
+      <div tabindex="0" class="dropdown-content bg-base-100 rounded-box p-4 shadow mt-2 w-64">
+        <div class="flex flex-col gap-2">
+          @for (category of categories; track category.id) {
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="checkbox" [checked]="isSelected(category.id)"
+              (change)="toggleCategory(category.id, $event)" />
+            {{ category.name }}
+          </label>
+          }
+        </div>
+      </div>
+    </div>
+    } @else {
+    <p class="text-sm opacity-70">No hay categorías disponibles.</p>
+    }
+
+    <label class="label">Slug</label>
+    <input formControlName="slug" type="text" class="input w-full" placeholder="my-awesome-page" />
+
+    <label for="price" class="label">Precio</label>
+    <div class="relative">
+      <input id="price" formControlName="price" type="number" placeholder="$" class="input w-full" />
+
+      @let priceCtrl = productForm.get('price');
+
+      @if (priceCtrl?.touched && priceCtrl?.invalid) {
+
+      <div class="hidden sm:block absolute top-1/2 -right-2 -translate-y-1/2">
+        <div class="tooltip tooltip-error tooltip-open tooltip-right" [attr.data-tip]="
+          priceCtrl?.hasError('required')
+            ? 'El precio es obligatorio'
+            : priceCtrl?.hasError('min')
+              ? 'El precio no puede ser negativo'
+              : 'Valor inválido'
+        "></div>
+      </div>
+      <p class="sm:hidden text-error text-sm mt-1">
+        @if (priceCtrl?.hasError('required')) {
+        El precio es obligatorio.
+        } @else if (priceCtrl?.hasError('min')) {
+        El precio no puede ser negativo.
+        } @else {
+        Valor inválido.
+        }
+      </p>
+      }
+    </div>
+
+    <label for="status" class="label">Status</label>
+    <div class="relative">
+      <select id="status" formControlName="status" class="select w-full" required>
+        @for (status of statuses; track $index) {
+        <option [value]="status">{{ status }}</option>
+        }
+      </select>
+
+      @let statusCtrl = productForm.get('status');
+
+      @if (statusCtrl?.touched && statusCtrl?.hasError('required')) {
+      <div class="hidden sm:block absolute top-1/2 -right-2 -translate-y-1/2">
+        <div class="tooltip tooltip-error tooltip-open tooltip-right" data-tip="El status es obligatorio"></div>
+      </div>
+      <p class="sm:hidden text-error text-sm mt-1">
+        El status es obligatorio.
+      </p>
+      }
+    </div>
+    <button class="btn btn-primary btn-outline" type="submit" [disabled]="!productForm.valid">Submit</button>
+
+  </form>
+
+</div>

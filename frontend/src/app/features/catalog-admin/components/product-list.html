@@ -1,0 +1,131 @@
+<table cdk-table [dataSource]="filteredProducts" class="table w-full">
+
+  <!-- Imagen / thumbnail -->
+  <ng-container cdkColumnDef="thumbnail">
+    <th cdk-header-cell *cdkHeaderCellDef class="w-16">
+      Img
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      @if (row.thumbnailUrl) {
+      <div class="avatar">
+        <div class="w-12 rounded">
+          <img [src]="row.thumbnailUrl" [alt]="row.name" />
+        </div>
+      </div>
+      } @else {
+      <div class="avatar placeholder">
+        <div class="w-12 rounded bg-base-300 text-xs flex items-center justify-center">
+          Sin img
+        </div>
+      </div>
+      }
+    </td>
+  </ng-container>
+
+  <!-- Nombre -->
+  <ng-container cdkColumnDef="name">
+    <th cdk-header-cell *cdkHeaderCellDef (click)="onSort('name')" class="cursor-pointer select-none">
+      Nombre
+      @if(sortField === 'name'){
+      <span>
+        {{ sortDirection === 'asc' ? '▲' : '▼' }}
+      </span>
+      }
+
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      <div class="flex flex-col">
+        <span class="font-medium">{{ row.name }}</span>
+        @if (row.slug) {
+        <span class="text-xs opacity-70">
+          /{{ row.slug }}
+        </span>
+        }
+      </div>
+    </td>
+  </ng-container>
+
+  <!-- Categorías -->
+  <ng-container cdkColumnDef="categories">
+    <th cdk-header-cell *cdkHeaderCellDef>
+      Categorías
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      <span class="text-sm">
+        {{ getCategoryNames(row.categoryIds) }}
+      </span>
+    </td>
+  </ng-container>
+
+  <!-- Precio -->
+  <ng-container cdkColumnDef="price">
+    <th cdk-header-cell *cdkHeaderCellDef (click)="onSort('price')" class="cursor-pointer select-none">
+      Precio
+      @if(sortField === 'price'){
+      <span>
+        {{ sortDirection === 'asc' ? '▲' : '▼' }}
+      </span>
+      }
+
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      {{ row.price | currency:'ARS':'symbol':'1.0-2' }}
+    </td>
+  </ng-container>
+
+  <!-- SKU -->
+  <ng-container cdkColumnDef="sku">
+    <th cdk-header-cell *cdkHeaderCellDef>
+      SKU
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      {{ row.sku || '-' }}
+    </td>
+  </ng-container>
+
+  <!-- Status -->
+  <ng-container cdkColumnDef="status">
+    <th cdk-header-cell *cdkHeaderCellDef (click)="onSort('status')" class="cursor-pointer select-none">
+      Estado
+      @if(sortField === 'status'){
+      <span>
+        {{ sortDirection === 'asc' ? '▲' : '▼' }}
+      </span>
+      }
+
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      <span class="badge badge-sm" [ngClass]="{
+          'badge-ghost': row.status === 'DRAFT',
+          'badge-success': row.status === 'PUBLIC',
+          'badge-neutral': row.status === 'ARCHIVED'
+        }">
+        {{ row.status }}
+      </span>
+    </td>
+  </ng-container>
+
+  <!-- Acciones -->
+  <ng-container cdkColumnDef="actions">
+    <th cdk-header-cell *cdkHeaderCellDef class="text-right">
+      Acciones
+    </th>
+    <td cdk-cell *cdkCellDef="let row" class="text-right">
+      <div class="flex gap-2 justify-end">
+        <button type="button" class="btn btn-xs btn-ghost" (click)="onView(row)">
+          Ver
+        </button>
+        <button type="button" class="btn btn-xs btn-outline" (click)="onEdit(row)">
+          Editar
+        </button>
+        <button type="button" class="btn btn-xs btn-error btn-outline" (click)="onDelete(row)">
+          Eliminar
+        </button>
+      </div>
+    </td>
+  </ng-container>
+
+  <!-- Header y filas -->
+  <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
+  <tr cdk-row *cdkRowDef="let row; columns: displayedColumns"></tr>
+</table>

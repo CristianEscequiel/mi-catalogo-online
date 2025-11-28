@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, Ma
 import { Category } from './category.entity';
 import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Status } from '../models/status.enum';
 
 @Entity({
   name: 'products',
@@ -16,7 +17,7 @@ export class Product {
   name: string;
 
   @ApiProperty({ description: '' })
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   slug: string;
 
   @ApiProperty({ description: '' })
@@ -36,8 +37,8 @@ export class Product {
   thumbnailUrl: string;
 
   @ApiProperty({ description: 'The ID number of the post' })
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  @Column({ type: 'enum', enum: Status, default: Status.DRAFT })
+  status: Status;
 
   @ApiProperty({ description: '' })
   @CreateDateColumn({
@@ -55,7 +56,7 @@ export class Product {
   })
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.posts, { nullable: false })
+  @ManyToOne(() => User, (user) => user.products, { nullable: false })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

@@ -1,6 +1,4 @@
 @import "tailwindcss";
 @plugin "daisyui"{
-  themes: lemonade --default, forest --prefersdark;
-};
-
-@custom-variant dark (&:where([data-theme=night], [data-theme=night] *));
+   themes: dim --prefersdark, lemonade;
+}
