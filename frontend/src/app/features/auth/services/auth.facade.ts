@@ -43,6 +43,7 @@ async newPost (){
 
     this.store.setUserProfile(profile.profile as any);
     this.store.setLoadingProfile(false);
+
   }
 
   logout() {

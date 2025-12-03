@@ -2,7 +2,6 @@
 
   <form [formGroup]="productForm" (ngSubmit)="createProduct()"
     class="fieldset bg-base-200 border-base-300 rounded-box w-sm border p-4">
-    <legend class="fieldset-legend">NUEVO PRODUCTO</legend>
 
     <label for="name" class="label">Nombre</label>
     <div class="relative">
@@ -20,14 +19,15 @@
       }
     </div>
     <label class="label">Descripcion</label>
-    <input formControlName="description" type="text" class="textarea w-full" placeholder="Descripcion">
+    <textarea formControlName="description" class="textarea textarea-bordered w-full" placeholder="Descripción"
+      rows="2"></textarea>
 
     @if (loadingCategories) {
     <span class="loading loading-spinner loading-xs">Cargando categorías</span>
     } @else if (categories.length > 0) {
-    <label class="label">Categories</label>
+    <label class="label">Categorías</label>
     <div class="dropdown w-full">
-      <div tabindex="0" role="button" class="btn bg-base-100 border-gray-600 w-full justify-between ">
+      <div tabindex="0" role="button" class="input bg-base-100 w-full justify-between cursor-pointer">
         <span class="">
           {{ selectedCategoriesNames }}
         </span>
@@ -81,7 +81,7 @@
       }
     </div>
 
-    <label for="status" class="label">Status</label>
+    <label for="status" class="label">Estado</label>
     <div class="relative">
       <select id="status" formControlName="status" class="select w-full" required>
         @for (status of statuses; track $index) {
@@ -100,7 +100,8 @@
       </p>
       }
     </div>
-    <button class="btn btn-primary btn-outline" type="submit" [disabled]="!productForm.valid">Submit</button>
+
+    <button class="btn btn-primary btn-outline mt-5" type="submit" [disabled]="!productForm.valid">Submit</button>
 
   </form>
 

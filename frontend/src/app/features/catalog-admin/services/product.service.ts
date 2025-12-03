@@ -18,8 +18,8 @@ export class ProductService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:3000';
 
-  getUserById(id: number) {
-    return this.http.get<ProfileResponse>(`${this.apiUrl}/users/${id}`)
+  getProductById(id: number) {
+    return this.http.get<ProfileResponse>(`${this.apiUrl}/products/${id}`)
   }
 
   async postProduct(body: ProductModel) {
@@ -35,8 +35,12 @@ export class ProductService {
     return this.http.get<any>(`${this.apiUrl}/products`);
   }
 
-  async editProduct(id:number , body:ProductModel): Promise<Observable<any>>{
-   const res = await firstValueFrom(this.http.put<any>(`${this.apiUrl}/products/${id}`, body))
-  return res
+  editProduct(id:number , body:ProductModel): Observable<any>{
+    return this.http.put<any>(`${this.apiUrl}/products/${id}`, body)
   }
+
+  deleteProduct(id:number): Observable<any>{
+    return this.http.delete<any>(`${this.apiUrl}/products/${id}`)
+  }
+
 }

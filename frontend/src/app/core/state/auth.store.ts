@@ -2,7 +2,7 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 
 export interface UserLite { id: number; email: string; }
-export interface UserProfile { id: number; email: string; name: string; lastName:string; avatar:string }
+export interface UserProfile { id: number; email: string; name: string; lastName: string; avatar: string }
 
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
@@ -41,4 +41,17 @@ export class AuthStore {
     localStorage.removeItem('token');
     localStorage.removeItem('userLite');
   }
+
+  rehydrate() {
+    const token = localStorage.getItem('token');
+    const userLite = localStorage.getItem('userLite');
+
+    if (token && userLite) {
+      this._token.set(token);
+      this._userLite.set(JSON.parse(userLite));
+    }
+  }
+
+
+
 }

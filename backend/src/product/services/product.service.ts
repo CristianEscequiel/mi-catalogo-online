@@ -40,9 +40,13 @@ export class ProductService {
 
   async update(id: number, updateProductDto: UpdateProductDto) {
     const product = await this.findProductById(id);
-    console.log(product);
     try {
-      const updatedProduct = this.postRepository.merge(product, updateProductDto);
+      const { categoryIds, ...rest } = updateProductDto;
+      const updatedProduct = this.postRepository.merge(product, rest);
+      // Update many-to-many categories when ids are provided (including empty array to clear)
+      if (categoryIds !== undefined) {
+        updatedProduct.categories = categoryIds.map((categoryId) => ({ id: categoryId })) as Product['categories'];
+      }
       return await this.postRepository.save(updatedProduct);
     } catch {
       throw new BadRequestException('Error updating product');

@@ -5,13 +5,12 @@ import { authGuard } from './core/guards/auth-guard';
 import { Profile } from './features/profile/profile';
 import { loginGuard } from './core/guards/login-guard';
 import { PrdAdminComponet } from './features/catalog-admin/pages/product-admin.page';
-import { PrdFormComponent } from './features/catalog-admin/components/product-form.component';
-import { PrdListComponent } from './features/catalog-admin/components/product-list.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomePage
+    redirectTo:'home',
+    pathMatch: 'full'
   },
   {
     path: 'login',
@@ -31,21 +30,7 @@ export const routes: Routes = [
   path: 'admin/product',
   canActivate: [authGuard],
   component: PrdAdminComponet,
-  children: [
-    {
-      path: '',
-      redirectTo: 'list',
-      pathMatch: 'full',     // <- obligatorio en redirects con path vacío
-    },
-    {
-      path: 'list',
-      component: PrdListComponent,
-    },
-    {
-      path: 'new',
-      component: PrdFormComponent,
-    },
-  ]
+  pathMatch: 'full'
 }
 
 ];
