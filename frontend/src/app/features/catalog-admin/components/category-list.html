@@ -1,0 +1,54 @@
+<div class="flex items-center justify-between mb-4">
+  <h3 class="text-lg font-semibold">Listado de categorías</h3>
+  <input class="input input-sm" type="search" placeholder="Buscar" [formControl]="searchControl" />
+</div>
+
+<table cdk-table [dataSource]="filteredCategories" class="table w-full">
+  <ng-container cdkColumnDef="image">
+    <th cdk-header-cell *cdkHeaderCellDef class="w-16">Img</th>
+    <td cdk-cell *cdkCellDef="let row">
+      @if (row.imageUrl) {
+        <div class="avatar">
+          <div class="w-12 rounded">
+            <img [src]="row.imageUrl" [alt]="row.name" />
+          </div>
+        </div>
+      } @else {
+        <div class="avatar placeholder">
+          <div class="w-12 rounded bg-base-300 text-xs flex items-center justify-center">
+            Sin img
+          </div>
+        </div>
+      }
+    </td>
+  </ng-container>
+
+  <ng-container cdkColumnDef="name">
+    <th cdk-header-cell *cdkHeaderCellDef>Nombre</th>
+    <td cdk-cell *cdkCellDef="let row">
+      <div class="flex flex-col">
+        <span class="font-medium">{{ row.name }}</span>
+      </div>
+    </td>
+  </ng-container>
+
+  <ng-container cdkColumnDef="description">
+    <th cdk-header-cell *cdkHeaderCellDef>Descripción</th>
+    <td cdk-cell *cdkCellDef="let row">
+      <span class="text-sm">{{ row.description || '-' }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container cdkColumnDef="actions">
+    <th cdk-header-cell *cdkHeaderCellDef class="text-right">Acciones</th>
+    <td cdk-cell *cdkCellDef="let row" class="text-right">
+      <div class="flex gap-2 justify-end">
+        <button type="button" class="btn btn-xs btn-info btn-outline" (click)="onEdit(row)">Editar</button>
+        <button type="button" class="btn btn-xs btn-error btn-outline" (click)="onDelete(row)">Eliminar</button>
+      </div>
+    </td>
+  </ng-container>
+
+  <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
+  <tr cdk-row *cdkRowDef="let row; columns: displayedColumns"></tr>
+</table>

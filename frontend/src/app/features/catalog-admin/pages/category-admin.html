@@ -1,26 +1,25 @@
-<h2 class="text-xl font-semibold mb-4 ">Catálogo de Productos</h2>
+<h2 class="text-xl font-semibold mb-4 ">Catálogo de Categorías</h2>
 
 <div class="tabs tabs-lift">
-  <input type="radio" name="tabs" class="tab"
+  <input type="radio" name="tabs-cat" class="tab"
     aria-label="Ver todo"
     [checked]="activeTab === 'list'"
     (change)="setTab('list')" />
 
   <div class="tab-content bg-base-100 border-base-300 p-6">
-    <app-prd-list #listCmp></app-prd-list>
+    <app-category-list #listCmp></app-category-list>
   </div>
 
-  <input type="radio" name="tabs" class="tab"
+  <input type="radio" name="tabs-cat" class="tab"
     aria-label="Crear Nuevo"
     [checked]="activeTab === 'create'"
     (change)="setTab('create')" />
 
   <div class="tab-content bg-base-100 border-base-300 p-6">
-    <app-product-form
-      [productForm]="productForm"
+    <app-category-form
+      [categoryForm]="categoryForm"
       mode="create"
       (submitForm)="onCreate()">
-    </app-product-form>
+    </app-category-form>
   </div>
 </div>
-

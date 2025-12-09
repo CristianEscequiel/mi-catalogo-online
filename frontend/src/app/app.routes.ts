@@ -5,6 +5,7 @@ import { authGuard } from './core/guards/auth-guard';
 import { Profile } from './features/profile/profile';
 import { loginGuard } from './core/guards/login-guard';
 import { PrdAdminComponet } from './features/catalog-admin/pages/product-admin.page';
+import { CategoryAdminComponent } from './features/catalog-admin/pages/category-admin.page';
 
 export const routes: Routes = [
   {
@@ -30,6 +31,12 @@ export const routes: Routes = [
   path: 'admin/product',
   canActivate: [authGuard],
   component: PrdAdminComponet,
+  pathMatch: 'full'
+},
+{
+  path: 'admin/category',
+  canActivate: [authGuard],
+  component: CategoryAdminComponent,
   pathMatch: 'full'
 }
 

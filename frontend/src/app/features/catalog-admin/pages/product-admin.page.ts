@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { PrdListComponent } from '../components/product-list.component';
 import { PrdFormComponent } from "../components/product-form.component";
 import { FormBuilder, Validators } from '@angular/forms';
@@ -14,6 +14,14 @@ import { ProductService } from '../services/product.service';
 export class PrdAdminComponet {
 productService = inject(ProductService)
 fb = inject(FormBuilder)
+@ViewChild('listCmp') listCmp!: PrdListComponent;
+activeTab: 'list' | 'create' = 'list';
+setTab(tab: 'list' | 'create') {
+  this.activeTab = tab;
+  if (tab === 'list' && this.listCmp) {
+    this.listCmp.reloadProducts();
+  }
+}
 
 productForm = this.fb.group({
     name: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
@@ -25,6 +33,7 @@ productForm = this.fb.group({
     thumbnailUrl: this.fb.control<string | null>(null),
     status: this.fb.control<'DRAFT' | 'PUBLIC' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
   });
+
 onCreate(){
   // CREAR PRODUCTO ANTIGUO
     const body: ProductModel = {

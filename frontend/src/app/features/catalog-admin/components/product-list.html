@@ -1,5 +1,9 @@
-<table cdk-table [dataSource]="filteredProducts" class="table w-full">
+<div class="flex items-center justify-between mb-4">
+  <h3 class="text-lg font-semibold">Listado de categorías</h3>
+  <input class="input input-sm" type="search" placeholder="Buscar" [formControl]="searchControl" />
+</div>
 
+<table cdk-table [dataSource]="filteredProducts" class="table w-full">
   <!-- Imagen / thumbnail -->
   <ng-container cdkColumnDef="thumbnail">
     <th cdk-header-cell *cdkHeaderCellDef class="w-16">

@@ -1,0 +1,29 @@
+<div class="flex flex-col w-full justify-center items-start p-4">
+  <form [formGroup]="categoryForm" (ngSubmit)="submitCategory()" class="fieldset bg-base-200 border-base-300 rounded-box w-sm border p-4">
+
+    <label for="name" class="label">Nombre</label>
+    <div class="relative">
+      <input id="name" formControlName="name" type="text" placeholder="Nombre" class="input w-full" />
+
+      @let nameCtrl = categoryForm.get('name');
+      @if (nameCtrl?.touched && nameCtrl?.hasError('required')) {
+        <p class="text-error text-sm mt-1">
+          El nombre es obligatorio.
+        </p>
+      }
+    </div>
+
+    <label class="label">Descripción</label>
+    <textarea formControlName="description" class="textarea textarea-bordered w-full" placeholder="Descripción" rows="2"></textarea>
+
+    <label class="label">Imagen (URL)</label>
+    <input formControlName="imageUrl" type="url" class="input w-full" placeholder="https://ejemplo.com/imagen.png" />
+
+    <div class="flex gap-2 mt-5">
+      <button class="btn btn-primary btn-outline" type="submit" [disabled]="!categoryForm.valid">Guardar</button>
+      @if (mode === 'edit') {
+        <button class="btn" type="button" (click)="cancel.emit()">Cancelar</button>
+      }
+    </div>
+  </form>
+</div>

@@ -5,11 +5,13 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { AuthFacade } from '../../features/auth/services/auth.facade';
 
+import {CdkMenu, CdkMenuItem, CdkMenuTrigger} from '@angular/cdk/menu';
+
 
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [RouterLink , FontAwesomeModule ],
+  imports: [RouterLink , FontAwesomeModule , CdkMenu, CdkMenuItem, CdkMenuTrigger ],
   templateUrl: './header.html'
 })
 export class Header {

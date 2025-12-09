@@ -1,16 +1,18 @@
 <div class="navbar bg-base-100 shadow-sm">
-  <div class="dropdown">
-    <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+  <button [cdkMenuTriggerFor]="menu" class="btn btn-ghost btn-circle">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-      </svg>
-    </div>
-    <ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-      <li><a routerLink="/admin/product">Products</a></li>
-      <li><a>Categories</a></li>
-      <li><a>About</a></li>
-    </ul>
+    </svg>
+  </button>
+
+<ng-template #menu>
+  <div class="bg-base-100 rounded-box mt-3 w-52 p-2 shadow flex flex-col " cdkMenu>
+    <button routerLink="/admin/category" class="cursor-pointer text-xs w-full text-start p-1 rounded hover:border" cdkMenuItem>Categorías</button>
+    <button routerLink="/admin/product" class="cursor-pointer text-xs w-full text-start p-1 rounded hover:border" cdkMenuItem>Productos</button>
+    <button routerLink="/home" class="cursor-pointer text-xs w-full text-start p-1 rounded hover:border" cdkMenuItem>Home</button>
   </div>
+</ng-template>
 
   <div class="flex-1">
     <a class="btn btn-ghost text-xl">Mi Catalogo</a>

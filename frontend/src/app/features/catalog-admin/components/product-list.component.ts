@@ -3,7 +3,7 @@ import { ProductService } from '../services/product.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CurrencyPipe, NgClass } from '@angular/common';
 import { ProductModel } from '../models/product.model';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProductResModel } from '../models/prd-res.model';
 import { PrdFormComponent } from "./product-form.component";
 import { Dialog } from '@angular/cdk/dialog';
@@ -19,7 +19,7 @@ interface categoryModel {
 @Component({
   standalone: true,
   selector: 'app-prd-list',
-  imports: [CdkTableModule, CurrencyPipe, NgClass],
+  imports: [CdkTableModule, CurrencyPipe, NgClass , ReactiveFormsModule],
   templateUrl: 'product-list.html'
 })
 
@@ -137,7 +137,6 @@ export class PrdListComponent implements OnInit {
   }
 
   onEdit(row: ProductResModel) {
-
     const categories: number[] = []
     row.categories.map(cat => categories.push(cat.id))
 
@@ -151,11 +150,9 @@ export class PrdListComponent implements OnInit {
       thumbnailUrl: row.thumbnailUrl,
       status: row.status
     }
-
     const ref = this.dialog.open(ProductFormDialogComponent, {
       data: { id:row.id , product: body },
     });
-
     ref.closed.subscribe(result => {
       if (result === 'updated') {
         this.reloadProducts();
@@ -180,6 +177,11 @@ export class PrdListComponent implements OnInit {
      const ref = this.dialog.open(ProductWarnDialogComponent, {
       data: { id:row.id , product: body },
     });
+    ref.closed.subscribe( result => {
+      if (result === 'deleted') {
+        this.reloadProducts();
+      }
+    })
   }
 
 }
