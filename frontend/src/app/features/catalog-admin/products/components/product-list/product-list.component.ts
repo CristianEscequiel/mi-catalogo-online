@@ -1,14 +1,14 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
-import { ProductService } from '../services/product.service';
+import { ProductService } from '../../services/product.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { ProductModel } from '../models/product.model';
+import { ProductModel } from '../../models/product.model';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProductResModel } from '../models/prd-res.model';
-import { PrdFormComponent } from "./product-form.component";
+import { ProductResModel } from '../../models/prd-res.model';
+import { PrdFormComponent } from "../product-form/product-form.component";
 import { Dialog } from '@angular/cdk/dialog';
-import { ProductFormDialogComponent } from './product-form-dialog.component';
-import { ProductWarnDialogComponent } from './warn-dialog.component';
+import { ProductFormDialogComponent } from '../product-form-dialog/product-form-dialog.component';
+import { ProductWarnDialogComponent } from '../product-warn-dialog/product-warn-dialog.component';
 interface categoryModel {
   id: number;
   name: string;
@@ -147,6 +147,7 @@ export class PrdListComponent implements OnInit {
       sku: row.sku,
       price:row.price,
       categoryIds: categories,
+      imageUrl: row.thumbnailUrl ?? '',
       thumbnailUrl: row.thumbnailUrl,
       status: row.status
     }
@@ -171,6 +172,7 @@ export class PrdListComponent implements OnInit {
       sku: row.sku,
       price:row.price,
       categoryIds: categories,
+      imageUrl: row.thumbnailUrl ?? '',
       thumbnailUrl: row.thumbnailUrl,
       status: row.status
     }

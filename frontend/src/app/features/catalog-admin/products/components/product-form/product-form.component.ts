@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProductService } from '../services/product.service';
+import { ProductService } from '../../services/product.service';
 
 interface categoryModel {
   id: number;

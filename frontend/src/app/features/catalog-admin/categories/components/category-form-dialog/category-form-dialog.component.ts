@@ -2,9 +2,9 @@ import { Component, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
-import { CategoryModel } from '../models/category.model';
-import { CategoryService } from '../services/category.service';
-import { CategoryFormComponent } from './category-form.component';
+import { CategoryModel } from '../../models/category.model';
+import { CategoryService } from '../../services/category.service';
+import { CategoryFormComponent } from '../category-form/category-form.component';
 
 @Component({
   standalone: true,

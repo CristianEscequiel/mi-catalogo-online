@@ -2,8 +2,8 @@ import { Component, ViewChild, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { CategoryService } from '../services/category.service';
 import { CategoryModel } from '../models/category.model';
-import { CategoryListComponent } from '../components/category-list.component';
-import { CategoryFormComponent } from '../components/category-form.component';
+import { CategoryListComponent } from '../components/category-list/category-list.component';
+import { CategoryFormComponent } from '../components/category-form/category-form.component';
 
 @Component({
   standalone: true,

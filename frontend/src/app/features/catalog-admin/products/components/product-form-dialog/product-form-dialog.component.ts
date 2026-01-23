@@ -2,9 +2,9 @@ import { Component, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
-import { ProductModel } from '../models/product.model';
-import { ProductService } from '../services/product.service';
-import { PrdFormComponent } from './product-form.component';
+import { ProductModel } from '../../models/product.model';
+import { ProductService } from '../../services/product.service';
+import { PrdFormComponent } from '../product-form/product-form.component';
 
 @Component({
   standalone: true,
@@ -51,6 +51,7 @@ export class ProductFormDialogComponent {
       return;
     }
     const body = this.form.getRawValue() as ProductModel;
+    body.thumbnailUrl = body.imageUrl || body.thumbnailUrl || null;
 
     this.productService.editProduct(this.data.id, body).subscribe({
       next: res => { this.dialogRef.close('updated') },

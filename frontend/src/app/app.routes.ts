@@ -4,8 +4,8 @@ import { HomePage } from './features/home/home-page';
 import { authGuard } from './core/guards/auth-guard';
 import { Profile } from './features/profile/profile';
 import { loginGuard } from './core/guards/login-guard';
-import { PrdAdminComponet } from './features/catalog-admin/pages/product-admin.page';
-import { CategoryAdminComponent } from './features/catalog-admin/pages/category-admin.page';
+import { PrdAdminComponet } from './features/catalog-admin/products/pages/product-admin.page';
+import { CategoryAdminComponent } from './features/catalog-admin/categories/pages/category-admin.page';
 
 export const routes: Routes = [
   {

@@ -2,10 +2,10 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Dialog } from '@angular/cdk/dialog';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { CategoryService } from '../services/category.service';
-import { CategoryResModel } from '../models/category.model';
-import { CategoryFormDialogComponent } from './category-form-dialog.component';
-import { CategoryWarnDialogComponent } from './category-warn-dialog.component';
+import { CategoryService } from '../../services/category.service';
+import { CategoryResModel } from '../../models/category.model';
+import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
+import { CategoryWarnDialogComponent } from '../category-warn-dialog/category-warn-dialog.component';
 
 @Component({
   standalone: true,

@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { ProfileResponse } from '../../auth/models/profile-res.model';
+import { ProfileResponse } from '../../../auth/models/profile-res.model';
 import { ProductModel } from '../models/product.model';
 import { firstValueFrom, Observable } from 'rxjs';
 
