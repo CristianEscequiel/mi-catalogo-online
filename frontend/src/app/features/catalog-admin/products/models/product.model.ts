@@ -6,6 +6,5 @@ export interface ProductModel {
   price: number ,
   categoryIds: number[] ,
   thumbnailUrl?: string | null ,
-  imageUrl?: string | null ,
   status: 'DRAFT'| 'PUBLIC' | 'ARCHIVED',
 }

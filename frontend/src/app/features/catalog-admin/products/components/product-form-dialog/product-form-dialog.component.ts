@@ -51,7 +51,7 @@ export class ProductFormDialogComponent {
       return;
     }
     const body = this.form.getRawValue() as ProductModel;
-    body.thumbnailUrl = body.imageUrl || body.thumbnailUrl || null;
+    body.thumbnailUrl = body.thumbnailUrl || null;
 
     this.productService.editProduct(this.data.id, body).subscribe({
       next: res => { this.dialogRef.close('updated') },

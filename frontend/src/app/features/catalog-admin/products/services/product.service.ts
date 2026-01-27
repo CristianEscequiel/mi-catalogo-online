@@ -4,13 +4,6 @@ import { ProfileResponse } from '../../../auth/models/profile-res.model';
 import { ProductModel } from '../models/product.model';
 import { firstValueFrom, Observable } from 'rxjs';
 
-interface categoryModel {
-  id: number;
-  name: string;
-  descripcion: string;
-  imageUrl: string
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -25,10 +18,6 @@ export class ProductService {
   async postProduct(body: ProductModel) {
     const res = await firstValueFrom(this.http.post<any>(`${this.apiUrl}/products`, body))
     return res
-  }
-
-  getCategories(): Observable<categoryModel[]> {
-    return this.http.get<categoryModel[]>(`${this.apiUrl}/categories`);
   }
 
   getAllProducts(): Observable<any> {

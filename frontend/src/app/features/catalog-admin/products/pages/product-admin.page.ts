@@ -30,17 +30,15 @@ productForm = this.fb.group({
     sku: this.fb.control<string>(''),
     price: this.fb.control<number>(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
     categoryIds: this.fb.control<number[]>([], { nonNullable: true, validators: [] }),
-    imageUrl: this.fb.control<string>('', { nonNullable: true }),
     thumbnailUrl: this.fb.control<string | null>(null),
     status: this.fb.control<'DRAFT' | 'PUBLIC' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
   });
 
 onCreate(){
-  // CREAR PRODUCTO ANTIGUO
     const formValue = this.productForm.getRawValue();
     const body: ProductModel = {
       ...formValue,
-      thumbnailUrl: formValue.imageUrl || formValue.thumbnailUrl || null,
+      thumbnailUrl: formValue.thumbnailUrl || null,
     };
     console.log(body)
     this.productService.postProduct(body)

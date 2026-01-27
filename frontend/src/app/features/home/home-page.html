@@ -1,6 +1,26 @@
-<div class="p-4 grid lg:grid-cols-6 md:grid-cols-3 gap-4">
+<div class="flex px-4">
+  <input placeholder="Buscar"
+        [formControl]="searchControl"
+        class="input input-primary input-ghost input-sm w-full border-primary" type="search">
+</div>
 
-  @for (item of allProducts; track $index) {
+<div class="flex flex-row p-4 overflow-hidden gap-2">
+  <button
+  (click)="applyFilter(' ')"
+  class="btn btn-sm btn-primary btn-soft "><fa-icon [icon]="faFilter">
+</fa-icon></button>
+  <button
+  (click)="applyFilter(' ')"
+  class="btn btn-sm btn-primary btn-soft ">All</button>
+  @for (cat of categoriesArray; track cat) {
+    <button
+    (click)="setCategory(cat.id)"
+    class="btn btn-sm btn-primary btn-soft ">{{ cat.name }}</button>
+  }
+</div>
+
+<div class="p-4 grid lg:grid-cols-6 md:grid-cols-3 gap-4">
+  @for (item of products; track $index) {
 
   <div class="flex h-full flex-col rounded-xl bg-base-100 shadow">
     <figure class="h-44 w-full overflow-hidden">

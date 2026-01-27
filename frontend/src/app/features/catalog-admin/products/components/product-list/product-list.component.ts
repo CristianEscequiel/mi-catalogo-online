@@ -5,16 +5,11 @@ import { CurrencyPipe, NgClass } from '@angular/common';
 import { ProductModel } from '../../models/product.model';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProductResModel } from '../../models/prd-res.model';
-import { PrdFormComponent } from "../product-form/product-form.component";
 import { Dialog } from '@angular/cdk/dialog';
 import { ProductFormDialogComponent } from '../product-form-dialog/product-form-dialog.component';
 import { ProductWarnDialogComponent } from '../product-warn-dialog/product-warn-dialog.component';
-interface categoryModel {
-  id: number;
-  name: string;
-  descripcion: string;
-  imageUrl: string
-}
+import { CategoryResModel } from '../../../categories/models/category.model'
+import { CategoryService } from '../../../categories/services/category.service';
 
 @Component({
   standalone: true,
@@ -25,6 +20,7 @@ interface categoryModel {
 
 export class PrdListComponent implements OnInit {
   productService = inject(ProductService)
+  categoryService = inject(CategoryService)
   fb = inject(FormBuilder)
   dialog = inject(Dialog)
   displayedColumns: string[] = [
@@ -36,7 +32,7 @@ export class PrdListComponent implements OnInit {
     'status',
     'actions',
   ];
-  categories: categoryModel[] = []
+  categories: CategoryResModel[] = []
   sortField: keyof ProductModel | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
   searchControl = new FormControl('', { nonNullable: true });
@@ -57,7 +53,7 @@ export class PrdListComponent implements OnInit {
 
   ngOnInit(): void {
     this.getAllProducts()
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: res => { this.categories = res },
       error: err => console.error(err),
     });
@@ -126,8 +122,8 @@ export class PrdListComponent implements OnInit {
     if (!ids?.length || !this.categories?.length) return '-';
 
     const names = this.categories
-      .filter(c => ids.includes(c.id))
-      .map(c => c.name);
+      .filter(cat => ids.includes(cat.id))
+      .map(cat => cat.name);
 
     return names.length ? names.join(', ') : '-';
   }
@@ -147,8 +143,7 @@ export class PrdListComponent implements OnInit {
       sku: row.sku,
       price:row.price,
       categoryIds: categories,
-      imageUrl: row.thumbnailUrl ?? '',
-      thumbnailUrl: row.thumbnailUrl,
+      thumbnailUrl: row.thumbnailUrl ?? '',
       status: row.status
     }
     const ref = this.dialog.open(ProductFormDialogComponent, {
@@ -172,8 +167,7 @@ export class PrdListComponent implements OnInit {
       sku: row.sku,
       price:row.price,
       categoryIds: categories,
-      imageUrl: row.thumbnailUrl ?? '',
-      thumbnailUrl: row.thumbnailUrl,
+      thumbnailUrl: row.thumbnailUrl ?? '',
       status: row.status
     }
      const ref = this.dialog.open(ProductWarnDialogComponent, {

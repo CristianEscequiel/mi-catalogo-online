@@ -1,13 +1,8 @@
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
-
-interface categoryModel {
-  id: number;
-  name: string;
-  descripcion: string;
-  imageUrl: string
-}
+import { CategoryResModel } from '../../../categories/models/category.model';
+import { CategoryService } from '../../../categories/services/category.service';
 
 @Component({
   standalone: true,
@@ -23,13 +18,14 @@ export class PrdFormComponent implements OnInit {
   @Output() cancel = new EventEmitter<void>();
 
   productService = inject(ProductService)
+  categoryService = inject(CategoryService)
   fb = inject(FormBuilder)
   loadingCategories = true;
   statuses = ['ARCHIVED', 'DRAFT', 'PUBLIC']
-  categories: categoryModel[] = []
+  categories: CategoryResModel[] = []
 
   ngOnInit() {
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: res => { this.categories = res, this.loadingCategories = false },
       error: err => console.error(err),
     });
