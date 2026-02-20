@@ -16,11 +16,44 @@
     (change)="setTab('create')" />
 
   <div class="tab-content bg-base-100 border-base-300 p-6">
-    <app-product-form
-      [productForm]="productForm"
-      mode="create"
-      (submitForm)="onCreate()">
-    </app-product-form>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="flex w-full">
+        <app-product-form
+          [productForm]="productForm"
+          mode="create"
+          (submitForm)="onCreate()">
+        </app-product-form>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <app-product-card-preview [vm]="previewVm"></app-product-card-preview>
+
+        <div class="card bg-base-100 border-base-300 border">
+          <div class="card-body gap-3">
+            <h3 class="card-title text-base">Ayudas rápidas</h3>
+            <ul class="text-sm opacity-80 space-y-1">
+              <li>Usá URLs optimizadas (webp/resize) para mejorar la carga.</li>
+              <li>Slug en minúscula con guiones (ej: mi-producto).</li>
+              <li>Descripción corta y clara (1-2 líneas).</li>
+              <li>Precio positivo y estado coherente.</li>
+            </ul>
+
+            <div class="mt-2">
+              <h4 class="text-sm font-semibold">Validaciones</h4>
+              @if (previewVm.warnings.length > 0) {
+                <ul class="mt-1 text-sm text-warning space-y-1">
+                  @for (warning of previewVm.warnings; track $index) {
+                    <li>{{ warning }}</li>
+                  }
+                </ul>
+              } @else {
+                <p class="mt-1 text-sm text-success">Todo OK.</p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

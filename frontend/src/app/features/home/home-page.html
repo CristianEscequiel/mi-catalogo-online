@@ -4,7 +4,7 @@
         class="input input-primary input-ghost input-sm w-full border-primary" type="search">
 </div>
 
-<div class="flex flex-row p-4 overflow-hidden gap-2">
+<div class="flex flex-row overflow-hidden p-4 gap-2">
   <button
   (click)="applyFilter(' ')"
   class="btn btn-sm btn-primary btn-soft "><fa-icon [icon]="faFilter">
@@ -24,7 +24,16 @@
 
   <div class="flex h-full flex-col rounded-xl bg-base-100 shadow">
     <figure class="h-44 w-full overflow-hidden">
-      <img class="h-full w-full object-cover" [src]="item.thumbnailUrl" [alt]="item.name" />
+      <img
+        class="h-full w-full object-cover"
+        [ngSrc]="getThumb(item.thumbnailUrl!)"
+        [alt]="item.name"
+        width="400"
+        height="176"
+
+        [loading]="$index === 0 ? 'eager' : 'lazy'"
+        decoding="async"
+      />
     </figure>
 
     <div class="flex flex-1 flex-col p-4">

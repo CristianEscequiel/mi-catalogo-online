@@ -19,7 +19,7 @@ export class UsersService {
   }
   async getUserByID(id: number) {
     const user = await this.findOne(id);
-    if (user.id === 1) {
+    if (user.id === 9) {
       throw new ForbiddenException('You are not alloewd acces this user');
     }
     return user;

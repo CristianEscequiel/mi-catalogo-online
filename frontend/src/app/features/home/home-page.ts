@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { ProductService } from '../catalog-admin/products/services/product.service';
 import { CategoryService } from '../catalog-admin/categories/services/category.service'
 import { CategoryResModel } from '../catalog-admin/categories/models/category.model';
@@ -10,7 +11,7 @@ import { ProductResModel } from '../catalog-admin/products/models/prd-res.model'
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [FontAwesomeModule, ReactiveFormsModule],
+  imports: [FontAwesomeModule, ReactiveFormsModule, NgOptimizedImage],
   templateUrl: './home-page.html'
 })
 export class HomePage implements OnInit {
@@ -27,7 +28,6 @@ export class HomePage implements OnInit {
     this.productService.getAllProducts().subscribe({
       next: res => {
         this.allProducts = res
-        console.log(res)
         this.products = [...this.allProducts]
       },
       error: err => console.error(err),
@@ -35,7 +35,6 @@ export class HomePage implements OnInit {
     this.categoryService.getCategories().subscribe({
       next: res => {
         this.categories = res,
-          console.log(res)
         this.categoriesArray = this.categories.flatMap(item => {
           return { name: item.name, id: item.id }
         });
@@ -63,5 +62,19 @@ setCategory(key: number) {
 
   addToCart(item: any) {
     console.log(item)
+  }
+
+  getThumb(url: string) {
+    try {
+      const u = new URL(url);
+      u.searchParams.set('auto', 'compress');
+      u.searchParams.set('cs', 'tinysrgb');
+      u.searchParams.set('w', '800');
+      u.searchParams.set('dpr', '2');
+      u.searchParams.set('fm', 'webp');
+      return u.toString();
+    } catch {
+      return url;
+    }
   }
 }

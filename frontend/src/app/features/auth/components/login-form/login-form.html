@@ -10,6 +10,6 @@
     <label for="password" class="label">Password</label>
     <input id="password" formControlName="password" type="password" class="input" placeholder="Password" />
 
-    <button [disabled]="!loginForm.valid" class="btn btn-neutral mt-4">Login</button>
+    <button [disabled]="!loginForm.valid" [ngClass]="[ loginForm.valid ? 'btn-primary' : 'btn-neutral' ]" class="btn  mt-4">Login</button>
   </form>
 </div>

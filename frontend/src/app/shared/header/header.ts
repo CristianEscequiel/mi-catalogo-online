@@ -14,6 +14,7 @@ import {CdkMenu, CdkMenuItem, CdkMenuTrigger} from '@angular/cdk/menu';
   imports: [RouterLink , FontAwesomeModule , CdkMenu, CdkMenuItem, CdkMenuTrigger ],
   templateUrl: './header.html'
 })
+
 export class Header {
   faRightFromBracket = faRightFromBracket
   private store = inject(AuthStore);

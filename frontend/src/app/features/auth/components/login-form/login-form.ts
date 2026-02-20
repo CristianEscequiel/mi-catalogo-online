@@ -3,11 +3,12 @@ import { AuthFacade } from '../../services/auth.facade';
 import { Validators } from '@angular/forms';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { UserFormLogin } from '../../../../core/models/user-form.model';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login-form',
   standalone: true,
-  imports: [ ReactiveFormsModule ],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login-form.html',
 })
 export class LoginForm {
