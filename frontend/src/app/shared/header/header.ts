@@ -1,18 +1,15 @@
 import { Component, computed, inject } from '@angular/core';
 import { AuthStore } from '../../core/state/auth.store';
-import { RouterLink } from "@angular/router";
+import { RouterLink, RouterOutlet } from "@angular/router";
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { AuthFacade } from '../../features/auth/services/auth.facade';
 
-import {CdkMenu, CdkMenuItem, CdkMenuTrigger} from '@angular/cdk/menu';
-
-
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [RouterLink , FontAwesomeModule , CdkMenu, CdkMenuItem, CdkMenuTrigger ],
-  templateUrl: './header.html'
+  imports: [RouterLink , FontAwesomeModule],
+  templateUrl: './header2.html'
 })
 
 export class Header {

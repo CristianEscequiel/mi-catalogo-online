@@ -11,7 +11,7 @@ import { ProductResModel } from '../catalog-admin/products/models/prd-res.model'
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [FontAwesomeModule, ReactiveFormsModule, NgOptimizedImage],
+  imports: [FontAwesomeModule, ReactiveFormsModule],
   templateUrl: './home-page.html'
 })
 export class HomePage implements OnInit {
@@ -64,17 +64,4 @@ setCategory(key: number) {
     console.log(item)
   }
 
-  getThumb(url: string) {
-    try {
-      const u = new URL(url);
-      u.searchParams.set('auto', 'compress');
-      u.searchParams.set('cs', 'tinysrgb');
-      u.searchParams.set('w', '800');
-      u.searchParams.set('dpr', '2');
-      u.searchParams.set('fm', 'webp');
-      return u.toString();
-    } catch {
-      return url;
-    }
-  }
 }

@@ -57,7 +57,18 @@ export class CategoryListComponent implements OnInit {
 
   onEdit(row: CategoryResModel) {
     const ref = this.dialog.open(CategoryFormDialogComponent, {
-      data: { id: row.id, category: row },
+      data: { id: row.id, category: row, mode: 'edit' },
+    });
+    ref.closed.subscribe(result => {
+      if (result === 'updated') {
+        this.reloadCategories();
+      }
+    });
+  }
+
+  onCreate() {
+    const ref = this.dialog.open(CategoryFormDialogComponent, {
+      data: { mode: 'create' },
     });
     ref.closed.subscribe(result => {
       if (result === 'updated') {

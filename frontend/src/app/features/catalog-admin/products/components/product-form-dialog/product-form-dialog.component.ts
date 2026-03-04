@@ -1,10 +1,12 @@
 import { Component, Inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { ProductModel } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { PrdFormComponent } from '../product-form/product-form.component';
+
+type FormMode = 'create' | 'edit';
 
 @Component({
   standalone: true,
@@ -13,12 +15,17 @@ import { PrdFormComponent } from '../product-form/product-form.component';
   template: `
   <div class="bg-base-200 rounded-2xl shadow-xl max-w-xl w-full mx-auto p-2">
   <div class="flex p-1">
-  <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Editar producto</h3>
+    @if(data.mode === 'edit'){
+      <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Editar producto</h3>
+    } @else {
+      <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Crear nuevo producto</h3>
+    }
+
   <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost">✕</button>
   </div>
   <app-product-form
     [productForm]="form"
-    mode="edit"
+    [mode]= data.mode
     (submitForm)="onSubmit()"
     (cancel)="onCancel()">
   </app-product-form>
@@ -31,21 +38,35 @@ export class ProductFormDialogComponent {
     private fb: FormBuilder,
     private productService: ProductService,
     private dialogRef: DialogRef<'updated' | 'cancel'>,
-    @Inject(DIALOG_DATA) public data: { id: number, product: ProductModel }
+    @Inject(DIALOG_DATA) public data: { id: number, product: ProductModel , mode: FormMode }
   ) {
-    this.form = this.fb.group({
-      name: this.fb.control(data.product.name),
-      description: this.fb.control(data.product.description ?? ''),
-      slug: this.fb.control(data.product.slug ?? ''),
-      sku: this.fb.control(data.product.sku ?? ''),
-      price: this.fb.control(data.product.price),
-      categoryIds: this.fb.control(data.product.categoryIds ?? []),
-      thumbnailUrl: this.fb.control(data.product.thumbnailUrl ?? null),
-      status: this.fb.control(data.product.status),
+    if(data.mode === 'edit') {
+              this.form = this.fb.group({
+                          name: this.fb.control(data.product.name),
+                          description: this.fb.control(data.product.description ?? ''),
+                          slug: this.fb.control(data.product.slug ?? ''),
+                          sku: this.fb.control(data.product.sku ?? ''),
+                          price: this.fb.control(data.product.price),
+                          categoryIds: this.fb.control(data.product.categoryIds ?? []),
+                          thumbnailUrl: this.fb.control(data.product.thumbnailUrl ?? null),
+                          status: this.fb.control(data.product.status),
     });
+  }else {
+              this.form = this.fb.group({
+                          name: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
+                          description: this.fb.control<string>('', { nonNullable: true }),
+                          slug: this.fb.control<string>(''),
+                          sku: this.fb.control<string>(''),
+                          price: this.fb.control<number>(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
+                          categoryIds: this.fb.control<number[]>([], { nonNullable: true, validators: [] }),
+                          thumbnailUrl: this.fb.control<string | null>(null),
+                          status: this.fb.control<'DRAFT' | 'PUBLIC' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
+          });
+    }
   }
 
   onSubmit() {
+    if(this.data.mode === 'edit') {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -57,8 +78,21 @@ export class ProductFormDialogComponent {
       next: res => { this.dialogRef.close('updated') },
       error: err => console.error(err),
     });
-  }
 
+  }else {
+          if (this.form.invalid) {
+        this.form.markAllAsTouched();
+        return;
+      }
+    const formValue = this.form.getRawValue();
+    const body: ProductModel = {
+      ...formValue,
+      thumbnailUrl: formValue.thumbnailUrl || null,
+    };
+    this.productService.postProduct(body)
+    this.dialogRef.close('updated')
+    }
+  }
   onCancel() {
     this.dialogRef.close('cancel');
   }

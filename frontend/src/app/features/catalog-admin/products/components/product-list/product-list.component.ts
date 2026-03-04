@@ -71,11 +71,9 @@ export class PrdListComponent implements OnInit {
       error: err => console.error(err),
     });
   }
-
   reloadProducts(){
     this.getAllProducts()
   }
-
   onSort(field: keyof ProductModel) {
     if (this.sortField === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -127,11 +125,20 @@ export class PrdListComponent implements OnInit {
 
     return names.length ? names.join(', ') : '-';
   }
+  onCreate() {
+    const ref = this.dialog.open(ProductFormDialogComponent, {
+     data: { mode: 'create'}
+    });
+    ref.closed.subscribe(result => {
+      if (result === 'updated') {
+        this.reloadProducts();
+      }
+    });
 
-  onView(row: ProductModel) {
-    // TODO: detalle / modal
   }
-
+  onView(row:string) {
+    //Todo:
+  }
   onEdit(row: ProductResModel) {
     const categories: number[] = []
     row.categories.map(cat => categories.push(cat.id))
@@ -147,7 +154,7 @@ export class PrdListComponent implements OnInit {
       status: row.status
     }
     const ref = this.dialog.open(ProductFormDialogComponent, {
-      data: { id:row.id , product: body },
+      data: { id:row.id , product: body , mode:'edit' },
     });
     ref.closed.subscribe(result => {
       if (result === 'updated') {
@@ -155,7 +162,6 @@ export class PrdListComponent implements OnInit {
       }
     });
   }
-
   onDelete(row: ProductResModel) {
     const categories: number[] = []
     row.categories.map(cat => categories.push(cat.id))
@@ -171,7 +177,7 @@ export class PrdListComponent implements OnInit {
       status: row.status
     }
      const ref = this.dialog.open(ProductWarnDialogComponent, {
-      data: { id:row.id , product: body },
+      data: { id:row.id , product: body  },
     });
     ref.closed.subscribe( result => {
       if (result === 'deleted') {

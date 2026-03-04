@@ -4,6 +4,8 @@ import { ProductService } from '../../services/product.service';
 import { CategoryResModel } from '../../../categories/models/category.model';
 import { CategoryService } from '../../../categories/services/category.service';
 
+type FormMode = 'create' | 'edit';
+
 @Component({
   standalone: true,
   selector: 'app-product-form',
@@ -13,7 +15,7 @@ import { CategoryService } from '../../../categories/services/category.service';
 export class PrdFormComponent implements OnInit {
 
   @Input() productForm!: FormGroup;
-  @Input() mode: 'create' | 'edit' = 'create';
+  @Input() mode: FormMode = 'create';
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 

@@ -6,6 +6,8 @@ import { CategoryModel } from '../../models/category.model';
 import { CategoryService } from '../../services/category.service';
 import { CategoryFormComponent } from '../category-form/category-form.component';
 
+type FormMode = 'create' | 'edit';
+
 @Component({
   standalone: true,
   selector: 'app-category-form-dialog',
@@ -13,12 +15,16 @@ import { CategoryFormComponent } from '../category-form/category-form.component'
   template: `
   <div class="bg-base-200 rounded-2xl shadow-xl max-w-xl w-full mx-auto p-2">
     <div class="flex p-1">
-      <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Editar categoría</h3>
-      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost">×</button>
+      @if (data.mode === 'edit') {
+        <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Editar categoria</h3>
+      } @else {
+        <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Crear nueva categoria</h3>
+      }
+      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost">&times;</button>
     </div>
     <app-category-form
       [categoryForm]="form"
-      mode="edit"
+      [mode]="data.mode"
       (submitForm)="onSubmit()"
       (cancel)="onCancel()">
     </app-category-form>
@@ -31,13 +37,21 @@ export class CategoryFormDialogComponent {
     private fb: FormBuilder,
     private categoryService: CategoryService,
     private dialogRef: DialogRef<'updated' | 'cancel'>,
-    @Inject(DIALOG_DATA) public data: { id: number, category: CategoryModel }
+    @Inject(DIALOG_DATA) public data: { id?: number, category?: CategoryModel, mode: FormMode }
   ) {
-    this.form = this.fb.group({
-      name: this.fb.control(data.category.name, { nonNullable: true, validators: [Validators.required] }),
-      description: this.fb.control(data.category.description ?? '', { nonNullable: true }),
-      imageUrl: this.fb.control(data.category.imageUrl ?? '', { nonNullable: true }),
-    });
+    if (data.mode === 'edit' && data.category) {
+      this.form = this.fb.group({
+        name: this.fb.control(data.category.name, { nonNullable: true, validators: [Validators.required] }),
+        description: this.fb.control(data.category.description ?? '', { nonNullable: true }),
+        imageUrl: this.fb.control(data.category.imageUrl ?? '', { nonNullable: true }),
+      });
+    } else {
+      this.form = this.fb.group({
+        name: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
+        description: this.fb.control<string>('', { nonNullable: true }),
+        imageUrl: this.fb.control<string>('', { nonNullable: true }),
+      });
+    }
   }
 
   onSubmit() {
@@ -47,10 +61,17 @@ export class CategoryFormDialogComponent {
     }
     const body = this.form.getRawValue() as CategoryModel;
 
-    this.categoryService.editCategory(this.data.id, body).subscribe({
-      next: () => { this.dialogRef.close('updated'); },
-      error: err => console.error(err),
-    });
+    if (this.data.mode === 'edit' && this.data.id != null) {
+      this.categoryService.editCategory(this.data.id, body).subscribe({
+        next: () => { this.dialogRef.close('updated'); },
+        error: err => console.error(err),
+      });
+    } else {
+      this.categoryService.createCategory(body).subscribe({
+        next: () => { this.dialogRef.close('updated'); },
+        error: err => console.error(err),
+      });
+    }
   }
 
   onCancel() {
