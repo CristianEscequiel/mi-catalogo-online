@@ -64,10 +64,14 @@ export class PrdFormComponent implements OnInit {
   get selectedCategoriesNames(): string {
     const ids = this.productForm.value.categoryIds ?? [];
     const selected = this.categories.filter(c => ids.includes(c.id));
-    if (selected.length === 0) {
-      return 'Ninguna';
+
+    if (selected.length === 0) return 'Ninguna';
+
+    if (selected.length <= 2) {
+      return selected.map(s => s.name).join(', ');
     }
-    return selected.map(s => s.name).join(', ');
+
+    return `${selected[0].name}, ${selected[1].name} +${selected.length - 2}`;
   }
 
 }

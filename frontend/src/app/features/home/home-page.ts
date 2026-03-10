@@ -1,28 +1,34 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ProductService } from '../catalog-admin/products/services/product.service';
 import { CategoryService } from '../catalog-admin/categories/services/category.service'
 import { CategoryResModel } from '../catalog-admin/categories/models/category.model';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
+import { faSliders , faPlus , faMinus , faCartPlus } from '@fortawesome/free-solid-svg-icons';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
+import { CartStore } from '../../core/state/cart.store';
 
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [FontAwesomeModule, ReactiveFormsModule],
+  imports: [FontAwesomeModule, ReactiveFormsModule , DecimalPipe],
   templateUrl: './home-page.html'
 })
 export class HomePage implements OnInit {
-  faFilter = faSliders
-  productService = inject(ProductService)
-  categoryService = inject(CategoryService)
+  private readonly cartStore = inject(CartStore);
+  faFilter = faSliders;
+  faPlus = faPlus;
+  faMinus = faMinus;
+  faCartPlus = faCartPlus;
+  productService = inject(ProductService);
+  categoryService = inject(CategoryService);
   allProducts: ProductResModel[] = [];
   products: ProductResModel[] = [];
   searchControl = new FormControl('', { nonNullable: true });
   categories: CategoryResModel[] = [];
-  categoriesArray: { id: number, name: string }[] = []
+  categoriesArray: { id: number, name: string }[] = [];
+  quantities: Record<number, number> = {};
 
   ngOnInit(): void {
     this.productService.getAllProducts().subscribe({
@@ -60,8 +66,35 @@ setCategory(key: number) {
   );
 }
 
-  addToCart(item: any) {
-    console.log(item)
+ getQuantity(itemId: number): number {
+    return this.quantities[itemId] ?? 1;
+  }
+
+  increaseQuantity(itemId: number, stock: number): void {
+    const current = this.getQuantity(itemId);
+    if (current < stock) {
+      this.quantities[itemId] = current + 1;
+    }
+  }
+
+  decreaseQuantity(itemId: number): void {
+    const current = this.getQuantity(itemId);
+    if (current > 1) {
+      this.quantities[itemId] = current - 1;
+    }
+  }
+
+  addToCart(item: { id: number; name: string; price: number }): void {
+    const qty = this.getQuantity(item.id);
+
+    this.cartStore.add({
+      productId: item.id,
+      name: item.name,
+      price: item.price,
+      qty
+    });
+
+    this.quantities[item.id] = 1;
   }
 
 }

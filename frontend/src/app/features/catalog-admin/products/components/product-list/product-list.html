@@ -1,12 +1,8 @@
 <div class="flex flex-col ml-4 mb-4">
   <div>
-    <input class="input input-sm"
-          type="search"
-          placeholder="Buscar"
-          [formControl]="searchControl" />
-    <button
-      (click)="onCreate()"
-      class="btn btn-sm btn-ghost hover:btn-success btn-outline m-0 ml-4">+ Nuevo Producto</button>
+    <input class="input input-sm" type="search" placeholder="Buscar" [formControl]="searchControl" />
+    <button (click)="onCreate()" class="btn btn-sm btn-ghost hover:btn-success btn-outline m-0 ml-4">+ Nuevo
+      Producto</button>
   </div>
 </div>
 
@@ -84,6 +80,16 @@
     </td>
   </ng-container>
 
+  <!-- Precio -->
+  <ng-container cdkColumnDef="stock">
+    <th cdk-header-cell *cdkHeaderCellDef>
+      Stock
+    </th>
+    <td cdk-cell *cdkCellDef="let row">
+      {{ row.stock }}
+    </td>
+  </ng-container>
+
   <!-- SKU -->
   <ng-container cdkColumnDef="sku">
     <th cdk-header-cell *cdkHeaderCellDef>
@@ -127,7 +133,7 @@
           Ver
         </button>
 
-         <button type="button" class="btn btn-xs btn-info btn-outline" (click)="onEdit(row)">
+        <button type="button" class="btn btn-xs btn-info btn-outline" (click)="onEdit(row)">
           Editar
         </button>
 

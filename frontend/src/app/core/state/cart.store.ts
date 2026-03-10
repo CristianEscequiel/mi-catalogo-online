@@ -9,29 +9,31 @@ export interface CartItem {
 
 @Injectable({ providedIn: 'root' })
 export class CartStore {
-
   private readonly _items = signal<CartItem[]>([]);
 
   readonly items = this._items.asReadonly();
 
   readonly total = computed(() =>
-    this._items().reduce(
-      (acc, i) => acc + i.price * i.qty,
-      0
-    )
+    this._items().reduce((acc, i) => acc + i.price * i.qty, 0)
   );
+
+  readonly totalItems = computed(() =>
+  this._items().reduce((acc, i) => acc + i.qty, 0)
+);
 
   add(item: CartItem) {
     this._items.update(items => {
       const found = items.find(i => i.productId === item.productId);
+
       if (found) {
         return items.map(i =>
           i.productId === item.productId
-            ? { ...i, qty: i.qty + 1 }
+            ? { ...i, qty: i.qty + item.qty }
             : i
         );
       }
-      return [...items, { ...item, qty: 1 }];
+
+      return [...items, item];
     });
   }
 

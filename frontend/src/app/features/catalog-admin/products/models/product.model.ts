@@ -4,6 +4,7 @@ export interface ProductModel {
   description: string ,
   sku?: string | null ,
   price: number ,
+  stock: number ,
   categoryIds: number[] ,
   thumbnailUrl?: string | null ,
   status: 'DRAFT'| 'PUBLIC' | 'ARCHIVED',

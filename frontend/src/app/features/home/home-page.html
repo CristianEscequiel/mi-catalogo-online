@@ -1,45 +1,83 @@
 <div class="flex px-4">
-  <input placeholder="Buscar"
-        [formControl]="searchControl"
-        class="input input-primary input-ghost input-sm w-full border-primary" type="search">
+  <input placeholder="Buscar" [formControl]="searchControl"
+    class="input input-primary input-ghost input-sm w-full border-primary" type="search">
 </div>
 
 <div class="flex flex-row p-4 overflow-hidden gap-2">
-  <button
-  (click)="applyFilter(' ')"
-  class="btn btn-sm btn-primary btn-soft "><fa-icon [icon]="faFilter">
-</fa-icon></button>
-  <button
-  (click)="applyFilter(' ')"
-  class="btn btn-sm btn-primary btn-soft ">All</button>
+  <button (click)="applyFilter(' ')" class="btn btn-sm btn-primary btn-soft "><fa-icon [icon]="faFilter">
+    </fa-icon></button>
+  <button (click)="applyFilter(' ')" class="btn btn-sm btn-primary btn-soft ">All</button>
   @for (cat of categoriesArray; track cat) {
-    <button
-    (click)="setCategory(cat.id)"
-    class="btn btn-sm btn-primary btn-soft ">{{ cat.name }}</button>
+  <button (click)="setCategory(cat.id)" class="btn btn-sm btn-primary btn-soft ">{{ cat.name }}</button>
   }
 </div>
 
-<div class="p-4 grid lg:grid-cols-6 md:grid-cols-3 gap-4">
+<div class="p-4 grid lg:grid-cols-6 md:grid-cols-3 gap-4 transition">
   @for (item of products; track $index) {
 
-  <div class="flex h-full flex-col rounded-xl bg-base-100 shadow">
-    <figure class="h-44 w-full overflow-hidden">
-      <img class="h-full w-full object-cover" [src]="item.thumbnailUrl" [alt]="item.name" />
+  <div
+    class="group flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm border border-base-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary">
+    <figure class="relative h-44 w-full overflow-hidden bg-base-200">
+      <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        [src]="item.thumbnailUrl" [alt]="item.name" />
+
+      <span class="absolute right-3 top-3 badge badge-sm" [class.badge-success]="item.stock > 0"
+        [class.badge-error]="item.stock === 0">
+        {{ item.stock > 0 ? 'Disponible' : 'Sin stock' }}
+      </span>
     </figure>
 
     <div class="flex flex-1 flex-col p-4">
-      <h2 class="text-lg font-semibold">{{ item.name }}</h2>
+      <div class="space-y-1">
+        <h2 class="line-clamp-1 text-lg font-semibold">
+          {{ item.name }}
+        </h2>
 
-      <p class="mt-1 text-sm opacity-80 line-clamp-2">
-        {{ item.description }}
-      </p>
+        <p class="text-2xl font-bold text-primary">
+          $ {{ item.price | number:'1.0-0' }}
+        </p>
+
+        <p class="min-h-[40px] text-sm opacity-80 line-clamp-2">
+          {{ item.description }}
+        </p>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <span class="text-xs opacity-70">
+          Stock: {{ item.stock }}
+        </span>
+
+        <div class="flex items-center gap-2 rounded-xl border border-base-300 px-2 py-1">
+          <button class="btn btn-xs btn-ghost px-2" (click)="decreaseQuantity(item.id)"
+            [disabled]="getQuantity(item.id) <= 1">
+            <fa-icon [icon]="faMinus"></fa-icon>
+          </button>
+
+          <span class="min-w-6 text-center text-sm font-medium">
+            {{ getQuantity(item.id) }}
+          </span>
+
+          <button class="btn btn-xs btn-ghost px-2" (click)="increaseQuantity(item.id, item.stock)"
+            [disabled]="getQuantity(item.id) >= item.stock">
+            <fa-icon [icon]="faPlus"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-3 text-sm opacity-70">
+        Total: $
+        {{ item.price * getQuantity(item.id) | number:'1.0-0' }}
+      </div>
 
       <div class="mt-auto pt-4">
-        <button class="btn btn-sm btn-primary w-fit" (click)="addToCart(item)">Agregar</button>
+        <button (click)="addToCart(item)" [disabled]="item.stock === 0"
+          class="btn btn-primary btn-sm w-full rounded-xl">
+          <fa-icon class="text-sm" [icon]="faCartPlus"></fa-icon>
+          Agregar al carrito
+        </button>
       </div>
     </div>
   </div>
-
 
   }
 

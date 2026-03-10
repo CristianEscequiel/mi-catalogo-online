@@ -84,6 +84,10 @@
       }
     </div>
 
+    <label for="stock" class="label">Stock</label>
+    <input id="stock" formControlName="stock" type="number" placeholder="0" class="input w-full" />
+
+
     <label for="status" class="label">Estado</label>
     <div class="relative">
       <select id="status" formControlName="status" class="select w-full" required>
@@ -104,7 +108,7 @@
       }
     </div>
 
-    <button class="btn btn-primary btn-outline mt-5" type="submit" [disabled]="!productForm.valid">Submit</button>
+    <button class="btn btn-primary btn-outline mt-5" type="submit" [disabled]="!productForm.valid">Guardar</button>
 
   </form>
 

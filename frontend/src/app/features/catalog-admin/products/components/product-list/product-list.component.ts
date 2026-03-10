@@ -28,6 +28,7 @@ export class PrdListComponent implements OnInit {
     'name',
     'categories',
     'price',
+    'stock',
     'sku',
     'status',
     'actions',
@@ -149,6 +150,7 @@ export class PrdListComponent implements OnInit {
       description: row.description,
       sku: row.sku,
       price:row.price,
+      stock:row.stock,
       categoryIds: categories,
       thumbnailUrl: row.thumbnailUrl ?? '',
       status: row.status
@@ -172,6 +174,7 @@ export class PrdListComponent implements OnInit {
       description: row.description,
       sku: row.sku,
       price:row.price,
+      stock:row.stock,
       categoryIds: categories,
       thumbnailUrl: row.thumbnailUrl ?? '',
       status: row.status

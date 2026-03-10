@@ -6,6 +6,7 @@ export interface ProductResModel {
   description: string ,
   sku?: string | null ,
   price: number ,
+  stock: number ,
   categories: [
     {
       id:number
