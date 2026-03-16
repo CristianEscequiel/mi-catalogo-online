@@ -1,0 +1,25 @@
+<div class="max-w-2xl mx-auto">
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body items-start gap-3">
+      <h1 class="card-title text-2xl text-success">¡Orden confirmada!</h1>
+
+      <p>
+        Tu compra fue registrada con éxito.
+      </p>
+
+      <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
+        <p><span class="font-semibold">Orden:</span> #{{ orderId }}</p>
+        <p><span class="font-semibold">Items:</span> {{ itemsCount }}</p>
+        <p>
+          <span class="font-semibold">Total:</span>
+          $ {{ total | number:'1.0-0' }}
+        </p>
+      </div>
+
+      <div class="card-actions mt-2">
+        <a routerLink="/home" class="btn btn-primary">Volver al catálogo</a>
+        <a routerLink="/profile" class="btn btn-ghost">Ver perfil</a>
+      </div>
+    </div>
+  </div>
+</div>

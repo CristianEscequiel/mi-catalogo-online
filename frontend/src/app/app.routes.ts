@@ -7,6 +7,8 @@ import { loginGuard } from './core/guards/login-guard';
 import { PrdAdminComponet } from './features/catalog-admin/products/pages/product-admin.page';
 import { CategoryAdminComponent } from './features/catalog-admin/categories/pages/category-admin.page';
 import { CartPage } from './features/cart/cart-page';
+import { CheckoutPage } from './features/checkout/checkout-page';
+import { CheckoutSuccessPage } from './features/checkout/checkout-success-page';
 
 export const routes: Routes = [
   {
@@ -32,6 +34,16 @@ export const routes: Routes = [
     path: 'cart',
     canActivate:[authGuard],
     component: CartPage,
+  },
+  {
+    path: 'checkout',
+    canActivate:[authGuard],
+    component: CheckoutPage,
+  },
+  {
+    path: 'checkout/success/:orderId',
+    canActivate:[authGuard],
+    component: CheckoutSuccessPage,
   },
   {
   path: 'admin/product',

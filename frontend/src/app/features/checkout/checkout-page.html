@@ -1,0 +1,63 @@
+<div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="lg:col-span-2 card bg-base-100 border border-base-300">
+    <div class="card-body">
+      <h1 class="card-title text-2xl">Checkout</h1>
+
+      <form [formGroup]="checkoutForm" class="space-y-3" (ngSubmit)="placeOrder()">
+        <label class="form-control w-full">
+          <span class="label-text">Nombre</span>
+          <input class="input input-bordered w-full" formControlName="name" type="text" />
+        </label>
+
+        <label class="form-control w-full">
+          <span class="label-text">Email</span>
+          <input class="input input-bordered w-full" formControlName="email" type="email" />
+        </label>
+
+        <label class="form-control w-full">
+          <span class="label-text">Dirección</span>
+          <textarea class="textarea textarea-bordered w-full" formControlName="address" rows="3"></textarea>
+        </label>
+
+        <div class="flex gap-2">
+          <button
+            class="btn btn-primary"
+            type="submit"
+            [disabled]="loading() || checkoutForm.invalid || !hasItems()"
+          >
+            {{ loading() ? 'Procesando...' : 'Place order' }}
+          </button>
+          <a routerLink="/cart" class="btn btn-ghost">Volver al carrito</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 border border-base-300 h-fit">
+    <div class="card-body">
+      <h2 class="card-title">Resumen</h2>
+
+      @if (!hasItems()) {
+      <p class="opacity-70 text-sm">No hay productos en el carrito.</p>
+      } @else {
+      <div class="flex flex-col gap-3 max-h-72 overflow-y-auto">
+        @for (item of items(); track item.productId) {
+        <div class="flex items-center justify-between gap-3 border-b border-base-200 pb-2">
+          <div>
+            <p class="font-medium text-sm">{{ item.name }}</p>
+            <p class="text-xs opacity-70">{{ item.qty }} x $ {{ item.price | number:'1.0-0' }}</p>
+          </div>
+          <p class="font-semibold text-sm">$ {{ item.qty * item.price | number:'1.0-0' }}</p>
+        </div>
+        }
+      </div>
+      }
+
+      <div class="divider my-2"></div>
+      <div class="flex justify-between font-semibold text-base">
+        <span>Total</span>
+        <span class="text-primary">$ {{ total() | number:'1.0-0' }}</span>
+      </div>
+    </div>
+  </div>
+</div>

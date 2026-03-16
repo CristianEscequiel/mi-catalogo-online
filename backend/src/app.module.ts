@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { AiModule } from './ai/ai.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CartModule } from './cart/cart.module';
     AiModule,
     FavoritesModule,
     CartModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}
