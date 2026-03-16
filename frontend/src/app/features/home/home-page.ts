@@ -4,10 +4,12 @@ import { ProductService } from '../catalog-admin/products/services/product.servi
 import { CategoryService } from '../catalog-admin/categories/services/category.service'
 import { CategoryResModel } from '../catalog-admin/categories/models/category.model';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSliders , faPlus , faMinus , faCartPlus } from '@fortawesome/free-solid-svg-icons';
+import { faSliders , faPlus , faMinus , faCartPlus, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
 import { CartStore } from '../../core/state/cart.store';
+import { FavoritesStore } from '../../core/state/favorites.store';
+import { AuthStore } from '../../core/state/auth.store';
 
 @Component({
   standalone: true,
@@ -17,10 +19,13 @@ import { CartStore } from '../../core/state/cart.store';
 })
 export class HomePage implements OnInit {
   private readonly cartStore = inject(CartStore);
+  private readonly favoritesStore = inject(FavoritesStore);
+  readonly authStore = inject(AuthStore);
   faFilter = faSliders;
   faPlus = faPlus;
   faMinus = faMinus;
   faCartPlus = faCartPlus;
+  faHeart = faHeart;
   productService = inject(ProductService);
   categoryService = inject(CategoryService);
   allProducts: ProductResModel[] = [];
@@ -51,6 +56,8 @@ export class HomePage implements OnInit {
     this.searchControl.valueChanges.subscribe(value => {
       this.applyFilter(value)
     });
+
+    this.favoritesStore.loadFavorites().catch((error: unknown) => console.error(error));
   }
 
   applyFilter(value: string) {
@@ -95,6 +102,22 @@ setCategory(key: number) {
     });
 
     this.quantities[item.id] = 1;
+  }
+
+  isFavorite(productId: number): boolean {
+    return this.favoritesStore.isFavorite(productId);
+  }
+
+  async toggleFavorite(productId: number): Promise<void> {
+    if (!this.authStore.isLoggedIn()) {
+      return;
+    }
+
+    try {
+      await this.favoritesStore.toggleFavorite(productId);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
 }

@@ -21,6 +21,16 @@
       <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         [src]="item.thumbnailUrl" [alt]="item.name" />
 
+      <button
+        type="button"
+        class="absolute left-3 top-3 btn btn-circle btn-xs"
+        [class.btn-error]="isFavorite(item.id)"
+        [class.btn-ghost]="!isFavorite(item.id)"
+        [disabled]="!authStore.isLoggedIn()"
+        (click)="toggleFavorite(item.id)">
+        <fa-icon [icon]="faHeart"></fa-icon>
+      </button>
+
       <span class="absolute right-3 top-3 badge badge-sm" [class.badge-success]="item.stock > 0"
         [class.badge-error]="item.stock === 0">
         {{ item.stock > 0 ? 'Disponible' : 'Sin stock' }}

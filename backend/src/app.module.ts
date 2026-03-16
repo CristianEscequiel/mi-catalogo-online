@@ -6,6 +6,7 @@ import { Env } from './env.model';
 import { ProductModule } from './product/product.module';
 import { AuthModule } from './auth/auth.module';
 import { AiModule } from './ai/ai.module';
+import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AiModule } from './ai/ai.module';
     ProductModule,
     AuthModule,
     AiModule,
+    FavoritesModule,
   ],
 })
 export class AppModule {}
