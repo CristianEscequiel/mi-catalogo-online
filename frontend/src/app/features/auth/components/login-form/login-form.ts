@@ -17,10 +17,19 @@ export class LoginForm {
     email: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
     password: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   })
-  loginPost() {
+  async loginPost() {
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
     const { email, password } = this.loginForm.getRawValue();
-    this.authFacade.loginUser(email, password)
-    this.loginForm.reset();
+    try {
+      await this.authFacade.loginUser(email, password);
+      this.loginForm.reset();
+    } catch {
+      return;
+    }
   }
   postItems(){
     this.authFacade.newPost()

@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ProductModel } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { PrdFormComponent } from '../product-form/product-form.component';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -37,6 +38,7 @@ export class ProductFormDialogComponent {
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
+    private notificationService: NotificationService,
     private dialogRef: DialogRef<'updated' | 'cancel'>,
     @Inject(DIALOG_DATA) public data: { id: number, product: ProductModel , mode: FormMode }
   ) {
@@ -67,7 +69,7 @@ export class ProductFormDialogComponent {
     }
   }
 
-  onSubmit() {
+  async onSubmit() {
     if(this.data.mode === 'edit') {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -77,8 +79,13 @@ export class ProductFormDialogComponent {
     body.thumbnailUrl = body.thumbnailUrl || null;
 
     this.productService.editProduct(this.data.id, body).subscribe({
-      next: res => { this.dialogRef.close('updated') },
-      error: err => console.error(err),
+      next: () => {
+        this.notificationService.success('Producto actualizado correctamente.');
+        this.dialogRef.close('updated');
+      },
+      error: () => {
+        this.notificationService.error('No se pudo actualizar el producto.');
+      },
     });
 
   }else {
@@ -91,8 +98,13 @@ export class ProductFormDialogComponent {
       ...formValue,
       thumbnailUrl: formValue.thumbnailUrl || null,
     };
-    this.productService.postProduct(body)
-    this.dialogRef.close('updated')
+    try {
+      await this.productService.postProduct(body);
+      this.notificationService.success('Producto creado correctamente.');
+      this.dialogRef.close('updated');
+    } catch {
+      this.notificationService.error('No se pudo crear el producto.');
+    }
     }
   }
   onCancel() {

@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { CategoryModel } from '../../models/category.model';
 import { CategoryService } from '../../services/category.service';
 import { CategoryFormComponent } from '../category-form/category-form.component';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -36,6 +37,7 @@ export class CategoryFormDialogComponent {
   constructor(
     private fb: FormBuilder,
     private categoryService: CategoryService,
+    private notificationService: NotificationService,
     private dialogRef: DialogRef<'updated' | 'cancel'>,
     @Inject(DIALOG_DATA) public data: { id?: number, category?: CategoryModel, mode: FormMode }
   ) {
@@ -63,13 +65,23 @@ export class CategoryFormDialogComponent {
 
     if (this.data.mode === 'edit' && this.data.id != null) {
       this.categoryService.editCategory(this.data.id, body).subscribe({
-        next: () => { this.dialogRef.close('updated'); },
-        error: err => console.error(err),
+        next: () => {
+          this.notificationService.success('Categoría actualizada correctamente.');
+          this.dialogRef.close('updated');
+        },
+        error: () => {
+          this.notificationService.error('No se pudo actualizar la categoría.');
+        },
       });
     } else {
       this.categoryService.createCategory(body).subscribe({
-        next: () => { this.dialogRef.close('updated'); },
-        error: err => console.error(err),
+        next: () => {
+          this.notificationService.success('Categoría creada correctamente.');
+          this.dialogRef.close('updated');
+        },
+        error: () => {
+          this.notificationService.error('No se pudo crear la categoría.');
+        },
       });
     }
   }

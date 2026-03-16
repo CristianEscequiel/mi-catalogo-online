@@ -3,6 +3,7 @@ import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { CategoryModel } from '../../models/category.model';
 import { CategoryService } from '../../services/category.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   standalone: true,
@@ -31,14 +32,20 @@ import { CategoryService } from '../../services/category.service';
 export class CategoryWarnDialogComponent {
   constructor(
     private categoryService: CategoryService,
+    private notificationService: NotificationService,
     private dialogRef: DialogRef<'deleted' | 'cancel'>,
     @Inject(DIALOG_DATA) public data: { id: number, category: CategoryModel }
   ) {}
 
   onConfirmDelete() {
     this.categoryService.deleteCategory(this.data.id).subscribe({
-      next: () => { this.dialogRef.close('deleted'); },
-      error: err => console.error(err),
+      next: () => {
+        this.notificationService.success('Categoría eliminada correctamente.');
+        this.dialogRef.close('deleted');
+      },
+      error: () => {
+        this.notificationService.error('No se pudo eliminar la categoría.');
+      },
     });
   }
 

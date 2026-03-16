@@ -1,0 +1,71 @@
+<div class="max-w-5xl mx-auto h-full flex flex-col gap-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-semibold">Carrito</h1>
+    <a routerLink="/home" class="btn btn-sm btn-ghost">Seguir comprando</a>
+  </div>
+
+  @if (items().length === 0) {
+  <div class="card bg-base-100 border border-base-300">
+    <div class="card-body">
+      <p class="opacity-70">Tu carrito está vacío.</p>
+      <a routerLink="/home" class="btn btn-primary w-fit">Ir al catálogo</a>
+    </div>
+  </div>
+  } @else {
+  <div class="overflow-x-auto bg-base-100 border border-base-300 rounded-xl">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio unitario</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.productId) {
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <img
+                class="h-14 w-14 rounded-lg object-cover border border-base-300"
+                [src]="item.thumbnailUrl || 'https://placehold.co/80x80?text=Img'"
+                [alt]="item.name"
+              />
+              <span class="font-medium">{{ item.name }}</span>
+            </div>
+          </td>
+          <td>$ {{ item.price | number:'1.0-0' }}</td>
+          <td>
+            <input
+              type="number"
+              min="1"
+              [max]="item.stock ?? 1"
+              [value]="item.qty"
+              (change)="updateQuantity(item.productId, $event, item.stock)"
+              class="input input-sm input-bordered w-20"
+            />
+          </td>
+          <td class="font-semibold">$ {{ item.price * item.qty | number:'1.0-0' }}</td>
+          <td>
+            <button class="btn btn-sm btn-ghost text-error" (click)="removeItem(item.productId)">
+              Quitar
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card bg-base-100 border border-base-300 self-end w-full md:w-80">
+    <div class="card-body">
+      <div class="flex justify-between text-base">
+        <span>Total</span>
+        <span class="font-bold text-primary">$ {{ total() | number:'1.0-0' }}</span>
+      </div>
+    </div>
+  </div>
+  }
+</div>

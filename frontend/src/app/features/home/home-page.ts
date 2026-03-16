@@ -10,6 +10,7 @@ import { ProductResModel } from '../catalog-admin/products/models/prd-res.model'
 import { CartStore } from '../../core/state/cart.store';
 import { FavoritesStore } from '../../core/state/favorites.store';
 import { AuthStore } from '../../core/state/auth.store';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   standalone: true,
@@ -20,6 +21,7 @@ import { AuthStore } from '../../core/state/auth.store';
 export class HomePage implements OnInit {
   private readonly cartStore = inject(CartStore);
   private readonly favoritesStore = inject(FavoritesStore);
+  private readonly notificationService = inject(NotificationService);
   readonly authStore = inject(AuthStore);
   faFilter = faSliders;
   faPlus = faPlus;
@@ -91,17 +93,25 @@ setCategory(key: number) {
     }
   }
 
-  addToCart(item: { id: number; name: string; price: number }): void {
+  async addToCart(item: ProductResModel): Promise<void> {
     const qty = this.getQuantity(item.id);
 
-    this.cartStore.add({
-      productId: item.id,
-      name: item.name,
-      price: item.price,
-      qty
-    });
+    try {
+      await this.cartStore.add({
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        qty,
+        stock: item.stock,
+        thumbnailUrl: item.thumbnailUrl,
+      });
 
-    this.quantities[item.id] = 1;
+      this.quantities[item.id] = 1;
+      this.notificationService.success('Producto agregado al carrito.');
+    } catch (error) {
+      console.error(error);
+      this.notificationService.error('No se pudo agregar el producto al carrito.');
+    }
   }
 
   isFavorite(productId: number): boolean {

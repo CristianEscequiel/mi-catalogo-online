@@ -4,6 +4,7 @@ import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { ProductModel } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   standalone: true,
@@ -34,13 +35,19 @@ import { ProductService } from '../../services/product.service';
 export class ProductWarnDialogComponent {
   constructor(
     private productService: ProductService,
+    private notificationService: NotificationService,
     private dialogRef: DialogRef<'deleted' | 'cancel'>,
     @Inject(DIALOG_DATA) public data: { id:number ,  product: ProductModel }
   ){}
   onConfirmDelete() {
     this.productService.deleteProduct(this.data.id).subscribe({
-      next: res => { this.dialogRef.close('deleted')},
-      error: err => console.error(err),
+      next: () => {
+        this.notificationService.success('Producto eliminado correctamente.');
+        this.dialogRef.close('deleted');
+      },
+      error: () => {
+        this.notificationService.error('No se pudo eliminar el producto.');
+      },
     });
   }
 

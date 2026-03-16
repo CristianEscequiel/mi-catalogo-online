@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { AuthStore } from '../../../core/state/auth.store';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,17 +13,24 @@ export class AuthFacade {
 private store = inject(AuthStore);
 private router = inject(Router);
 private authService =  inject(AuthService)
+private notificationService = inject(NotificationService);
 
 async loginUser(email:string , password:string) {
-  this.store.setLoadingProfile(true);
-  const res = await firstValueFrom(this.authService.loginUser(email, password))
-  this.store.setAuth(res.access_token, res.user)
-  const profile = await firstValueFrom(this.authService.getUserById(res.user.id))
+  try {
+    this.store.setLoadingProfile(true);
+    const res = await firstValueFrom(this.authService.loginUser(email, password))
+    this.store.setAuth(res.access_token, res.user)
+    const profile = await firstValueFrom(this.authService.getUserById(res.user.id))
 
-  this.store.setUserProfile(profile.profile as any);
-  this.store.setLoadingProfile(false);
-
-  this.router.navigate(['/home']);
+    this.store.setUserProfile(profile.profile as any);
+    this.notificationService.success('Inicio de sesión exitoso.');
+    this.router.navigate(['/home']);
+  } catch {
+    this.notificationService.error('Credenciales inválidas. Intenta nuevamente.');
+    throw new Error('LOGIN_FAILED');
+  } finally {
+    this.store.setLoadingProfile(false);
+  }
 }
 
 async newPost (){

@@ -6,6 +6,7 @@ import { Profile } from './features/profile/profile';
 import { loginGuard } from './core/guards/login-guard';
 import { PrdAdminComponet } from './features/catalog-admin/products/pages/product-admin.page';
 import { CategoryAdminComponent } from './features/catalog-admin/categories/pages/category-admin.page';
+import { CartPage } from './features/cart/cart-page';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,11 @@ export const routes: Routes = [
     path: 'profile',
     canActivate:[authGuard],
     component: Profile,
+  },
+  {
+    path: 'cart',
+    canActivate:[authGuard],
+    component: CartPage,
   },
   {
   path: 'admin/product',
