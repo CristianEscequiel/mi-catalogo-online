@@ -24,6 +24,10 @@ export class ProductService {
     return this.http.get<any>(`${this.apiUrl}/products`);
   }
 
+  getProductsByUserId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users/${id}/products`);
+  }
+
   editProduct(id:number , body:ProductModel): Observable<any>{
     return this.http.put<any>(`${this.apiUrl}/products/${id}`, body)
   }

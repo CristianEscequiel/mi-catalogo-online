@@ -24,12 +24,13 @@ export class UsersService {
     }
     return user;
   }
+
   async getProfileByUserId(id: number) {
     const user = await this.findOne(id);
     return user.profile;
   }
 
-  async getPostsByUserId(id: number) {
+  async getPorductsByUserId(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: ['products'],
@@ -38,6 +39,17 @@ export class UsersService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     return user.products;
+  }
+
+  async getCategoriesByUserId(id: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['categories'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    return user.categories;
   }
 
   async create(body: CreateUserDto) {
@@ -68,7 +80,7 @@ export class UsersService {
   private async findOne(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['profile', 'products'],
+      relations: ['profile', 'products', 'categories'],
     });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);

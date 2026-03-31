@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 import { Profile } from './profile.entity';
 import { Product } from '../../product/entities/product.entity';
+import { Category } from '../../product/entities/category.entity';
 import { Role } from '../../auth/roles/roles.enum';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -100,6 +101,9 @@ export class User {
   })
   @OneToMany(() => Product, (product) => product.user)
   products: Product[];
+
+  @OneToMany(() => Category, (category) => category.user)
+  categories: Category[];
 
   @BeforeInsert()
   async hashPassword() {

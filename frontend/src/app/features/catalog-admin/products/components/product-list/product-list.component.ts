@@ -10,6 +10,7 @@ import { ProductFormDialogComponent } from '../product-form-dialog/product-form-
 import { ProductWarnDialogComponent } from '../product-warn-dialog/product-warn-dialog.component';
 import { CategoryResModel } from '../../../categories/models/category.model'
 import { CategoryService } from '../../../categories/services/category.service';
+import { AuthStore } from '../../../../../core/state/auth.store';
 
 @Component({
   standalone: true,
@@ -19,6 +20,7 @@ import { CategoryService } from '../../../categories/services/category.service';
 })
 
 export class PrdListComponent implements OnInit {
+  private store = inject(AuthStore)
   productService = inject(ProductService)
   categoryService = inject(CategoryService)
   fb = inject(FormBuilder)
@@ -53,7 +55,7 @@ export class PrdListComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.getAllProducts()
+    this.getProductsByUserId(this.store.userLite()?.id ?? 0);
     this.categoryService.getCategories().subscribe({
       next: res => { this.categories = res },
       error: err => console.error(err),
@@ -72,8 +74,17 @@ export class PrdListComponent implements OnInit {
       error: err => console.error(err),
     });
   }
+  getProductsByUserId(id: number) {
+    this.productService.getProductsByUserId(id).subscribe({
+      next: res => {
+        this.products = res;
+        this.applyFilters();
+      },
+      error: err => console.error(err),
+    });
+  }
   reloadProducts(){
-    this.getAllProducts()
+    this.getProductsByUserId(this.store.userLite()?.id ?? 0);
   }
   onSort(field: keyof ProductModel) {
     if (this.sortField === field) {

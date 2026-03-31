@@ -15,13 +15,15 @@ export class ProductController {
 
   @ApiOperation({ summary: 'Create a new Post' })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'GUEST')
   @Post()
   create(@Body() createPostDto: CreateProductDto, @Request() req) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const role = req.user.role as string;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const payload = req.user as Payload;
     const userID = payload.sub;
-    return this.postService.create(createPostDto, userID);
+    return this.postService.create(createPostDto, userID, role);
   }
 
   @ApiOperation({ summary: 'Get all Products' })
@@ -38,6 +40,13 @@ export class ProductController {
     return this.postService.findOne(id);
   }
 
+  @ApiOperation({ summary: 'Get a Propduct by User id' })
+  @ApiResponse({ status: 200, description: 'The post', type: ProductEntity })
+  @Get('user/:id')
+  findOneByUserId(@Param('id', ParseIntPipe) id: number) {
+    return this.postService.findOneByUserId(id);
+  }
+
   @ApiOperation({ summary: 'Update a Product by id' })
   @UseGuards(AuthGuard('jwt'))
   @Put(':id')
@@ -49,6 +58,7 @@ export class ProductController {
   @UseGuards(AuthGuard('jwt'))
   @Put(':id/publish')
   publish(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const payload = req.user as Payload;
     const userID = payload.sub;
     return this.postService.publish(id, userID);

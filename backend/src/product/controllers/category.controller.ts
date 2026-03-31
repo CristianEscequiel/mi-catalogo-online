@@ -1,8 +1,12 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UseGuards } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
 import { ProductService } from '../services/product.service';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/auth/roles/roles.guard';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Payload } from 'src/auth/models/payload.model';
 
 @Controller('categories')
 export class CategoryController {
@@ -11,9 +15,16 @@ export class CategoryController {
     private readonly productService: ProductService,
   ) {}
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
+  create(@Body() createCategoryDto: CreateCategoryDto, @Request() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const role = req.user.role as string;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const payload = req.user as Payload;
+    const userID = payload.sub;
+    return this.categoryService.create(createCategoryDto, userID, role);
   }
 
   @Get()

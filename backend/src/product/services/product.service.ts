@@ -12,18 +12,26 @@ export class ProductService {
     private postRepository: Repository<Product>,
   ) {}
 
-  async create(body: CreateProductDto, userId: number) {
-    console.log(body, userId);
+  async create(body: CreateProductDto, userId: number, role: string) {
     try {
+      if (role === 'GUEST') {
+        const count = await this.postRepository.count({
+          where: {
+            user: { id: userId },
+          },
+        });
+        if (count >= 5) {
+          throw new ForbiddenException('El usuario invitado solo puede crear hasta 5 productos');
+        }
+      }
       const newProduct = await this.postRepository.save({
         ...body,
         user: { id: userId },
         categories: body.categoryIds?.map((id) => ({ id })),
       });
-      console.log(newProduct);
       return this.findOne(newProduct.id);
-    } catch {
-      throw new BadRequestException('Error creating product');
+    } catch (error) {
+      throw new BadRequestException(`Error creating product: ${error.message}`);
     }
   }
 
@@ -80,6 +88,19 @@ export class ProductService {
       throw new NotFoundException(`Product with id ${categoryId} not found`);
     }
     return product;
+  }
+
+  async findOneByUserId(id: number) {
+    const products = await this.postRepository.find({
+      where: {
+        user: { id },
+      },
+      relations: ['user.profile', 'categories'],
+    });
+    if (!products || products.length === 0) {
+      throw new NotFoundException(`Products for user with id ${id} not found`);
+    }
+    return products;
   }
 
   async publish(id: number, userId: number) {

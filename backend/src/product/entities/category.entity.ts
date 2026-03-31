@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Product } from './product.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({
   name: 'categories',
@@ -74,4 +75,8 @@ export class Category {
   })
   @ManyToMany(() => Product, (product) => product.categories)
   products: Product[];
+
+  @ManyToOne(() => User, (user) => user.categories, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

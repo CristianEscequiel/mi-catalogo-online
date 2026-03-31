@@ -14,9 +14,14 @@ export class UsersController {
   getUsersProfile(@Param('id', ParseIntPipe) id: number) {
     return this.userService.getProfileByUserId(id);
   }
-  @Get(':id/posts')
-  getUserPosts(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getPostsByUserId(id);
+  @Get(':id/products')
+  getUserProducts(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.getPorductsByUserId(id);
+  }
+
+  @Get(':id/categories')
+  getUserCategories(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.getCategoriesByUserId(id);
   }
 
   @Get(':id')

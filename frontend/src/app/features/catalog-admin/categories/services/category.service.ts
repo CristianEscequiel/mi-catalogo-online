@@ -14,6 +14,10 @@ export class CategoryService {
     return this.http.get<CategoryResModel[]>(`${this.apiUrl}/categories`);
   }
 
+  getCategoriesByUserId(id: number): Observable<CategoryResModel[]> {
+    return this.http.get<CategoryResModel[]>(`${this.apiUrl}/users/${id}/categories`);
+  }
+
   createCategory(body: CategoryModel): Observable<CategoryResModel> {
     return this.http.post<CategoryResModel>(`${this.apiUrl}/categories`, body);
   }

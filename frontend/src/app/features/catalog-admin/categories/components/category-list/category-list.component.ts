@@ -6,6 +6,7 @@ import { CategoryService } from '../../services/category.service';
 import { CategoryResModel } from '../../models/category.model';
 import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
 import { CategoryWarnDialogComponent } from '../category-warn-dialog/category-warn-dialog.component';
+import { AuthStore } from '../../../../../core/state/auth.store';
 
 @Component({
   standalone: true,
@@ -14,6 +15,7 @@ import { CategoryWarnDialogComponent } from '../category-warn-dialog/category-wa
   templateUrl: 'category-list.html'
 })
 export class CategoryListComponent implements OnInit {
+  private store = inject(AuthStore);
   categoryService = inject(CategoryService);
   dialog = inject(Dialog);
 
@@ -23,7 +25,7 @@ export class CategoryListComponent implements OnInit {
   searchControl = new FormControl('', { nonNullable: true });
 
   ngOnInit(): void {
-    this.loadCategories();
+    this.loadCategoriesByUserId(this.store.userLite()?.id ?? 0);
     this.searchControl.valueChanges.subscribe(() => this.applyFilters());
   }
 
@@ -38,7 +40,17 @@ export class CategoryListComponent implements OnInit {
   }
 
   reloadCategories() {
-    this.loadCategories();
+    this.loadCategoriesByUserId(this.store.userLite()?.id ?? 0);
+  }
+
+  loadCategoriesByUserId(id: number) {
+    this.categoryService.getCategoriesByUserId(id).subscribe({
+      next: res => {
+        this.categories = res;
+        this.applyFilters();
+      },
+      error: err => console.error(err),
+    });
   }
 
   applyFilters() {

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
@@ -12,12 +12,26 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createCategoryDto: CreateCategoryDto) {
+  async create(createCategoryDto: CreateCategoryDto, userId: number, role: string) {
     try {
-      const category = this.categoryRepository.create(createCategoryDto);
+      if (role === 'GUEST') {
+        const count = await this.categoryRepository.count({
+          where: {
+            user: { id: userId },
+          },
+        });
+        if (count >= 5) {
+          throw new ForbiddenException('El usuario invitado solo puede crear hasta 5 categorias');
+        }
+      }
+
+      const category = this.categoryRepository.create({
+        ...createCategoryDto,
+        user: { id: userId },
+      });
       return await this.categoryRepository.save(category);
-    } catch {
-      throw new BadRequestException('Error creating category');
+    } catch (error) {
+      throw new BadRequestException(`Error creating category: ${error.message}`);
     }
   }
 
