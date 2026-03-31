@@ -1,15 +1,60 @@
-<div class="flex flex-col items-center justify-center h-full">
+<div class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+  <div class="card bg-base-100 border border-base-300 rounded-2xl shadow-lg w-full max-w-md transition duration-300">
+    <div class="card-body p-6 sm:p-8">
+      <h1 class="card-title justify-center text-2xl font-semibold">Login</h1>
 
-  <form [formGroup]="loginForm" (ngSubmit)="loginPost()"
-    class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-    <legend class="text-center">Login</legend>
+      <form [formGroup]="loginForm" (ngSubmit)="loginPost()" class="space-y-6" novalidate>
+        <div class="space-y-2">
+          <label for="email" class="label p-0">
+            <span class="label-text font-medium">Email</span>
+          </label>
+          <input
+            id="email"
+            formControlName="email"
+            type="email"
+            class="input input-bordered w-full transition duration-300 focus:border-primary"
+            placeholder="Email"
+            autocomplete="email"
+          />
+          @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
+            <p class="text-error text-sm">Ingresa un email válido.</p>
+          }
+        </div>
 
-    <label for="email" class="label">Email</label>
-    <input id="email" formControlName="email" type="email" class="input" placeholder="Email" />
+        <div class="space-y-2">
+          <label for="password" class="label p-0">
+            <span class="label-text font-medium">Password</span>
+          </label>
+          <div class="relative">
+            <input
+              id="password"
+              formControlName="password"
+              [type]="showPassword ? 'text' : 'password'"
+              class="input input-bordered w-full pr-10 transition duration-300 focus:border-primary"
+              placeholder="Password"
+              autocomplete="current-password"
+            />
+          </div>
+          @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+            <p class="text-error text-sm">La contraseña es obligatoria.</p>
+          }
+        </div>
 
-    <label for="password" class="label">Password</label>
-    <input id="password" formControlName="password" type="password" class="input" placeholder="Password" />
-
-    <button [disabled]="!loginForm.valid" [ngClass]="[ loginForm.valid ? 'btn-primary' : 'btn-neutral' ]" class="btn  mt-4">Login</button>
-  </form>
+        <button
+          [disabled]="isLoading || !loginForm.valid"
+          class="btn btn-primary w-full transition duration-300"
+          type="submit"
+        >
+          @if (isLoading) {
+            <span class="inline-flex items-center gap-2">
+              <span class="loading loading-spinner loading-sm"></span>
+              Ingresando...
+            </span>
+          } @else {
+            Iniciar sesión
+          }
+        </button>
+      </form>
+    </div>
+  </div>
 </div>

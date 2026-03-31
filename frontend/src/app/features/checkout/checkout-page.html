@@ -3,20 +3,20 @@
     <div class="card-body">
       <h1 class="card-title text-2xl">Checkout</h1>
 
-      <form [formGroup]="checkoutForm" class="space-y-3" (ngSubmit)="placeOrder()">
-        <label class="form-control w-full">
+      <form [formGroup]="checkoutForm" class="fieldset space-y-4" (ngSubmit)="placeOrder()">
+        <label class="w-full">
           <span class="label-text">Nombre</span>
-          <input class="input input-bordered w-full" formControlName="name" type="text" />
+          <input class="input w-full" formControlName="name" type="text" />
         </label>
 
-        <label class="form-control w-full">
+        <label class="w-full">
           <span class="label-text">Email</span>
-          <input class="input input-bordered w-full" formControlName="email" type="email" />
+          <input class="input w-full" formControlName="email" type="email" />
         </label>
 
-        <label class="form-control w-full">
+        <label class="w-full">
           <span class="label-text">Dirección</span>
-          <textarea class="textarea textarea-bordered w-full" formControlName="address" rows="3"></textarea>
+          <input class="input w-full" formControlName="address" type="text" />
         </label>
 
         <div class="flex gap-2">

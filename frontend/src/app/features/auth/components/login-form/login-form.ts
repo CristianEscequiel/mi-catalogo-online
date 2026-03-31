@@ -4,31 +4,45 @@ import { Validators } from '@angular/forms';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { UserFormLogin } from '../../../../core/models/user-form.model';
 import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-login-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, FontAwesomeModule],
   templateUrl: './login-form.html',
 })
 export class LoginForm {
+  faEye = faEye
+  faEyeSlash = faEyeSlash
+  showPassword = false;
+  isLoading = false;
   authFacade = inject(AuthFacade)
   loginForm = new FormGroup<UserFormLogin>({
     email: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
     password: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
   })
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
+
   async loginPost() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
+    this.isLoading = true;
     const { email, password } = this.loginForm.getRawValue();
     try {
       await this.authFacade.loginUser(email, password);
       this.loginForm.reset();
     } catch {
       return;
+    } finally {
+      this.isLoading = false;
     }
   }
   postItems(){

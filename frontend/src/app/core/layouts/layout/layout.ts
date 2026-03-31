@@ -10,7 +10,7 @@ import { ToastContainer } from '../../../shared/notifications/toast-container';
   template: `
   <app-header></app-header>
   <app-toast-container></app-toast-container>
-  <div class="container mx-auto h-[calc(100vh-60px)] p-2">
+  <div class="container mx-auto h-[calc(100vh-60px)] mt-18">
     <router-outlet></router-outlet>
   </div>
 `
