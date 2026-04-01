@@ -153,7 +153,9 @@ export class PrdListComponent implements OnInit {
   }
   onEdit(row: ProductResModel) {
     const categories: number[] = []
-    row.categories.map(cat => categories.push(cat.id))
+    if(row.categories){
+      row.categories.map(cat => categories.push(cat.id))
+    }
 
     const body: ProductModel = {
       name: row.name,
@@ -176,8 +178,6 @@ export class PrdListComponent implements OnInit {
     });
   }
   onDelete(row: ProductResModel) {
-    const categories: number[] = []
-    row.categories.map(cat => categories.push(cat.id))
 
     const body: ProductModel = {
       name: row.name,
@@ -186,7 +186,7 @@ export class PrdListComponent implements OnInit {
       sku: row.sku,
       price:row.price,
       stock:row.stock,
-      categoryIds: categories,
+      categoryIds: [],
       thumbnailUrl: row.thumbnailUrl ?? '',
       status: row.status
     }

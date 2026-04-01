@@ -4,13 +4,14 @@ import { catchError, Observable, tap } from 'rxjs';
 import { UserLogin } from '../../../core/models/user.model';
 import { LoginResponse } from '../models/login-res.model';
 import { ProfileResponse } from '../models/profile-res.model';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = API_BASE_URL;
 
 loginUser(email: string, password: string): Observable<LoginResponse> {
     const body: UserLogin = {

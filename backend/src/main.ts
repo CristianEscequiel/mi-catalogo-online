@@ -25,10 +25,13 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+
+  const corsOrigin = process.env.CORS_ORIGIN ?? '*';
+  const origin = corsOrigin === '*' ? '*' : corsOrigin.split(',').map((item) => item.trim());
   app.enableCors({
-    origin: '*',
+    origin,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(Number(process.env.PORT ?? 3000));
 }
 bootstrap();

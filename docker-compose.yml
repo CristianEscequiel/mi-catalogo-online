@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-my_catalog_db}
+      POSTGRES_USER: ${DB_USER:-catalog_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-catalog_user} -d ${DB_NAME:-my_catalog_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: ${BACKEND_PORT:-3000}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-my_catalog_db}
+      DB_USER: ${DB_USER:-catalog_user}
+      DB_PASSWORD: ${DB_PASSWORD:-change_me}
+      JWT_SECRET: ${JWT_SECRET:-change_this_jwt_secret}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://catalog.esceweb.com}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      - uploads_data:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  postgres_data:
+  uploads_data:

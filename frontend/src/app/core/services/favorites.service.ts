@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ProductResModel } from '../../features/catalog-admin/products/models/prd-res.model';
+import { API_BASE_URL } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FavoritesService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = API_BASE_URL;
 
   getFavorites(): Observable<ProductResModel[]> {
     return this.http.get<ProductResModel[]>(`${this.apiUrl}/favorites`);

@@ -240,3 +240,45 @@ Angular • NestJS • PostgreSQL
 
 GitHub:  
 https://github.com/CristianEscequiel
+
+---
+
+# Docker (producción)
+
+## Requisitos
+
+- Docker
+- Docker Compose
+
+## Configuración
+
+1. Crear archivo de entorno desde el ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+2. Ajustar valores sensibles en `.env`:
+
+- `DB_PASSWORD`
+- `JWT_SECRET`
+- `OPENAI_API_KEY` (si aplica)
+- `CORS_ORIGIN`
+
+## Levantar stack completo
+
+```bash
+docker compose up -d --build
+```
+
+Servicios:
+
+- Frontend: `http://localhost:${FRONTEND_PORT}`
+- Backend: `http://localhost:${BACKEND_PORT}`
+- DB PostgreSQL con volumen persistente `postgres_data`
+
+## Persistencia
+
+- La base usa volumen nombrado `postgres_data`.
+- `docker compose down` no elimina datos.
+- Para borrar datos explícitamente: `docker compose down -v`.

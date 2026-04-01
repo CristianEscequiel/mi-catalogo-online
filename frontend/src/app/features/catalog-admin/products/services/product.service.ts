@@ -3,13 +3,14 @@ import { inject, Injectable } from '@angular/core';
 import { ProfileResponse } from '../../../auth/models/profile-res.model';
 import { ProductModel } from '../models/product.model';
 import { firstValueFrom, Observable } from 'rxjs';
+import { API_BASE_URL } from '../../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = API_BASE_URL;
 
   getProductById(id: number) {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/products/${id}`)
