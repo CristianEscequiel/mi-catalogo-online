@@ -32,6 +32,16 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/users/${id}`)
   }
 
+  uploadProfileImage(id: number, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ userId: number; imageUrl: string | null }>(`${this.apiUrl}/users/${id}/profile/image`, formData);
+  }
+
+  deleteProfileImage(id: number) {
+    return this.http.delete<{ userId: number; imageUrl: string | null }>(`${this.apiUrl}/users/${id}/profile/image`);
+  }
+
   postItems(){
     const body = {
         title: "Los gatos: compañeros misteriosos y encantadores",

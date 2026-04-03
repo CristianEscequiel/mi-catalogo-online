@@ -14,7 +14,7 @@
       @if (row.imageUrl) {
         <div class="avatar">
           <div class="w-12 rounded">
-            <img [src]="row.imageUrl" [alt]="row.name" />
+            <img [src]="resolveImageUrl(row.imageUrl)" [alt]="row.name" />
           </div>
         </div>
       } @else {

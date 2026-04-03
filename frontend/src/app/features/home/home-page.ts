@@ -4,78 +4,114 @@ import { ProductService } from '../catalog-admin/products/services/product.servi
 import { CategoryService } from '../catalog-admin/categories/services/category.service'
 import { CategoryResModel } from '../catalog-admin/categories/models/category.model';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSliders , faPlus , faMinus , faCartPlus, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
-import { CartStore } from '../../core/state/cart.store';
-import { FavoritesStore } from '../../core/state/favorites.store';
-import { AuthStore } from '../../core/state/auth.store';
-import { NotificationService } from '../../core/services/notification.service';
+import { resolveImageUrl } from '../../core/config/api.config';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [FontAwesomeModule, ReactiveFormsModule , DecimalPipe],
+  imports: [FontAwesomeModule, ReactiveFormsModule , DecimalPipe, RouterLink],
   templateUrl: './home-page.html'
 })
 export class HomePage implements OnInit {
-  private readonly cartStore = inject(CartStore);
-  private readonly favoritesStore = inject(FavoritesStore);
-  private readonly notificationService = inject(NotificationService);
-  readonly authStore = inject(AuthStore);
   faFilter = faSliders;
-  faPlus = faPlus;
-  faMinus = faMinus;
-  faCartPlus = faCartPlus;
-  faHeart = faHeart;
   productService = inject(ProductService);
   categoryService = inject(CategoryService);
   allProducts: ProductResModel[] = [];
   products: ProductResModel[] = [];
   searchControl = new FormControl('', { nonNullable: true });
   categories: CategoryResModel[] = [];
-  categoriesArray: { id: number, name: string }[] = [];
+  selectedCategoryId: number | null = null;
+  selectedCategoryName: string | null = null;
   quantities: Record<number, number> = {};
 
   ngOnInit(): void {
     this.productService.getAllProducts().subscribe({
       next: res => {
         this.allProducts = res
-        this.products = [...this.allProducts]
+        this.applyFilters();
       },
       error: err => console.error(err),
     });
     this.categoryService.getCategories().subscribe({
       next: res => {
-        this.categories = res,
-        this.categoriesArray = this.categories.flatMap(item => {
-          return { name: item.name, id: item.id }
-        });
+        this.categories = res;
       },
       error: err => console.error(err),
     });
 
-    this.searchControl.valueChanges.subscribe(value => {
-      this.applyFilter(value)
+    this.searchControl.valueChanges.subscribe(() => {
+      this.applyFilters();
     });
+  }
 
-    this.favoritesStore.loadFavorites().catch((error: unknown) => console.error(error));
+  setCategory(category: CategoryResModel | number | null, dropdown?: HTMLDetailsElement) {
+    if (typeof category === 'number') {
+      const foundCategory = this.categories.find((item) => item.id === category) ?? null;
+      this.selectedCategoryId = foundCategory?.id ?? null;
+      this.selectedCategoryName = foundCategory?.name ?? null;
+    } else {
+      this.selectedCategoryId = category?.id ?? null;
+      this.selectedCategoryName = category?.name ?? null;
+    }
+    this.applyFilters();
+    if (dropdown) {
+      dropdown.open = false;
+    }
   }
 
   applyFilter(value: string) {
-    const filteredProducts = this.allProducts.filter(product => {
-      return product.name.toLowerCase().includes(value.toLowerCase())
-    });
-    this.products = filteredProducts
+    this.searchControl.setValue(value ?? '', { emitEvent: false });
+    this.applyFilters();
   }
 
-setCategory(key: number) {
-  this.products = this.allProducts.filter(product =>
-    product.categories.some(cat => cat.id === key)
-  );
-}
+  clearCategoryFilter() {
+    this.selectedCategoryId = null;
+    this.selectedCategoryName = null;
+    this.applyFilters();
+  }
 
- getQuantity(itemId: number): number {
+  isCategorySelected(categoryId: number): boolean {
+    return this.selectedCategoryId === categoryId;
+  }
+
+  hasActiveCategoryFilter(): boolean {
+    return this.selectedCategoryId !== null;
+  }
+
+  private applyFilters() {
+    const searchTerm = this.searchControl.value.toLowerCase().trim();
+
+    this.products = this.allProducts.filter((product) => {
+      const matchesText = product.name.toLowerCase().includes(searchTerm);
+      const matchesCategory =
+        this.selectedCategoryId === null ||
+        product.categories.some((cat) => cat.id === this.selectedCategoryId);
+
+      return matchesText && matchesCategory;
+    });
+  }
+
+   resolvedImageUrl(imageUrl: string | null): string | null {
+      return resolveImageUrl(imageUrl);
+    }
+
+  detailLink(item: ProductResModel) {
+    return item.slug ? ['/product', item.slug] : ['/home'];
+  }
+
+  isFavorite(_productId: number): boolean {
+    return false;
+  }
+
+  async toggleFavorite(_productId: number): Promise<void> {
+    return;
+  }
+
+  getQuantity(itemId: number): number {
     return this.quantities[itemId] ?? 1;
   }
 
@@ -93,41 +129,8 @@ setCategory(key: number) {
     }
   }
 
-  async addToCart(item: ProductResModel): Promise<void> {
-    const qty = this.getQuantity(item.id);
-
-    try {
-      await this.cartStore.add({
-        productId: item.id,
-        name: item.name,
-        price: item.price,
-        qty,
-        stock: item.stock,
-        thumbnailUrl: item.thumbnailUrl,
-      });
-
-      this.quantities[item.id] = 1;
-      this.notificationService.success('Producto agregado al carrito.');
-    } catch (error) {
-      console.error(error);
-      this.notificationService.error('No se pudo agregar el producto al carrito.');
-    }
-  }
-
-  isFavorite(productId: number): boolean {
-    return this.favoritesStore.isFavorite(productId);
-  }
-
-  async toggleFavorite(productId: number): Promise<void> {
-    if (!this.authStore.isLoggedIn()) {
-      return;
-    }
-
-    try {
-      await this.favoritesStore.toggleFavorite(productId);
-    } catch (error) {
-      console.error(error);
-    }
+  async addToCart(_item: ProductResModel): Promise<void> {
+    return;
   }
 
 }

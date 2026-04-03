@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
@@ -7,6 +7,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { Payload } from 'src/auth/models/payload.model';
+import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { createImageMulterOptions } from 'src/files/multer-image-options.factory';
+import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Controller('categories')
 export class CategoryController {
@@ -50,5 +54,36 @@ export class CategoryController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.categoryService.remove(id);
+  }
+
+  @ApiOperation({ summary: 'Upload category image' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['file'],
+    },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/image')
+  @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.categories)))
+  uploadImage(@Param('id', ParseIntPipe) id: number, @UploadedFile() file?: { filename: string }) {
+    if (!file?.filename) {
+      throw new BadRequestException('File is required');
+    }
+    return this.categoryService.uploadImage(id, file.filename);
+  }
+
+  @ApiOperation({ summary: 'Delete category image' })
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id/image')
+  deleteImage(@Param('id', ParseIntPipe) id: number) {
+    return this.categoryService.deleteImage(id);
   }
 }

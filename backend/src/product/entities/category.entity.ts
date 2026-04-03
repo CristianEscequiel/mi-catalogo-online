@@ -35,7 +35,7 @@ export class Category {
     description: 'Category image URL',
     example: 'https://example.com/images/categories/keyboards.png',
   })
-  imageUrl: string;
+  imageUrl: string | null;
 
   @CreateDateColumn({
     type: 'timestamptz',

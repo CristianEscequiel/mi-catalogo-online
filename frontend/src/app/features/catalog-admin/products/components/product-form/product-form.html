@@ -3,6 +3,21 @@
   <form [formGroup]="productForm" (ngSubmit)="createProduct()"
     class="fieldset bg-base-200 border-base-300 rounded-box w-sm border p-4">
 
+      <app-image-field
+      class="text-center"
+      label="Imagen"
+      [imageUrl]="resolvedImageUrl()"
+      [autoUploadOnSelect]="mode === 'edit'"
+      [isUploading]="isUploadingImage"
+      [isDeleting]="isDeletingImage"
+      [errorMessage]="imageError"
+      [maxImages]="3"
+      (fileSelected)="onImageFileSelected($event)"
+      (uploadRequested)="onUploadImage()"
+      (deleteRequested)="onDeleteImage()"
+    />
+
+
     <label for="name" class="label">Nombre</label>
     <div class="relative">
       <input id="name" formControlName="name" type="text" placeholder="Nombre" class="input w-full" />
@@ -51,9 +66,6 @@
 
     <label class="label">Slug</label>
     <input formControlName="slug" type="text" class="input w-full" placeholder="my-awesome-page" />
-
-    <label class="label">Imagen (URL)</label>
-    <input formControlName="thumbnailUrl" type="url" class="input w-full" placeholder="https://ejemplo.com/imagen.png" />
 
     <label for="price" class="label">Precio</label>
     <div class="relative">

@@ -7,6 +7,7 @@ import { CategoryResModel } from '../../models/category.model';
 import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
 import { CategoryWarnDialogComponent } from '../category-warn-dialog/category-warn-dialog.component';
 import { AuthStore } from '../../../../../core/state/auth.store';
+import { resolveImageUrl } from '../../../../../core/config/api.config';
 
 @Component({
   standalone: true,
@@ -28,7 +29,7 @@ export class CategoryListComponent implements OnInit {
     this.loadCategoriesByUserId(this.store.userLite()?.id ?? 0);
     this.searchControl.valueChanges.subscribe(() => this.applyFilters());
   }
-
+  // This method is currently not used, but it can be useful if we want to load all categories without filtering by user.
   loadCategories() {
     this.categoryService.getCategories().subscribe({
       next: res => {
@@ -98,5 +99,9 @@ export class CategoryListComponent implements OnInit {
         this.reloadCategories();
       }
     });
+  }
+
+  resolveImageUrl(imagePath?: string | null) {
+    return resolveImageUrl(imagePath);
   }
 }

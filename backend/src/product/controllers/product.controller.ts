@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Put, UseGuards, Request } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Put, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -8,6 +8,9 @@ import { Payload } from 'src/auth/models/payload.model';
 import { Product as ProductEntity } from '../entities/product.entity';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { createImageMulterOptions } from 'src/files/multer-image-options.factory';
+import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Controller('products')
 export class ProductController {
@@ -31,6 +34,13 @@ export class ProductController {
   @Get()
   findAll() {
     return this.postService.findAll();
+  }
+
+  @ApiOperation({ summary: 'Get a Product by slug' })
+  @ApiResponse({ status: 200, description: 'The product', type: ProductEntity })
+  @Get('slug/:slug')
+  findOneBySlug(@Param('slug') slug: string) {
+    return this.postService.findOneBySlug(slug);
   }
 
   @ApiOperation({ summary: 'Get a Propduct by id' })
@@ -69,5 +79,36 @@ export class ProductController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.postService.remove(id);
+  }
+
+  @ApiOperation({ summary: 'Upload product image' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['file'],
+    },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/image')
+  @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.products)))
+  uploadImage(@Param('id', ParseIntPipe) id: number, @UploadedFile() file?: { filename: string }) {
+    if (!file?.filename) {
+      throw new BadRequestException('File is required');
+    }
+    return this.postService.uploadImage(id, file.filename);
+  }
+
+  @ApiOperation({ summary: 'Delete product image' })
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id/image')
+  deleteImage(@Param('id', ParseIntPipe) id: number) {
+    return this.postService.deleteImage(id);
   }
 }

@@ -4,6 +4,11 @@ import { Observable } from 'rxjs';
 import { CategoryModel, CategoryResModel } from '../models/category.model';
 import { API_BASE_URL } from '../../../../core/config/api.config';
 
+interface ImageMutationResponse {
+  id: number;
+  imageUrl: string | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,5 +34,15 @@ export class CategoryService {
 
   deleteCategory(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/categories/${id}`);
+  }
+
+  uploadCategoryImage(id: number, file: File): Observable<ImageMutationResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImageMutationResponse>(`${this.apiUrl}/categories/${id}/image`, formData);
+  }
+
+  deleteCategoryImage(id: number): Observable<ImageMutationResponse> {
+    return this.http.delete<ImageMutationResponse>(`${this.apiUrl}/categories/${id}/image`);
   }
 }

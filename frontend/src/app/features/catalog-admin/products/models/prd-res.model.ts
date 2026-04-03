@@ -7,11 +7,12 @@ export interface ProductResModel {
   sku?: string | null ,
   price: number ,
   stock: number ,
-  categories: [
-    {
-      id:number
-    }
-  ] ,
+  categories: Array<{
+    id:number,
+    name?: string,
+    description?: string,
+    imageUrl?: string | null,
+  }> ,
   thumbnailUrl?: string | null ,
   status: 'DRAFT'| 'PUBLIC' | 'ARCHIVED',
 }

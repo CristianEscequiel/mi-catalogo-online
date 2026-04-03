@@ -1,15 +1,18 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
+import { FileStorageService } from 'src/files/file-storage.service';
+import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    private readonly fileStorageService: FileStorageService,
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto, userId: number, role: string) {
@@ -52,7 +55,8 @@ export class CategoryService {
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     const category = await this.findCategoryById(id);
     try {
-      const merged = this.categoryRepository.merge(category, updateCategoryDto);
+      const { imageUrl: _imageUrl, ...rest } = updateCategoryDto;
+      const merged = this.categoryRepository.merge(category, rest);
       return await this.categoryRepository.save(merged);
     } catch {
       throw new BadRequestException('Error updating category');
@@ -61,8 +65,41 @@ export class CategoryService {
 
   async remove(id: number) {
     const category = await this.findCategoryById(id);
+    await this.fileStorageService.deleteByPublicPath(category.imageUrl);
     await this.categoryRepository.delete(category.id);
     return { message: 'Category deleted' };
+  }
+
+  async uploadImage(id: number, filename: string) {
+    const category = await this.findCategoryById(id);
+
+    if (category.imageUrl) {
+      throw new ConflictException('Category already has an image. Delete it before uploading a new one.');
+    }
+
+    category.imageUrl = this.fileStorageService.buildPublicPath(UPLOAD_FOLDERS.categories, filename);
+    const savedCategory = await this.categoryRepository.save(category);
+
+    return {
+      id: savedCategory.id,
+      imageUrl: savedCategory.imageUrl,
+    };
+  }
+
+  async deleteImage(id: number) {
+    const category = await this.findCategoryById(id);
+    if (!category.imageUrl) {
+      throw new NotFoundException('Category has no image to delete');
+    }
+
+    await this.fileStorageService.deleteByPublicPath(category.imageUrl);
+    category.imageUrl = null;
+    const savedCategory = await this.categoryRepository.save(category);
+
+    return {
+      id: savedCategory.id,
+      imageUrl: savedCategory.imageUrl,
+    };
   }
 
   private async findCategoryById(id: number) {

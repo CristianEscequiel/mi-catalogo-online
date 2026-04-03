@@ -15,13 +15,13 @@
     <td cdk-cell *cdkCellDef="let row">
       @if (row.thumbnailUrl) {
       <div class="avatar">
-        <div class="w-12 rounded">
-          <img [src]="row.thumbnailUrl" [alt]="row.name" />
+        <div class="w-14 h-14 rounded-md overflow-hidden bg-base-200 flex items-center justify-center">
+          <img class="w-full h-full object-cover" [src]="resolveImageUrl(row.thumbnailUrl)" [alt]="row.name" />
         </div>
       </div>
       } @else {
       <div class="avatar placeholder">
-        <div class="w-12 rounded bg-base-300 text-xs flex items-center justify-center">
+        <div class="w-14 h-14 rounded-md bg-base-300 text-xs flex items-center justify-center text-center px-1">
           Sin img
         </div>
       </div>

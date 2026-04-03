@@ -11,6 +11,7 @@ import { ProductWarnDialogComponent } from '../product-warn-dialog/product-warn-
 import { CategoryResModel } from '../../../categories/models/category.model'
 import { CategoryService } from '../../../categories/services/category.service';
 import { AuthStore } from '../../../../../core/state/auth.store';
+import { resolveImageUrl } from '../../../../../core/config/api.config';
 
 @Component({
   standalone: true,
@@ -36,11 +37,11 @@ export class PrdListComponent implements OnInit {
     'actions',
   ];
   categories: CategoryResModel[] = []
-  sortField: keyof ProductModel | null = null;
+  sortField: keyof ProductResModel | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
   searchControl = new FormControl('', { nonNullable: true });
-  products: ProductModel[] = [];
-  filteredProducts: ProductModel[] = [];
+  products: ProductResModel[] = [];
+  filteredProducts: ProductResModel[] = [];
   @ViewChild('myModal') myModal!: HTMLDialogElement;
 
   productForm = this.fb.group({
@@ -86,7 +87,7 @@ export class PrdListComponent implements OnInit {
   reloadProducts(){
     this.getProductsByUserId(this.store.userLite()?.id ?? 0);
   }
-  onSort(field: keyof ProductModel) {
+  onSort(field: keyof ProductResModel) {
     if (this.sortField === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
@@ -156,7 +157,6 @@ export class PrdListComponent implements OnInit {
     if(row.categories){
       row.categories.map(cat => categories.push(cat.id))
     }
-
     const body: ProductModel = {
       name: row.name,
       slug: row.slug,
@@ -198,6 +198,10 @@ export class PrdListComponent implements OnInit {
         this.reloadProducts();
       }
     })
+  }
+
+  resolveImageUrl(imagePath?: string | null) {
+    return resolveImageUrl(imagePath);
   }
 
 }

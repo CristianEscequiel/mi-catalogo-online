@@ -65,7 +65,7 @@ export class Product {
     example: 'https://example.com/images/keyboard.png',
   })
   @Column({ type: 'varchar', length: 255, nullable: true, name: 'thumbnail_url' })
-  thumbnailUrl: string;
+  thumbnailUrl: string | null;
 
   @ApiProperty({
     description: 'Product status',

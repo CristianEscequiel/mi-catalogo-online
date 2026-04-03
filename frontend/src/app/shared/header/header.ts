@@ -7,11 +7,12 @@ import { AuthFacade } from '../../features/auth/services/auth.facade';
 import { CartStore } from '../../core/state/cart.store';
 import { DecimalPipe } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
+import { resolveImageUrl } from '../../core/config/api.config';
 
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [RouterLink , FontAwesomeModule , DecimalPipe],
+  imports: [RouterLink, FontAwesomeModule, DecimalPipe],
   templateUrl: './header2.html'
 })
 
@@ -35,6 +36,9 @@ export class Header implements OnInit {
   ngOnInit(): void {
     this.cartStore.loadCart().catch((error: unknown) => console.error(error));
   }
+  resolvedImageUrl(imageUrl: string | null): string | null {
+    return resolveImageUrl(imageUrl);
+  }
 
   async removeItem(productId: number): Promise<void> {
     try {
@@ -57,7 +61,7 @@ export class Header implements OnInit {
     this.themeService.setTheme(input.checked ? 'meadowdark' : 'meadowlight');
   }
 
-  logOut(){
+  logOut() {
     this.authFacade.logout();
   }
 

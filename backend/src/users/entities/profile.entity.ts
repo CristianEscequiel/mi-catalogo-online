@@ -34,7 +34,7 @@ export class Profile {
     description: 'Avatar URL',
     example: 'https://example.com/avatars/ana.png',
   })
-  avatar: string;
+  avatar: string | null;
 
   @CreateDateColumn({
     type: 'timestamp',

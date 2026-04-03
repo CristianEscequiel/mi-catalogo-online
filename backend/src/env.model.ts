@@ -14,4 +14,6 @@ export interface Env {
   POSTGRES_USER: string;
   POSTGRES_PASSWORD: string;
   JWT_SECRET: string;
+  UPLOADS_DIR: string;
+  MAX_IMAGE_SIZE_BYTES: number;
 }

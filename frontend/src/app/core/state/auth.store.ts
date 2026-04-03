@@ -2,7 +2,7 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 
 export interface UserLite { id: number; email: string; }
-export interface UserProfile { id: number; email: string; name: string; lastName: string; avatar: string }
+export interface UserProfile { id: number; email: string; name: string; lastName: string; avatar: string | null }
 
 @Injectable({ providedIn: 'root' })
 export class AuthStore {

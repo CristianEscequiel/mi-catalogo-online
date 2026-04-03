@@ -3,6 +3,9 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { resolve } from 'path';
+import { existsSync, mkdirSync } from 'fs';
+import { static as expressStatic } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,7 +27,19 @@ async function bootstrap() {
     jsonDocumentUrl: '/swagger/json',
   });
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: {
+        policy: 'cross-origin',
+      },
+    }),
+  );
+
+  const uploadsRoot = resolve(process.cwd(), process.env.UPLOADS_DIR ?? 'uploads');
+  if (!existsSync(uploadsRoot)) {
+    mkdirSync(uploadsRoot, { recursive: true });
+  }
+  app.use('/uploads', expressStatic(uploadsRoot));
 
   const corsOrigin = process.env.CORS_ORIGIN ?? '*';
   const origin = corsOrigin === '*' ? '*' : corsOrigin.split(',').map((item) => item.trim());

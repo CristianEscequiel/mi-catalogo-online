@@ -1,9 +1,14 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { ProfileResponse } from '../../../auth/models/profile-res.model';
 import { ProductModel } from '../models/product.model';
 import { firstValueFrom, Observable } from 'rxjs';
 import { API_BASE_URL } from '../../../../core/config/api.config';
+import { ProductResModel } from '../models/prd-res.model';
+
+interface ImageMutationResponse {
+  id: number;
+  imageUrl: string | null;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +18,11 @@ export class ProductService {
   private apiUrl = API_BASE_URL;
 
   getProductById(id: number) {
-    return this.http.get<ProfileResponse>(`${this.apiUrl}/products/${id}`)
+    return this.http.get<ProductResModel>(`${this.apiUrl}/products/${id}`)
+  }
+
+  getProductBySlug(slug: string): Observable<ProductResModel> {
+    return this.http.get<ProductResModel>(`${this.apiUrl}/products/slug/${encodeURIComponent(slug)}`);
   }
 
   async postProduct(body: ProductModel) {
@@ -21,8 +30,8 @@ export class ProductService {
     return res
   }
 
-  getAllProducts(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/products`);
+  getAllProducts(): Observable<ProductResModel[]> {
+    return this.http.get<ProductResModel[]>(`${this.apiUrl}/products`);
   }
 
   getProductsByUserId(id: number): Observable<any> {
@@ -35,6 +44,16 @@ export class ProductService {
 
   deleteProduct(id:number): Observable<any>{
     return this.http.delete<any>(`${this.apiUrl}/products/${id}`)
+  }
+
+  uploadProductImage(id: number, file: File): Observable<ImageMutationResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImageMutationResponse>(`${this.apiUrl}/products/${id}/image`, formData);
+  }
+
+  deleteProductImage(id: number): Observable<ImageMutationResponse> {
+    return this.http.delete<ImageMutationResponse>(`${this.apiUrl}/products/${id}/image`);
   }
 
 }

@@ -9,6 +9,7 @@ import { CategoryAdminComponent } from './features/catalog-admin/categories/page
 import { CartPage } from './features/cart/cart-page';
 import { CheckoutPage } from './features/checkout/checkout-page';
 import { CheckoutSuccessPage } from './features/checkout/checkout-success-page';
+import { ProductDetailPage } from './features/product-detail/product-detail-page';
 
 export const routes: Routes = [
   {
@@ -24,6 +25,10 @@ export const routes: Routes = [
   {
     path: 'home',
     component: HomePage,
+  },
+  {
+    path: 'product/:slug',
+    component: ProductDetailPage,
   },
   {
     path: 'profile',

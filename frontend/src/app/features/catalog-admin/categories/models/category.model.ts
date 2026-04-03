@@ -1,7 +1,7 @@
 export interface CategoryModel {
   name: string;
   description: string;
-  imageUrl: string
+  imageUrl?: string | null;
 }
 
 export interface CategoryResModel extends CategoryModel {

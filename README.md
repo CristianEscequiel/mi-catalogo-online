@@ -282,3 +282,84 @@ Servicios:
 - La base usa volumen nombrado `postgres_data`.
 - `docker compose down` no elimina datos.
 - Para borrar datos explícitamente: `docker compose down -v`.
+
+---
+
+# Gestión de imágenes (NestJS + Angular)
+
+Se implementó soporte completo de subida, visualización y eliminación para:
+
+- Productos (`thumbnailUrl`)
+- Categorías (`imageUrl`)
+- Perfil (`avatar`)
+
+## Flujo en backend
+
+1. El frontend envía `multipart/form-data` con el campo `file`.
+2. NestJS usa `FileInterceptor` (Multer) para validar y guardar.
+3. El archivo se guarda en `uploads/{products|categories|profiles}`.
+4. Se persiste en DB una ruta pública relativa: `/uploads/<folder>/<filename>`.
+5. El backend sirve estáticos bajo `/uploads`.
+
+### ¿Qué hace Multer aquí?
+
+- Procesa formularios `multipart/form-data`.
+- Valida tipo MIME permitido (`jpg`, `jpeg`, `png`, `webp`).
+- Limita tamaño máximo (`MAX_IMAGE_SIZE_BYTES`, default 5MB).
+- Guarda físicamente el archivo en disco (`diskStorage`).
+
+## Endpoints de imágenes
+
+- `POST /products/:id/image`
+- `DELETE /products/:id/image`
+- `POST /categories/:id/image`
+- `DELETE /categories/:id/image`
+- `POST /users/:id/profile/image`
+- `DELETE /users/:id/profile/image`
+
+Regla funcional actual: 1 imagen por entidad.
+Si ya existe imagen, el backend bloquea nueva subida hasta eliminar la actual.
+
+## Servicio estático y URL
+
+- Nest expone `uploads` como contenido estático en `/uploads`.
+- La DB guarda rutas relativas para evitar hardcodear hosts.
+- El frontend resuelve la URL final con configuración central (`API_BASE_URL`) mediante `resolveImageUrl(...)`.
+
+Esto permite funcionar tanto en local (`http://localhost:3000/uploads/...`) como con proxy (`/api/uploads/...`).
+
+## Eliminación de imagen
+
+Cuando se elimina una imagen:
+
+1. Se borra archivo físico en disco.
+2. Se limpia referencia en DB (`null`).
+
+## Conexión con frontend
+
+- Se creó componente reutilizable: `app-image-field`.
+- Se reutiliza en formularios de producto, categoría y perfil.
+- Soporta: selección, preview, subida, eliminación, loading, errores.
+- Mantiene la restricción actual de 1 imagen.
+
+## Persistencia con Docker
+
+El backend ya está listo para volumen de imágenes:
+
+```yaml
+backend:
+  volumes:
+    - uploads_data:/app/uploads
+
+volumes:
+  uploads_data:
+```
+
+Con ese volumen, los archivos sobreviven reinicios/redeploys del contenedor.
+
+## Decisiones y escalabilidad futura (hasta 3 imágenes)
+
+- Se centralizó la lógica de archivos en `backend/src/files`.
+- Se separó upload/delete por entidad con rutas consistentes.
+- En frontend, `app-image-field` ya expone `maxImages` para evolucionar a múltiples.
+- Para pasar a 3 imágenes, la evolución natural es cambiar columnas simples por tabla de imágenes por entidad (sin rehacer endpoints base, solo ampliarlos a colección).

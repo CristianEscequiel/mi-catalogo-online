@@ -1,0 +1,45 @@
+<div class="mt-2 w-full flex flex-col items-center gap-2">
+  <label class="label">{{ label }}</label>
+
+  <input #fileInput type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp" [disabled]="!canSelectNewFile()" (change)="onFileInputChange($event)" />
+
+  @if (previewUrl || imageUrl) {
+    <div class="relative w-24 h-24 rounded-2xl group cursor-pointer" (click)="fileInput.click()">
+      <img [src]="previewUrl || imageUrl" alt="Imagen" class="w-full h-full object-cover" />
+
+      <div class="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-lg">
+        <fa-icon [icon]="faEdit" class="w-3 h-3"></fa-icon>
+      </div>
+
+      @if (isUploading || isDeleting) {
+        <div class="absolute inset-0 bg-black/45 flex items-center justify-center text-white text-xs">Procesando...</div>
+      }
+
+      @if (imageUrl) {
+        <button
+          type="button"
+          class="btn btn-xs btn-circle btn-error absolute -top-1 -right-1 z-50"
+          [disabled]="isDeleting || isUploading || deleteDisabled"
+          (click)="$event.stopPropagation(); requestDelete()"
+          aria-label="Eliminar imagen"
+        >
+         <fa-icon [icon]="faTrash" class="w-3 h-3"></fa-icon>
+        </button>
+      }
+    </div>
+  } @else {
+    <button
+      type="button"
+      class="w-24 h-24 border border-dashed border-base-300 rounded flex items-center justify-center text-sm opacity-80 hover:opacity-100 cursor-pointer"
+      [disabled]="!canSelectNewFile()"
+      (click)="fileInput.click()"
+    >
+      + Seleccionar imagen
+    </button>
+  }
+  <p class="text-xs opacity-70 mt-2">Formatos: jpg, jpeg, png, webp</p>
+
+  @if (errorMessage) {
+    <p class="text-error text-sm mt-2">{{ errorMessage }}</p>
+  }
+</div>

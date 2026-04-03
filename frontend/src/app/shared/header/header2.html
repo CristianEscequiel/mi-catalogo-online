@@ -93,7 +93,7 @@
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
               <div class="w-10 rounded-full">
-                <img alt="Img" [src]="avatar()" />
+                <img alt="Img" [src]="resolvedImageUrl(avatar())" />
               </div>
             </div>
 
@@ -102,7 +102,7 @@
                 <div class="flex flex-row">
                   <div class="avatar pr-2">
                     <div class="w-10 rounded-full">
-                      <img [src]="avatar()" />
+                      <img [src]="resolvedImageUrl(avatar())" />
                     </div>
                   </div>
                   <div class="text-left">

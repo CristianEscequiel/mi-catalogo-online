@@ -3,12 +3,18 @@ import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { Profile } from './entities/profile.entity';
+import { FileStorageService } from 'src/files/file-storage.service';
+import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Profile)
+    private profilesRepository: Repository<Profile>,
+    private readonly fileStorageService: FileStorageService,
   ) {}
 
   async findAll() {
@@ -33,7 +39,7 @@ export class UsersService {
   async getPorductsByUserId(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['products'],
+      relations: ['products', 'products.categories'],
     });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
@@ -64,7 +70,17 @@ export class UsersService {
   async update(id: number, changes: UpdateUserDto) {
     try {
       const user = await this.findOne(id);
-      const updatedUser = this.usersRepository.merge(user, changes);
+      const sanitizedProfile = changes.profile
+        ? {
+            ...changes.profile,
+            avatar: undefined,
+          }
+        : undefined;
+
+      const updatedUser = this.usersRepository.merge(user, {
+        ...changes,
+        profile: sanitizedProfile,
+      });
       const saveUser = await this.usersRepository.save(updatedUser);
       return saveUser;
     } catch {
@@ -73,8 +89,40 @@ export class UsersService {
   }
   async delete(id: number) {
     const user = await this.findOne(id);
+    await this.fileStorageService.deleteByPublicPath(user.profile?.avatar);
     await this.usersRepository.delete(user.id);
     return { message: 'User deleted' };
+  }
+
+  async uploadProfileImage(id: number, filename: string) {
+    const user = await this.findOne(id);
+    if (user.profile.avatar) {
+      throw new BadRequestException('Profile already has an image. Delete it before uploading a new one.');
+    }
+
+    user.profile.avatar = this.fileStorageService.buildPublicPath(UPLOAD_FOLDERS.profiles, filename);
+    const savedProfile = await this.profilesRepository.save(user.profile);
+
+    return {
+      userId: user.id,
+      imageUrl: savedProfile.avatar,
+    };
+  }
+
+  async deleteProfileImage(id: number) {
+    const user = await this.findOne(id);
+    if (!user.profile.avatar) {
+      throw new NotFoundException('Profile has no image to delete');
+    }
+
+    await this.fileStorageService.deleteByPublicPath(user.profile.avatar);
+    user.profile.avatar = null;
+    const savedProfile = await this.profilesRepository.save(user.profile);
+
+    return {
+      userId: user.id,
+      imageUrl: savedProfile.avatar,
+    };
   }
 
   private async findOne(id: number) {

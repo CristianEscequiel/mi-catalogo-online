@@ -2,9 +2,18 @@
   <form [formGroup]="profileForm" class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
     <legend class="text-center">Bienvenido</legend>
     <div class="avatar flex flex-col items-center justify-center">
-      <div class="w-20 rounded-full">
-        <img [src]="avatar" />
-      </div>
+             <app-image-field
+              label="Foto de perfil"
+              [imageUrl]="resolvedAvatarUrl()"
+              [autoUploadOnSelect]="true"
+              [isUploading]="isUploadingImage"
+              [isDeleting]="isDeletingImage"
+              [errorMessage]="imageError"
+              [maxImages]="3"
+              (fileSelected)="onImageFileSelected($event)"
+              (uploadRequested)="onUploadImage()"
+              (deleteRequested)="onDeleteImage()"
+            />
     </div>
 
     <label for="name" class="label">Nombre</label>

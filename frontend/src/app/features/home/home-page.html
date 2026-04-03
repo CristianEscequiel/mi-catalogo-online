@@ -1,47 +1,69 @@
-<div class="flex">
-  <input placeholder="Buscar" [formControl]="searchControl"
-    class="input input-primary input-ghost input-sm w-full border-primary" type="search">
-</div>
+<div class="p-4 space-y-3">
+  <div class="flex items-center gap-2">
+    <details class="dropdown dropdown-start" #categoryDropdown>
+      <summary class="btn btn-sm" [class.btn-primary]="hasActiveCategoryFilter()"
+        [class.btn-outline]="!hasActiveCategoryFilter()">
+        <fa-icon [icon]="faFilter"></fa-icon>
+      </summary>
 
-<div class="flex flex-row p-4 overflow-hidden gap-2">
-  <button (click)="applyFilter(' ')" class="btn btn-sm btn-primary btn-soft "><fa-icon [icon]="faFilter">
-    </fa-icon></button>
-  <button (click)="applyFilter(' ')" class="btn btn-sm btn-primary btn-soft ">All</button>
-  @for (cat of categoriesArray; track cat) {
-  <button (click)="setCategory(cat.id)" class="btn btn-sm btn-primary btn-soft ">{{ cat.name }}</button>
+      <div
+        class="dropdown-content z-10 mt-2 w-64 max-h-80 overflow-y-auto rounded-box bg-base-100 border border-base-300 p-2">
+        <p class="text-sm font-semibold px-2 py-1">Categorías</p>
+        <button type="button" class="btn btn-sm justify-start w-full mb-1"
+          [class.btn-primary]="!hasActiveCategoryFilter()" [class.btn-ghost]="hasActiveCategoryFilter()"
+          (click)="setCategory(null, categoryDropdown)">
+          Todas
+        </button>
+
+        @for (cat of categories; track cat.id) {
+        <button type="button" class="btn btn-sm justify-start w-full mb-1"
+          [class.btn-primary]="isCategorySelected(cat.id)" [class.btn-ghost]="!isCategorySelected(cat.id)"
+          (click)="setCategory(cat, categoryDropdown)">
+          {{ cat.name }}
+        </button>
+        }
+      </div>
+    </details>
+    <input placeholder="Buscar productos" [formControl]="searchControl"
+      class="input input-primary input-ghost input-sm w-full border-primary" type="search" />
+
+  </div>
+
+  @if (hasActiveCategoryFilter() && selectedCategoryName) {
+  <div>
+    <span class="badge badge-primary badge-soft gap-2 py-3 px-3">
+      {{ selectedCategoryName }}
+      <button type="button" class="btn btn-ghost btn-xs btn-circle" aria-label="Limpiar categoría"
+        (click)="clearCategoryFilter()">✕</button>
+    </span>
+  </div>
   }
 </div>
 
-<div class="p-4 grid lg:grid-cols-6 md:grid-cols-3 gap-4 transition">
+<div class="p-4 grid xxl:grid-cols-6 lg:grid-cols-4 md:grid-cols-3 gap-4 transition">
   @for (item of products; track $index) {
 
   <div
     class="group flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm border border-base-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary">
-    <figure class="relative h-44 w-full overflow-hidden bg-base-200">
+    <a class="relative w-full h-48 overflow-hidden bg-base-200 flex items-center justify-center"
+      [routerLink]="detailLink(item)">
+      @if(item.thumbnailUrl) {
       <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        [src]="item.thumbnailUrl" [alt]="item.name" />
-
-      <button
-        type="button"
-        class="absolute left-3 top-3 btn btn-circle btn-xs"
-        [class.btn-error]="isFavorite(item.id)"
-        [class.btn-ghost]="!isFavorite(item.id)"
-        [disabled]="!authStore.isLoggedIn()"
-        (click)="toggleFavorite(item.id)">
-        <fa-icon [icon]="faHeart"></fa-icon>
-      </button>
+        [src]="resolvedImageUrl(item.thumbnailUrl)" [alt]="item.name" />
+      } @else {
+      <span class="text-sm opacity-70">Sin imagen</span>
+      }
 
       <span class="absolute right-3 top-3 badge badge-sm" [class.badge-success]="item.stock > 0"
         [class.badge-error]="item.stock === 0">
         {{ item.stock > 0 ? 'Disponible' : 'Sin stock' }}
       </span>
-    </figure>
+    </a>
 
     <div class="flex flex-1 flex-col p-4">
       <div class="space-y-1">
-        <h2 class="line-clamp-1 text-lg font-semibold">
-          {{ item.name }}
-        </h2>
+        <a class="line-clamp-1 text-lg font-semibold hover:text-primary transition" [routerLink]="detailLink(item)">{{
+          item.name }}</a>
 
         <p class="text-2xl font-bold text-primary">
           $ {{ item.price | number:'1.0-0' }}
@@ -56,35 +78,10 @@
         <span class="text-xs opacity-70">
           Stock: {{ item.stock }}
         </span>
-
-        <div class="flex items-center gap-2 rounded-xl border border-base-300 px-2 py-1">
-          <button class="btn btn-xs btn-ghost px-2" (click)="decreaseQuantity(item.id)"
-            [disabled]="getQuantity(item.id) <= 1">
-            <fa-icon [icon]="faMinus"></fa-icon>
-          </button>
-
-          <span class="min-w-6 text-center text-sm font-medium">
-            {{ getQuantity(item.id) }}
-          </span>
-
-          <button class="btn btn-xs btn-ghost px-2" (click)="increaseQuantity(item.id, item.stock)"
-            [disabled]="getQuantity(item.id) >= item.stock">
-            <fa-icon [icon]="faPlus"></fa-icon>
-          </button>
-        </div>
-      </div>
-
-      <div class="mt-3 text-sm opacity-70">
-        Total: $
-        {{ item.price * getQuantity(item.id) | number:'1.0-0' }}
       </div>
 
       <div class="mt-auto pt-4">
-        <button (click)="addToCart(item)" [disabled]="item.stock === 0"
-          class="btn btn-primary btn-sm w-full rounded-xl">
-          <fa-icon class="text-sm" [icon]="faCartPlus"></fa-icon>
-          Agregar al carrito
-        </button>
+        <a [routerLink]="detailLink(item)" class="btn btn-primary btn-sm w-full rounded-xl">Ver detalle</a>
       </div>
     </div>
   </div>
