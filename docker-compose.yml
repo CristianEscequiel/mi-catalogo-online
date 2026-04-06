@@ -1,20 +1,22 @@
 services:
   db:
     image: postgres:16-alpine
+    container_name: catalog_db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME:-my_catalog_db}
       POSTGRES_USER: ${DB_USER:-catalog_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-catalog_user} -d ${DB_NAME:-my_catalog_db}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
+    container_name: catalog_backend
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -24,21 +26,22 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: ${BACKEND_PORT:-3000}
+      PORT: 3000
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-my_catalog_db}
       DB_USER: ${DB_USER:-catalog_user}
-      DB_PASSWORD: ${DB_PASSWORD:-change_me}
-      JWT_SECRET: ${JWT_SECRET:-change_this_jwt_secret}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://catalog.esceweb.com}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     volumes:
       - uploads_data:/app/uploads
 
   frontend:
+    container_name: catalog_frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile

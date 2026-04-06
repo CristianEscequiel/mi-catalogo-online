@@ -12,10 +12,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/database ./src/database
 
 EXPOSE 3000
-CMD ["sh", "-c", "npm run migrations:run && node dist/main"]
+CMD ["sh", "-c", "npm run migrations:run:prod && node dist/main"]
