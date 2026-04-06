@@ -53,8 +53,6 @@ frontend/.vscode/
 frontend/.idea/
 frontend/dist/
 frontend/.env
-frontend/src/environments/environment.ts
-frontend/src/environments/environment.prod.ts
 
 # -------------------------------
 # BACKEND (NestJS / Node)
