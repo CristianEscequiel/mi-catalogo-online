@@ -8,11 +8,13 @@ import { CategoryFormDialogComponent } from '../category-form-dialog/category-fo
 import { CategoryWarnDialogComponent } from '../category-warn-dialog/category-warn-dialog.component';
 import { AuthStore } from '../../../../../core/state/auth.store';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
+import { AdminToolbarComponent } from '../../../shared/components/admin-toolbar/admin-toolbar.component';
+import { CategoryMobileCardComponent } from '../../../shared/components/category-mobile-card/category-mobile-card.component';
 
 @Component({
   standalone: true,
   selector: 'app-category-list',
-  imports: [CdkTableModule, ReactiveFormsModule],
+  imports: [CdkTableModule, ReactiveFormsModule, AdminToolbarComponent, CategoryMobileCardComponent],
   templateUrl: 'category-list.html'
 })
 export class CategoryListComponent implements OnInit {

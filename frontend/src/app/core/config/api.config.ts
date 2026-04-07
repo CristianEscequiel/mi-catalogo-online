@@ -7,11 +7,20 @@ export const resolveImageUrl = (imagePath?: string | null) => {
     return null;
   }
 
+  const normalizedBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    try {
+      const parsedUrl = new URL(imagePath);
+      if (parsedUrl.pathname.startsWith('/uploads/')) {
+        return `${normalizedBase}${parsedUrl.pathname}${parsedUrl.search}`;
+      }
+    } catch {
+      return imagePath;
+    }
     return imagePath;
   }
 
-  const normalizedBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
   const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
   return `${normalizedBase}${normalizedPath}`;
 };

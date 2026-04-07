@@ -1,0 +1,35 @@
+<article class="card rounded-2xl border border-base-300 bg-base-200/70 shadow-sm">
+  <div class="card-body p-4">
+    <div class="flex items-start gap-3">
+      <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-base-300">
+        <img class="h-full w-full object-cover" [src]="resolvedImageUrl()" [alt]="product.name" />
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <h3 class="truncate text-sm font-semibold">{{ product.name }}</h3>
+        <p class="truncate text-xs opacity-70">{{ subtitle() }}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span class="badge badge-neutral">{{ product.price | currency:'ARS':'symbol':'1.0-2' }}</span>
+          <span class="badge badge-ghost">Stock: {{ product.stock }}</span>
+          <span
+            class="badge"
+            [ngClass]="{
+              'badge-ghost': product.status === 'DRAFT',
+              'badge-success': product.status === 'PUBLIC',
+              'badge-neutral': product.status === 'ARCHIVED'
+            }"
+          >
+            {{ product.status }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex gap-2">
+      <button type="button" class="btn btn-xs btn-ghost flex-1" (click)="onView()">Ver</button>
+      <button type="button" class="btn btn-xs btn-info btn-outline flex-1" (click)="onEdit()">Editar</button>
+      <button type="button" class="btn btn-xs btn-error btn-outline flex-1" (click)="onDelete()">Eliminar</button>
+    </div>
+  </div>
+</article>
+

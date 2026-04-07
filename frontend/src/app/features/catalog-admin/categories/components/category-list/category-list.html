@@ -1,13 +1,28 @@
-<div class="flex flex-col ml-4 mb-4">
-  <div>
-    <input class="input input-sm" type="search" placeholder="Buscar" [formControl]="searchControl" />
-    <button
-      (click)="onCreate()"
-      class="btn btn-sm btn-ghost hover:btn-success btn-outline m-0 ml-4">+ Nueva Categoria</button>
+<div class="px-3 py-2 md:px-4">
+  <app-admin-toolbar
+    [searchControl]="searchControl"
+    searchPlaceholder="Buscar categoría"
+    buttonLabel="+ Nueva Categoria"
+    (create)="onCreate()"
+  />
+
+  <div class="space-y-3 md:hidden">
+    @for (row of filteredCategories; track row.id) {
+      <app-category-mobile-card
+        [category]="row"
+        (edit)="onEdit($event)"
+        (remove)="onDelete($event)"
+      />
+    } @empty {
+      <div class="rounded-2xl border border-base-300 bg-base-200 p-4 text-center text-sm opacity-70">
+        No hay categorías para mostrar.
+      </div>
+    }
   </div>
 </div>
 
-<table cdk-table [dataSource]="filteredCategories" class="table w-full">
+<div class="hidden md:block md:px-4">
+<table cdk-table [dataSource]="filteredCategories" class="table w-full rounded-box bg-base-200">
   <ng-container cdkColumnDef="image">
     <th cdk-header-cell *cdkHeaderCellDef class="w-16">Img</th>
     <td cdk-cell *cdkCellDef="let row">
@@ -56,3 +71,4 @@
   <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
   <tr cdk-row *cdkRowDef="let row; columns: displayedColumns"></tr>
 </table>
+</div>

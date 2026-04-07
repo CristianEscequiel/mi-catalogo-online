@@ -1,0 +1,19 @@
+<article class="card rounded-2xl border border-base-300 bg-base-200/70 shadow-sm">
+  <div class="card-body gap-3 p-4">
+    <div class="min-w-0">
+      <h3 class="truncate text-sm font-semibold">{{ category.name }}</h3>
+      <p class="truncate text-xs opacity-70">/{{ slugText() }}</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <span class="badge badge-ghost">Productos: {{ productsCount() }}</span>
+      <span class="badge badge-neutral">{{ category.description || 'Sin descripción' }}</span>
+    </div>
+
+    <div class="mt-1 flex gap-2">
+      <button type="button" class="btn btn-xs btn-info btn-outline flex-1" (click)="onEdit()">Editar</button>
+      <button type="button" class="btn btn-xs btn-error btn-outline flex-1" (click)="onDelete()">Eliminar</button>
+    </div>
+  </div>
+</article>
+

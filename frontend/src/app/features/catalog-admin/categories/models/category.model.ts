@@ -6,4 +6,7 @@ export interface CategoryModel {
 
 export interface CategoryResModel extends CategoryModel {
   id: number;
+  slug?: string | null;
+  productsCount?: number;
+  products?: Array<{ id: number }>;
 }

@@ -12,11 +12,13 @@ import { CategoryResModel } from '../../../categories/models/category.model'
 import { CategoryService } from '../../../categories/services/category.service';
 import { AuthStore } from '../../../../../core/state/auth.store';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
+import { AdminToolbarComponent } from '../../../shared/components/admin-toolbar/admin-toolbar.component';
+import { ProductMobileCardComponent } from '../../../shared/components/product-mobile-card/product-mobile-card.component';
 
 @Component({
   standalone: true,
   selector: 'app-prd-list',
-  imports: [CdkTableModule, CurrencyPipe, NgClass , ReactiveFormsModule],
+  imports: [CdkTableModule, CurrencyPipe, NgClass, ReactiveFormsModule, AdminToolbarComponent, ProductMobileCardComponent],
   templateUrl: 'product-list.html'
 })
 
@@ -149,7 +151,7 @@ export class PrdListComponent implements OnInit {
     });
 
   }
-  onView(row:string) {
+  onView(row: ProductResModel) {
     //Todo:
   }
   onEdit(row: ProductResModel) {
