@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, inject, OnInit } from '@angular/core';
+import { Dialog } from '@angular/cdk/dialog';
 import { AuthStore } from '../../core/state/auth.store';
 import { Form, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserFormLogin } from '../../core/models/user-form.model';
@@ -8,6 +9,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { firstValueFrom } from 'rxjs';
 import { ImageFieldComponent } from '../../shared/components/image-field/image-field.component';
 import { resolveImageUrl } from '../../core/config/api.config';
+import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../shared/utils/image-replacement.helper';
 
 interface ProfileForm {
 name:FormControl;
@@ -31,6 +33,7 @@ export class Profile implements AfterViewInit {
 private store = inject(AuthStore)
 private authService = inject(AuthService)
 private notificationService = inject(NotificationService)
+private dialog = inject(Dialog)
 profile = this.store.userProfile()
 avatar = this.profile?.avatar;
 selectedImageFile: File | null = null;
@@ -63,14 +66,20 @@ async onUploadImage() {
     return;
   }
 
+  const fileToUpload = this.selectedImageFile;
+
   try {
     this.isUploadingImage = true;
 
     if (this.avatar) {
-      await this.deleteProfileImage(false);
+      const confirmed = await confirmImageReplacementDialog(this.dialog);
+      if (!confirmed) {
+        return;
+      }
+      await this.deleteProfileImage(false, false);
     }
 
-    const response = await firstValueFrom(this.authService.uploadProfileImage(userId, this.selectedImageFile));
+    const response = await firstValueFrom(this.authService.uploadProfileImage(userId, fileToUpload));
     this.avatar = response.imageUrl;
     this.selectedImageFile = null;
     const currentProfile = this.store.userProfile();
@@ -94,7 +103,7 @@ resolvedAvatarUrl() {
   return resolveImageUrl(this.avatar);
 }
 
-private async deleteProfileImage(showSuccessToast: boolean) {
+private async deleteProfileImage(showSuccessToast: boolean, clearSelection = true) {
   const userId = this.store.userLite()?.id;
   if (!userId || !this.avatar) {
     return;
@@ -104,7 +113,9 @@ private async deleteProfileImage(showSuccessToast: boolean) {
   try {
     const response = await firstValueFrom(this.authService.deleteProfileImage(userId));
     this.avatar = response.imageUrl;
-    this.selectedImageFile = null;
+    if (clearSelection) {
+      this.selectedImageFile = null;
+    }
     const currentProfile = this.store.userProfile();
     if (currentProfile) {
       this.store.setUserProfile({ ...currentProfile, avatar: response.imageUrl });
@@ -112,7 +123,11 @@ private async deleteProfileImage(showSuccessToast: boolean) {
     if (showSuccessToast) {
       this.notificationService.success('Imagen de perfil eliminada correctamente.');
     }
-  } catch {
+  } catch (error) {
+    if (!showSuccessToast && isNotFoundHttpError(error)) {
+      this.avatar = null;
+      return;
+    }
     this.notificationService.error('No se pudo eliminar la imagen de perfil.');
     throw new Error('PROFILE_IMAGE_DELETE_FAILED');
   } finally {

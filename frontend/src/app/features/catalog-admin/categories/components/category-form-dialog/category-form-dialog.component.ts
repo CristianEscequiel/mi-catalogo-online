@@ -1,6 +1,6 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
+import { Dialog, DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { CategoryModel } from '../../models/category.model';
@@ -9,6 +9,7 @@ import { CategoryFormComponent } from '../category-form/category-form.component'
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../../../../shared/utils/image-replacement.helper';
 
 type FormMode = 'create' | 'edit';
 
@@ -46,6 +47,7 @@ type FormMode = 'create' | 'edit';
 })
 export class CategoryFormDialogComponent {
   faTimes = faTimes;
+  private dialog = inject(Dialog);
   form: FormGroup;
   imageUrl: string | null = null;
   imageError: string | null = null;
@@ -149,14 +151,20 @@ export class CategoryFormDialogComponent {
       return;
     }
 
+    const fileToUpload = this.selectedImageFile;
+
     try {
       this.isUploadingImage = true;
 
       if (this.imageUrl) {
-        await this.deleteImageFromEntity(false);
+        const confirmed = await confirmImageReplacementDialog(this.dialog);
+        if (!confirmed) {
+          return;
+        }
+        await this.deleteImageFromEntity(false, false);
       }
 
-      const response = await firstValueFrom(this.categoryService.uploadCategoryImage(categoryId, this.selectedImageFile));
+      const response = await firstValueFrom(this.categoryService.uploadCategoryImage(categoryId, fileToUpload));
       this.imageUrl = response.imageUrl;
       this.selectedImageFile = null;
       this.imageError = null;
@@ -170,7 +178,7 @@ export class CategoryFormDialogComponent {
     }
   }
 
-  private async deleteImageFromEntity(showSuccessToast: boolean) {
+  private async deleteImageFromEntity(showSuccessToast: boolean, clearSelection = true) {
     if (!this.data.id) {
       return;
     }
@@ -179,16 +187,23 @@ export class CategoryFormDialogComponent {
     try {
       const response = await firstValueFrom(this.categoryService.deleteCategoryImage(this.data.id));
       this.imageUrl = response.imageUrl;
-      this.selectedImageFile = null;
+      if (clearSelection) {
+        this.selectedImageFile = null;
+      }
       this.imageError = null;
       if (showSuccessToast) {
         this.notificationService.success('Imagen eliminada correctamente.');
       }
-    } catch {
+    } catch (error) {
+      if (!showSuccessToast && isNotFoundHttpError(error)) {
+        this.imageUrl = null;
+        return;
+      }
       this.notificationService.error('No se pudo eliminar la imagen.');
       throw new Error('IMAGE_DELETE_FAILED');
     } finally {
       this.isDeletingImage = false;
     }
   }
+
 }

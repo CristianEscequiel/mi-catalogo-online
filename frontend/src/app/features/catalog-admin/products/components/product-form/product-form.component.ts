@@ -104,6 +104,7 @@ export class PrdFormComponent implements OnInit {
   }
 
   onDeleteImage() {
+    console.log('Requesting image deletion');
     this.deleteImage.emit();
   }
 

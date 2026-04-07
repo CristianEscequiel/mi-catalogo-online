@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CartStore } from '../../core/state/cart.store';
+import { resolveImageUrl } from '../../core/config/api.config';
 
 @Component({
   standalone: true,
@@ -18,6 +19,9 @@ export class CartPage implements OnInit {
   ngOnInit(): void {
     this.cartStore.loadCart().catch((error: unknown) => console.error(error));
   }
+  resolveImageUrl(imagePath?: string | null) {
+      return resolveImageUrl(imagePath);
+    }
 
   async updateQuantity(productId: number, event: Event, stock: number | undefined): Promise<void> {
     const input = event.target as HTMLInputElement;

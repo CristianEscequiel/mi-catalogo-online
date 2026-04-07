@@ -85,6 +85,7 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
 
     ref.closed.subscribe((confirmed) => {
       if (confirmed) {
+        console.log('User confirmed deletion');
         this.deleteRequested.emit();
       }
     });

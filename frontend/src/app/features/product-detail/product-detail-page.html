@@ -1,4 +1,4 @@
-<section class="max-w-6xl mx-auto px-4 py-6">
+<section class="max-w-6xl mx-auto py-0 px-4 md:py-6">
   <div class="flex items-center justify-between gap-3 mb-4">
     <div class="breadcrumbs text-sm">
       <ul>
@@ -36,7 +36,7 @@
     </div>
   } @else if (product(); as item) {
     <div class="grid gap-6 md:grid-cols-2">
-      <div class="w-full max-w-xl aspect-square mx-auto rounded-2xl overflow-hidden border border-base-300 bg-base-200">
+      <div class="w-xs md:w-full max-w-lg aspect-square mx-auto rounded-2xl overflow-hidden border border-base-300 bg-base-200">
         <img class="w-full h-full object-cover" [src]="resolvedImageUrl(item.thumbnailUrl)" [alt]="item.name" />
       </div>
 
@@ -49,7 +49,7 @@
             <span class="badge badge-outline">{{ item.status }}</span>
           </div>
 
-          <h1 class="text-3xl font-bold leading-tight">{{ item.name }}</h1>
+          <h1 class="text-2xl md:text-3xl font-bold leading-tight">{{ item.name }}</h1>
           <p class="text-3xl font-bold text-primary">$ {{ item.price | number:'1.0-0' }}</p>
         </header>
 
