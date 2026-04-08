@@ -24,6 +24,10 @@ export class Header implements OnInit {
   userName = computed(() => (this.store.userProfile()?.name ?? ''));
   userLastName = computed(() => (this.store.userProfile()?.lastName ?? ''));
   avatar = computed(() => (this.store.userProfile() as any)?.avatar ?? null);
+  canAccessAdminMenu = computed(() => {
+    const role = this.store.userLite()?.role;
+    return role === 'ADMIN' || role === 'GUEST';
+  });
 
   readonly cartStore = inject(CartStore);
   private readonly themeService = inject(ThemeService);

@@ -20,13 +20,9 @@ export class ProductService {
       const normalizedCategoryIds = this.normalizeCategoryIds(body.categoryIds);
 
       if (role === 'GUEST') {
-        const count = await this.postRepository.count({
-          where: {
-            user: { id: userId },
-          },
-        });
+        const count = await this.postRepository.count();
         if (count >= 5) {
-          throw new ForbiddenException('El usuario invitado solo puede crear hasta 5 productos');
+          throw new ForbiddenException('Límite de demo alcanzado');
         }
       }
       const newProduct = await this.postRepository.save({
@@ -36,6 +32,9 @@ export class ProductService {
       });
       return this.findOne(newProduct.id);
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new BadRequestException(`Error creating product: ${error.message}`);
     }
   }

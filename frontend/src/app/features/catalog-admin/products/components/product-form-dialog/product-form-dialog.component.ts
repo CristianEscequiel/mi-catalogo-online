@@ -10,6 +10,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../../../../shared/utils/image-replacement.helper';
+import { HttpErrorResponse } from '@angular/common/http';
 
 type FormMode = 'create' | 'edit';
 
@@ -134,7 +135,11 @@ export class ProductFormDialogComponent {
       }
       this.notificationService.success('Producto creado correctamente.');
       this.dialogRef.close('updated');
-    } catch {
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 403) {
+        this.notificationService.error('Límite de demo alcanzado');
+        return;
+      }
       this.notificationService.error('No se pudo crear el producto.');
     }
   }

@@ -58,14 +58,16 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: 'Update a Product by id' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto) {
     return this.postService.update(id, updateProductDto);
   }
 
   @ApiOperation({ summary: 'Publish a post Product by id with AI' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Put(':id/publish')
   publish(@Param('id', ParseIntPipe) id: number, @Request() req) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -75,7 +77,8 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: 'Delete a Product by ID' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.postService.remove(id);
@@ -95,7 +98,8 @@ export class ProductController {
       required: ['file'],
     },
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.products)))
   uploadImage(@Param('id', ParseIntPipe) id: number, @UploadedFile() file?: { filename: string }) {
@@ -106,7 +110,8 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: 'Delete product image' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Delete(':id/image')
   deleteImage(@Param('id', ParseIntPipe) id: number) {
     return this.postService.deleteImage(id);

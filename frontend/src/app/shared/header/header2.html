@@ -170,6 +170,7 @@
         <a routerLink="/home"
           class="cursor-pointer text-s w-full text-start p-2 border-l-4 border-transparent hover:border-accent hover:rounded-l-md"
           (click)="mainDrawer.checked = false">Home</a>
+        @if (canAccessAdminMenu()) {
         <a routerLink="/admin/product"
           class="cursor-pointer text-s w-full text-start p-2 border-l-4 border-transparent hover:border-accent hover:rounded-l-md"
           (click)="mainDrawer.checked = false">Productos</a>
@@ -177,6 +178,7 @@
           class="cursor-pointer text-s w-full text-start p-2 border-l-4 border-transparent hover:border-accent hover:rounded-l-md"
           (click)="mainDrawer.checked = false">Categorías</a>
 
+        }
       </div>
     </aside>
   </div>

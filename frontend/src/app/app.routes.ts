@@ -60,12 +60,14 @@ export const routes: Routes = [
   path: 'admin/product',
   canActivate: [authGuard],
   component: PrdAdminComponet,
+  data: { roles: ['ADMIN', 'GUEST'] },
   pathMatch: 'full'
 },
 {
   path: 'admin/category',
   canActivate: [authGuard],
   component: CategoryAdminComponent,
+  data: { roles: ['ADMIN', 'GUEST'] },
   pathMatch: 'full'
 }
 

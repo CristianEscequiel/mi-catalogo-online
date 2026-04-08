@@ -18,13 +18,9 @@ export class CategoryService {
   async create(createCategoryDto: CreateCategoryDto, userId: number, role: string) {
     try {
       if (role === 'GUEST') {
-        const count = await this.categoryRepository.count({
-          where: {
-            user: { id: userId },
-          },
-        });
+        const count = await this.categoryRepository.count();
         if (count >= 5) {
-          throw new ForbiddenException('El usuario invitado solo puede crear hasta 5 categorias');
+          throw new ForbiddenException('Límite de demo alcanzado');
         }
       }
 
@@ -34,6 +30,9 @@ export class CategoryService {
       });
       return await this.categoryRepository.save(category);
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new BadRequestException(`Error creating category: ${error.message}`);
     }
   }

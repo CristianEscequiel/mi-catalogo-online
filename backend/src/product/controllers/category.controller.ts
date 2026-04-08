@@ -46,11 +46,15 @@ export class CategoryController {
     return this.productService.findProductByCategoryId(id);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoryService.update(id, updateCategoryDto);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.categoryService.remove(id);
@@ -70,7 +74,8 @@ export class CategoryController {
       required: ['file'],
     },
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.categories)))
   uploadImage(@Param('id', ParseIntPipe) id: number, @UploadedFile() file?: { filename: string }) {
@@ -81,7 +86,8 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'Delete category image' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
   @Delete(':id/image')
   deleteImage(@Param('id', ParseIntPipe) id: number) {
     return this.categoryService.deleteImage(id);
