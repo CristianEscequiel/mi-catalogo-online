@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UserFormRegister } from '../../../../core/models/user-form.model';
 import { AuthFacade } from '../../services/auth.facade';
 
@@ -13,7 +13,9 @@ import { AuthFacade } from '../../services/auth.facade';
 })
 export class RegisterForm {
   isLoading = false;
+  route = inject(ActivatedRoute);
   authFacade = inject(AuthFacade);
+  returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
 
   registerForm = new FormGroup<UserFormRegister>({
     name: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
@@ -38,7 +40,7 @@ export class RegisterForm {
           name,
           lastName,
         },
-      });
+      }, this.returnUrl);
       this.registerForm.reset();
     } catch {
       return;

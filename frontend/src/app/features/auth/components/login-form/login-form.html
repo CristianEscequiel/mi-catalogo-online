@@ -3,6 +3,12 @@
     <div class="card-body p-6 sm:p-8">
       <h1 class="card-title justify-center text-2xl font-semibold">Login</h1>
 
+      @if (authRequired) {
+        <div class="alert alert-info">
+          <span>Necesitás una cuenta para continuar</span>
+        </div>
+      }
+
       <form [formGroup]="loginForm" (ngSubmit)="loginPost()" class="space-y-6" novalidate>
         <div class="space-y-2">
           <label for="email" class="label p-0">
@@ -58,7 +64,7 @@
 
       <p class="text-sm text-center text-base-content/80">
         ¿No tienes cuenta?
-        <a routerLink="/register" class="link link-primary">Crear cuenta</a>
+        <a routerLink="/register" [queryParams]="{ returnUrl: returnUrl }" class="link link-primary">Crear cuenta</a>
       </p>
     </div>
   </div>

@@ -17,7 +17,7 @@ private router = inject(Router);
 private authService =  inject(AuthService)
 private notificationService = inject(NotificationService);
 
-async loginUser(email:string , password:string) {
+async loginUser(email:string , password:string, redirectUrl = '/home') {
   try {
     this.store.setLoadingProfile(true);
     const res = await firstValueFrom(this.authService.loginUser(email, password))
@@ -26,7 +26,7 @@ async loginUser(email:string , password:string) {
 
     this.store.setUserProfile(profile.profile as any);
     this.notificationService.success('Inicio de sesión exitoso.');
-    this.router.navigate(['/home']);
+    this.router.navigateByUrl(redirectUrl);
   } catch {
     this.notificationService.error('Credenciales inválidas. Intenta nuevamente.');
     throw new Error('LOGIN_FAILED');
@@ -35,11 +35,15 @@ async loginUser(email:string , password:string) {
   }
 }
 
-async registerUser(payload: RegisterRequest) {
+async registerUser(payload: RegisterRequest, returnUrl?: string) {
   try {
     await firstValueFrom(this.authService.registerUser(payload));
     this.notificationService.success('Cuenta creada correctamente. Inicia sesi��n para continuar.');
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login'], {
+      queryParams: {
+        ...(returnUrl ? { returnUrl } : {}),
+      },
+    });
   } catch (error) {
     if (error instanceof HttpErrorResponse && error.status === 409) {
       this.notificationService.error('Ese email ya est�� registrado.');
