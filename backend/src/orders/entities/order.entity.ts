@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { OrderItem } from './order-item.entity';
+import { OrderStatus } from './order-status.enum';
 
 @Entity({ name: 'orders' })
 @Index('IDX_orders_user', ['userId'])
@@ -29,6 +30,19 @@ export class Order {
   @Column({ type: 'float', default: 0 })
   @ApiProperty({ description: 'Order total amount', example: 240, required: true })
   total: number;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.PENDING_PAYMENT,
+  })
+  @ApiProperty({
+    description: 'Order status',
+    enum: OrderStatus,
+    example: OrderStatus.PENDING_PAYMENT,
+    required: true,
+  })
+  status: OrderStatus;
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

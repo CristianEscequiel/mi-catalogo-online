@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CartItem } from '../cart/entities/cart-item.entity';
@@ -6,6 +6,7 @@ import { Product } from '../product/entities/product.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
+import { OrderStatus } from './entities/order-status.enum';
 
 @Injectable()
 export class OrdersService {
@@ -47,6 +48,7 @@ export class OrdersService {
         customerEmail: createOrderDto.email,
         shippingAddress: createOrderDto.address,
         total,
+        status: OrderStatus.PENDING_PAYMENT,
       });
 
       const savedOrder = await orderRepository.save(order);
@@ -56,6 +58,7 @@ export class OrdersService {
         return orderItemRepository.create({
           orderId: savedOrder.id,
           productId: cartItem.productId,
+          productName: cartItem.product.name,
           quantity: cartItem.quantity,
           unitPrice,
           subtotal: unitPrice * cartItem.quantity,
@@ -73,10 +76,49 @@ export class OrdersService {
       await cartRepository.delete({ userId });
 
       return {
-        orderId: savedOrder.id,
+        id: savedOrder.id,
+        status: savedOrder.status,
+        customerName: savedOrder.customerName,
+        customerEmail: savedOrder.customerEmail,
+        customerAddress: savedOrder.shippingAddress,
         total: savedOrder.total,
-        itemsCount: orderItems.length,
+        createdAt: savedOrder.createdAt,
+        items: orderItems.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        })),
       };
     });
+  }
+
+  async getOrderById(orderId: number, userId: number) {
+    const order = await this.dataSource.getRepository(Order).findOne({
+      where: { id: orderId, userId },
+      relations: ['items'],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with id ${orderId} not found`);
+    }
+
+    return {
+      id: order.id,
+      status: order.status,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerAddress: order.shippingAddress,
+      total: order.total,
+      createdAt: order.createdAt,
+      items: order.items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
+    };
   }
 }

@@ -1,25 +1,64 @@
-<div class="max-w-2xl mx-auto">
-  <div class="card bg-base-100 border border-base-300 shadow-sm">
-    <div class="card-body items-start gap-3">
-      <h1 class="card-title text-2xl text-success">¡Orden confirmada!</h1>
-
-      <p>
-        Tu compra fue registrada con éxito.
-      </p>
-
-      <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
-        <p><span class="font-semibold">Orden:</span> #{{ orderId }}</p>
-        <p><span class="font-semibold">Items:</span> {{ itemsCount }}</p>
-        <p>
-          <span class="font-semibold">Total:</span>
-          $ {{ total | number:'1.0-0' }}
-        </p>
-      </div>
-
-      <div class="card-actions mt-2">
-        <a routerLink="/home" class="btn btn-primary">Volver al catálogo</a>
-        <a routerLink="/profile" class="btn btn-ghost">Ver perfil</a>
+<div class="max-w-3xl mx-auto">
+  @if (loading()) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <span class="loading loading-spinner loading-md"></span>
+        <p>Cargando detalle del pedido...</p>
       </div>
     </div>
-  </div>
+  } @else if (order(); as orderData) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-start gap-4">
+        <h1 class="card-title text-2xl text-success">Pedido generado correctamente</h1>
+
+        <div class="badge badge-warning">{{ statusLabel() }}</div>
+
+        <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
+          <p><span class="font-semibold">Pedido:</span> #{{ orderData.id }}</p>
+          <p><span class="font-semibold">Cliente:</span> {{ orderData.customerName }}</p>
+          <p><span class="font-semibold">Email:</span> {{ orderData.customerEmail }}</p>
+          <p><span class="font-semibold">Dirección:</span> {{ orderData.customerAddress }}</p>
+          <p><span class="font-semibold">Total:</span> $ {{ orderData.total | number:'1.0-0' }}</p>
+        </div>
+
+        <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
+          <h2 class="font-semibold mb-2">Resumen de productos</h2>
+          <div class="flex flex-col gap-2">
+            @for (item of orderData.items; track item.productId) {
+              <div class="flex items-center justify-between text-sm border-b border-base-300 pb-2">
+                <div>
+                  <p class="font-medium">{{ item.productName }}</p>
+                  <p class="opacity-70">{{ item.quantity }} x $ {{ item.unitPrice | number:'1.0-0' }}</p>
+                </div>
+                <p class="font-semibold">$ {{ item.subtotal | number:'1.0-0' }}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
+          <h2 class="font-semibold mb-2">Datos de transferencia</h2>
+          <p>Transferí a:</p>
+          <p><span class="font-semibold">Alias:</span> {{ bankData.alias }}</p>
+          <p><span class="font-semibold">CBU:</span> {{ bankData.cbu }}</p>
+          <p><span class="font-semibold">Titular:</span> {{ bankData.holder }}</p>
+          <p><span class="font-semibold">Banco:</span> {{ bankData.bank }}</p>
+        </div>
+
+        <div class="card-actions mt-2 w-full flex-col sm:flex-row">
+          <a [href]="whatsappUrl()" target="_blank" rel="noopener noreferrer" class="btn btn-success w-full sm:w-auto">
+            Enviar pedido por WhatsApp
+          </a>
+          <a routerLink="/home" class="btn btn-primary w-full sm:w-auto">Volver al catálogo</a>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <p>No pudimos cargar este pedido.</p>
+        <a routerLink="/home" class="btn btn-primary">Volver al catálogo</a>
+      </div>
+    </div>
+  }
 </div>

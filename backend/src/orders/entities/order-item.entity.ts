@@ -19,6 +19,10 @@ export class OrderItem {
   @ApiProperty({ description: 'Product ID', example: 10, required: true })
   productId: number;
 
+  @Column({ name: 'product_name', type: 'varchar', length: 255 })
+  @ApiProperty({ description: 'Product name snapshot', example: 'Teclado mecánico', required: true })
+  productName: string;
+
   @Column({ type: 'int' })
   @ApiProperty({ description: 'Ordered quantity', example: 2, required: true })
   quantity: number;

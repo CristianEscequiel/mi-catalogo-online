@@ -9,10 +9,23 @@ export interface CreateOrderPayload {
   address: string;
 }
 
-export interface CreateOrderResponse {
-  orderId: number;
+export interface OrderItemSnapshot {
+  productId: number;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export interface OrderResponse {
+  id: number;
+  status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'DELIVERED';
+  customerName: string;
+  customerEmail: string;
+  customerAddress: string;
   total: number;
-  itemsCount: number;
+  createdAt: string;
+  items: OrderItemSnapshot[];
 }
 
 @Injectable({
@@ -22,7 +35,11 @@ export class OrdersService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = API_BASE_URL;
 
-  placeOrder(payload: CreateOrderPayload): Observable<CreateOrderResponse> {
-    return this.http.post<CreateOrderResponse>(`${this.apiUrl}/orders`, payload);
+  placeOrder(payload: CreateOrderPayload): Observable<OrderResponse> {
+    return this.http.post<OrderResponse>(`${this.apiUrl}/orders`, payload);
+  }
+
+  getOrderById(orderId: number): Observable<OrderResponse> {
+    return this.http.get<OrderResponse>(`${this.apiUrl}/orders/${orderId}`);
   }
 }

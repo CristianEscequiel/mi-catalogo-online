@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../core/services/notification.service';
@@ -70,15 +71,18 @@ export class CheckoutPage implements OnInit {
       const response = await firstValueFrom(this.ordersService.placeOrder(payload));
 
       await this.cartStore.loadCart();
-      this.notificationService.success(`Orden #${response.orderId} creada correctamente.`);
-      await this.router.navigate(['/checkout/success', response.orderId], {
-        queryParams: {
-          total: response.total,
-          items: response.itemsCount,
-        },
-      });
-    } catch {
-      this.notificationService.error('No se pudo procesar la orden. Verifica stock disponible.');
+      this.notificationService.success(`Orden #${response.id} creada correctamente.`);
+      await this.router.navigate(['/checkout/success', response.id]);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        const backendMessage = error.error?.message;
+        if (typeof backendMessage === 'string' && backendMessage.trim()) {
+          this.notificationService.error(backendMessage);
+          return;
+        }
+      }
+
+      this.notificationService.error('No se pudo procesar la orden. Intenta nuevamente.');
     } finally {
       this.loading.set(false);
     }
