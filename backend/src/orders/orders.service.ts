@@ -7,6 +7,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.enum';
+import { Role } from '../auth/roles/roles.enum';
 
 @Injectable()
 export class OrdersService {
@@ -119,6 +120,70 @@ export class OrdersService {
         quantity: item.quantity,
         subtotal: item.subtotal,
       })),
+    };
+  }
+
+  async getAllOrders() {
+    const orders = await this.dataSource.getRepository(Order).find({
+      order: { createdAt: 'DESC' },
+    });
+
+    return orders.map((order) => ({
+      id: order.id,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      total: order.total,
+      status: order.status,
+      createdAt: order.createdAt,
+    }));
+  }
+
+  async getOrderByIdForRole(orderId: number, userId: number, role: Role) {
+    if (role === Role.ADMIN) {
+      const order = await this.dataSource.getRepository(Order).findOne({
+        where: { id: orderId },
+        relations: ['items'],
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Order with id ${orderId} not found`);
+      }
+
+      return {
+        id: order.id,
+        status: order.status,
+        customerName: order.customerName,
+        customerEmail: order.customerEmail,
+        customerAddress: order.shippingAddress,
+        total: order.total,
+        createdAt: order.createdAt,
+        items: order.items.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        })),
+      };
+    }
+
+    return this.getOrderById(orderId, userId);
+  }
+
+  async updateStatus(orderId: number, status: OrderStatus) {
+    const orderRepository = this.dataSource.getRepository(Order);
+    const order = await orderRepository.findOne({ where: { id: orderId } });
+
+    if (!order) {
+      throw new NotFoundException(`Order with id ${orderId} not found`);
+    }
+
+    order.status = status;
+    const savedOrder = await orderRepository.save(order);
+
+    return {
+      id: savedOrder.id,
+      status: savedOrder.status,
     };
   }
 }

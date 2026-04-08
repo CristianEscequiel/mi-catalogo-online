@@ -28,6 +28,15 @@ export interface OrderResponse {
   items: OrderItemSnapshot[];
 }
 
+export interface OrderSummaryResponse {
+  id: number;
+  customerName: string;
+  customerEmail: string;
+  total: number;
+  status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'DELIVERED';
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -41,5 +50,13 @@ export class OrdersService {
 
   getOrderById(orderId: number): Observable<OrderResponse> {
     return this.http.get<OrderResponse>(`${this.apiUrl}/orders/${orderId}`);
+  }
+
+  getAllOrders(): Observable<OrderSummaryResponse[]> {
+    return this.http.get<OrderSummaryResponse[]>(`${this.apiUrl}/orders`);
+  }
+
+  updateOrderStatus(orderId: number, status: OrderResponse['status']): Observable<{ id: number; status: OrderResponse['status'] }> {
+    return this.http.patch<{ id: number; status: OrderResponse['status'] }>(`${this.apiUrl}/orders/${orderId}/status`, { status });
   }
 }

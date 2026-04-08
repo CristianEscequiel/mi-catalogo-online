@@ -11,6 +11,7 @@ import { CheckoutPage } from './features/checkout/checkout-page';
 import { CheckoutSuccessPage } from './features/checkout/checkout-success-page';
 import { ProductDetailPage } from './features/product-detail/product-detail-page';
 import { RegisterForm } from './features/auth/components/register-form/register-form';
+import { OrderAdminPage } from './features/catalog-admin/orders/pages/order-admin.page';
 
 export const routes: Routes = [
   {
@@ -67,6 +68,13 @@ export const routes: Routes = [
   canActivate: [authGuard],
   component: CategoryAdminComponent,
   data: { roles: ['ADMIN', 'GUEST'] },
+  pathMatch: 'full'
+},
+{
+  path: 'admin/orders',
+  canActivate: [authGuard],
+  component: OrderAdminPage,
+  data: { roles: ['ADMIN'] },
   pathMatch: 'full'
 }
 

@@ -28,6 +28,7 @@ export class Header implements OnInit {
     const role = this.store.userLite()?.role;
     return role === 'ADMIN' || role === 'GUEST';
   });
+  canAccessOrdersAdmin = computed(() => this.store.userLite()?.role === 'ADMIN');
 
   readonly cartStore = inject(CartStore);
   private readonly themeService = inject(ThemeService);

@@ -179,6 +179,12 @@
           (click)="mainDrawer.checked = false">Categorías</a>
 
         }
+
+        @if (canAccessOrdersAdmin()) {
+        <a routerLink="/admin/orders"
+          class="cursor-pointer text-s w-full text-start p-2 border-l-4 border-transparent hover:border-accent hover:rounded-l-md"
+          (click)="mainDrawer.checked = false">Pedidos</a>
+        }
       </div>
     </aside>
   </div>
