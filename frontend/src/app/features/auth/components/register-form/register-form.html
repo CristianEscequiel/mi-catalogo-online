@@ -1,0 +1,97 @@
+<div class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+  <div class="card bg-base-100 border border-base-300 rounded-2xl shadow-lg w-full max-w-md transition duration-300">
+    <div class="card-body p-6 sm:p-8">
+      <h1 class="card-title justify-center text-2xl font-semibold">Crear cuenta</h1>
+
+      <form [formGroup]="registerForm" (ngSubmit)="submit()" class="space-y-6" novalidate>
+        <div class="space-y-2">
+          <label for="name" class="label p-0">
+            <span class="label-text font-medium">Nombre</span>
+          </label>
+          <input
+            id="name"
+            formControlName="name"
+            type="text"
+            class="input input-bordered w-full transition duration-300 focus:border-primary"
+            placeholder="Nombre"
+            autocomplete="given-name"
+          />
+          @if (registerForm.controls.name.touched && registerForm.controls.name.invalid) {
+            <p class="text-error text-sm">El nombre es obligatorio.</p>
+          }
+        </div>
+
+        <div class="space-y-2">
+          <label for="lastName" class="label p-0">
+            <span class="label-text font-medium">Apellido</span>
+          </label>
+          <input
+            id="lastName"
+            formControlName="lastName"
+            type="text"
+            class="input input-bordered w-full transition duration-300 focus:border-primary"
+            placeholder="Apellido"
+            autocomplete="family-name"
+          />
+          @if (registerForm.controls.lastName.touched && registerForm.controls.lastName.invalid) {
+            <p class="text-error text-sm">El apellido es obligatorio.</p>
+          }
+        </div>
+
+        <div class="space-y-2">
+          <label for="email" class="label p-0">
+            <span class="label-text font-medium">Email</span>
+          </label>
+          <input
+            id="email"
+            formControlName="email"
+            type="email"
+            class="input input-bordered w-full transition duration-300 focus:border-primary"
+            placeholder="Email"
+            autocomplete="email"
+          />
+          @if (registerForm.controls.email.touched && registerForm.controls.email.invalid) {
+            <p class="text-error text-sm">Ingresa un email válido.</p>
+          }
+        </div>
+
+        <div class="space-y-2">
+          <label for="password" class="label p-0">
+            <span class="label-text font-medium">Password</span>
+          </label>
+          <input
+            id="password"
+            formControlName="password"
+            type="password"
+            class="input input-bordered w-full transition duration-300 focus:border-primary"
+            placeholder="Password"
+            autocomplete="new-password"
+          />
+          @if (registerForm.controls.password.touched && registerForm.controls.password.invalid) {
+            <p class="text-error text-sm">La contraseña es obligatoria.</p>
+          }
+        </div>
+
+        <button
+          [disabled]="isLoading || !registerForm.valid"
+          class="btn btn-primary w-full transition duration-300"
+          type="submit"
+        >
+          @if (isLoading) {
+            <span class="inline-flex items-center gap-2">
+              <span class="loading loading-spinner loading-sm"></span>
+              Creando cuenta...
+            </span>
+          } @else {
+            Registrarme
+          }
+        </button>
+      </form>
+
+      <p class="text-sm text-center text-base-content/80">
+        ¿Ya tienes cuenta?
+        <a routerLink="/login" class="link link-primary">Inicia sesión</a>
+      </p>
+    </div>
+  </div>
+</div>

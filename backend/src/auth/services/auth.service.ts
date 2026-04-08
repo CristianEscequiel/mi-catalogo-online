@@ -4,6 +4,8 @@ import { UsersService } from '../../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../../users/entities/user.entity';
 import { Payload } from '../models/payload.model';
+import { RegisterDto } from '../dto/register.dto';
+import { Role } from '../roles/roles.enum';
 
 @Injectable()
 export class AuthService {
@@ -26,5 +28,12 @@ export class AuthService {
   generateToken(user: User) {
     const payload: Payload = { sub: user.id, role: user.role };
     return this.jwtService.sign(payload);
+  }
+
+  register(registerDto: RegisterDto) {
+    return this.usersService.create({
+      ...registerDto,
+      role: Role.CLIENT,
+    });
   }
 }

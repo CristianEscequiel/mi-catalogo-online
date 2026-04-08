@@ -5,6 +5,7 @@ import { UserLogin } from '../../../core/models/user.model';
 import { LoginResponse } from '../models/login-res.model';
 import { ProfileResponse } from '../models/profile-res.model';
 import { API_BASE_URL } from '../../../core/config/api.config';
+import { RegisterRequest } from '../models/register-req.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +29,16 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
       })
     );;
   }
+
+  registerUser(payload: RegisterRequest): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/auth/register`, payload).pipe(
+      catchError(err => {
+        console.error('Error en registro', err);
+        throw err;
+      })
+    );
+  }
+
   getUserById(id:number){
     return this.http.get<ProfileResponse>(`${this.apiUrl}/users/${id}`)
   }

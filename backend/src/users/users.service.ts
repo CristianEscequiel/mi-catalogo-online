@@ -1,8 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
 import { Profile } from './entities/profile.entity';
 import { FileStorageService } from 'src/files/file-storage.service';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
@@ -59,11 +60,19 @@ export class UsersService {
   }
 
   async create(body: CreateUserDto) {
+    const existingUser = await this.getUserByEmail(body.email);
+    if (existingUser) {
+      throw new ConflictException('Email already registered');
+    }
+
     try {
       const newUser = this.usersRepository.create(body);
       const savedUser = await this.usersRepository.save(newUser);
       return this.findOne(savedUser.id);
-    } catch {
+    } catch (error) {
+      if (error instanceof QueryFailedError && (error as { driverError?: { code?: string } }).driverError?.code === '23505') {
+        throw new ConflictException('Email already registered');
+      }
       throw new BadRequestException('Error creating user');
     }
   }

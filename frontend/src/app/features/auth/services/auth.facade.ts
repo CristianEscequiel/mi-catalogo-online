@@ -2,8 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { AuthStore } from '../../../core/state/auth.store';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
+import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../../core/services/notification.service';
+import { RegisterRequest } from '../models/register-req.model';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +32,22 @@ async loginUser(email:string , password:string) {
     throw new Error('LOGIN_FAILED');
   } finally {
     this.store.setLoadingProfile(false);
+  }
+}
+
+async registerUser(payload: RegisterRequest) {
+  try {
+    await firstValueFrom(this.authService.registerUser(payload));
+    this.notificationService.success('Cuenta creada correctamente. Inicia sesi��n para continuar.');
+    this.router.navigate(['/login']);
+  } catch (error) {
+    if (error instanceof HttpErrorResponse && error.status === 409) {
+      this.notificationService.error('Ese email ya est�� registrado.');
+      throw new Error('REGISTER_EMAIL_EXISTS');
+    }
+
+    this.notificationService.error('No pudimos completar el registro. Intenta nuevamente.');
+    throw new Error('REGISTER_FAILED');
   }
 }
 

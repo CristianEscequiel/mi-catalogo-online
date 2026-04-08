@@ -10,6 +10,7 @@ import { CartPage } from './features/cart/cart-page';
 import { CheckoutPage } from './features/checkout/checkout-page';
 import { CheckoutSuccessPage } from './features/checkout/checkout-success-page';
 import { ProductDetailPage } from './features/product-detail/product-detail-page';
+import { RegisterForm } from './features/auth/components/register-form/register-form';
 
 export const routes: Routes = [
   {
@@ -21,6 +22,11 @@ export const routes: Routes = [
     path: 'login',
     canActivate:[loginGuard],
     component: LoginForm,
+  },
+  {
+    path: 'register',
+    canActivate: [loginGuard],
+    component: RegisterForm,
   },
   {
     path: 'home',
