@@ -102,6 +102,13 @@ export class UsersService {
     await this.usersRepository.delete(user.id);
     return { message: 'User deleted' };
   }
+  async saveUser(user: User) {
+    try {
+      return await this.usersRepository.save(user);
+    } catch {
+      throw new BadRequestException('Error saving user');
+    }
+  }
 
   async uploadProfileImage(id: number, filename: string) {
     const user = await this.findOne(id);
@@ -150,5 +157,30 @@ export class UsersService {
       where: { email },
     });
     return user;
+  }
+  async findByVerificationToken(token: string) {
+    return this.usersRepository.findOne({
+      where: { verificationToken: token },
+    });
+  }
+  async markEmailAsVerified(user: User) {
+    user.emailVerified = true;
+    user.verificationToken = null;
+    user.verificationExpiresAt = null;
+
+    return this.usersRepository.save(user);
+  }
+
+  async setPasswordResetToken(userId: number, token: string, expiresAt: Date) {
+    const user = await this.findOne(userId);
+    user.passwordResetToken = token;
+    user.passwordResetExpiresAt = expiresAt;
+    await this.usersRepository.save(user);
+  }
+
+  findByPasswordResetToken(token: string) {
+    return this.usersRepository.findOne({
+      where: { passwordResetToken: token },
+    });
   }
 }

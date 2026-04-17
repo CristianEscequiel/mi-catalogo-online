@@ -1,0 +1,57 @@
+<div class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+  <div class="card bg-base-100 border border-base-300 rounded-2xl shadow-lg w-full max-w-md transition duration-300">
+    <div class="card-body p-6 sm:p-8 text-center space-y-5">
+      <div class="mx-auto size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl" aria-hidden="true">
+        &#9993;
+      </div>
+
+      <h1 class="card-title justify-center text-2xl font-semibold">{{ title() }}</h1>
+
+      <p class="text-base-content/85">
+        {{ description() }}
+      </p>
+
+      <p class="text-sm text-base-content/70">
+        Si no encontras el correo, revisa la carpeta de spam.
+      </p>
+
+      @if (!isPasswordReset()) {
+        <div class="space-y-2 text-left">
+          <label for="resendEmail" class="label p-0">
+            <span class="label-text font-medium">Email</span>
+          </label>
+          <input
+            id="resendEmail"
+            type="email"
+            [formControl]="emailControl"
+            class="input input-bordered w-full transition duration-300 focus:border-primary"
+            placeholder="tu@email.com"
+            autocomplete="email"
+          />
+          @if (emailControl.touched && emailControl.invalid) {
+            <p class="text-error text-sm">Ingresa un email valido.</p>
+          }
+          @if (resendSuccessMessage()) {
+            <p class="text-success text-sm">{{ resendSuccessMessage() }}</p>
+          }
+        </div>
+      }
+
+      <div class="space-y-2 pt-2">
+        <a [routerLink]="primaryActionLink()" class="btn btn-primary w-full">{{ primaryActionText() }}</a>
+        @if (isPasswordReset()) {
+          <a routerLink="/auth/request-password-reset" class="btn btn-outline w-full">{{ secondaryActionText() }}</a>
+        } @else {
+          <button
+            type="button"
+            class="btn btn-outline w-full"
+            [disabled]="isResending() || !canResendVerification()"
+            (click)="onResendEmail()"
+          >
+            {{ secondaryActionText() }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

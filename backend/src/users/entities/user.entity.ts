@@ -46,6 +46,54 @@ export class User {
   })
   role: Role;
 
+  @Column({ type: 'boolean', default: false, name: 'email_verified' })
+  @ApiProperty({
+    description: 'Indicates if the user email is verified',
+    example: false,
+    required: true,
+  })
+  emailVerified: boolean;
+
+  @Column({ type: 'varchar', length: 64, nullable: true, name: 'verification_token' })
+  @ApiProperty({
+    description: 'Verification token for email verification',
+    example: 'abc123def456',
+    required: false,
+  })
+  verificationToken: string | null;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    name: 'verification_expires_at',
+  })
+  @ApiProperty({
+    description: 'Expiration timestamp for the verification token',
+    example: '2026-03-07T12:00:00.000Z',
+    required: false,
+  })
+  verificationExpiresAt: Date | null;
+
+  @Column({ type: 'varchar', length: 64, nullable: true, name: 'password_reset_token' })
+  @ApiProperty({
+    description: 'Password reset token',
+    example: 'xyz789uvw012',
+    required: false,
+  })
+  passwordResetToken: string | null;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    name: 'password_reset_expires_at',
+  })
+  @ApiProperty({
+    description: 'Expiration timestamp for the password reset token',
+    example: '2026-03-07T12:00:00.000Z',
+    required: false,
+  })
+  passwordResetExpiresAt: Date | null;
+
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',

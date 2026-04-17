@@ -5,7 +5,7 @@
 
       @if (authRequired) {
         <div class="alert alert-info">
-          <span>Necesitás una cuenta para continuar</span>
+          <span>Necesitas una cuenta para continuar</span>
         </div>
       }
 
@@ -23,7 +23,7 @@
             autocomplete="email"
           />
           @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
-            <p class="text-error text-sm">Ingresa un email válido.</p>
+            <p class="text-error text-sm">Ingresa un email valido.</p>
           }
         </div>
 
@@ -42,8 +42,11 @@
             />
           </div>
           @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
-            <p class="text-error text-sm">La contraseña es obligatoria.</p>
+            <p class="text-error text-sm">La contrasena es obligatoria.</p>
           }
+          <div class="text-right">
+            <a routerLink="/auth/request-password-reset" class="link link-primary text-sm">Olvidaste tu contrasena?</a>
+          </div>
         </div>
 
         <button
@@ -57,14 +60,14 @@
               Ingresando...
             </span>
           } @else {
-            Iniciar sesión
+            Iniciar sesion
           }
         </button>
       </form>
 
       <p class="text-sm text-center text-base-content/80">
-        ¿No tienes cuenta?
-        <a routerLink="/register" [queryParams]="{ returnUrl: returnUrl }" class="link link-primary">Crear cuenta</a>
+        No tienes cuenta?
+        <a routerLink="/register" class="link link-primary">Crear cuenta</a>
       </p>
     </div>
   </div>

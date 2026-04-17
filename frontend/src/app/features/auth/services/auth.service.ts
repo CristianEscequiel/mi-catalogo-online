@@ -7,6 +7,22 @@ import { ProfileResponse } from '../models/profile-res.model';
 import { API_BASE_URL } from '../../../core/config/api.config';
 import { RegisterRequest } from '../models/register-req.model';
 
+interface VerifyEmailResponse {
+  message: string;
+}
+
+interface RequestPasswordResetResponse {
+  message?: string;
+}
+
+interface ResetPasswordResponse {
+  message: string;
+}
+
+interface ResendVerificationEmailResponse {
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -34,6 +50,51 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
     return this.http.post(`${this.apiUrl}/auth/register`, payload).pipe(
       catchError(err => {
         console.error('Error en registro', err);
+        throw err;
+      })
+    );
+  }
+
+  verifyEmail(token: string): Observable<VerifyEmailResponse> {
+    return this.http.get<VerifyEmailResponse>(`${this.apiUrl}/auth/verify-email`, {
+      params: { token },
+    }).pipe(
+      catchError(err => {
+        console.error('Error en verificación de email', err);
+        throw err;
+      })
+    );
+  }
+
+  resendVerificationEmail(email: string): Observable<ResendVerificationEmailResponse> {
+    return this.http.post<ResendVerificationEmailResponse>(`${this.apiUrl}/auth/resend-verification`, {
+      email,
+    }).pipe(
+      catchError(err => {
+        console.error('Error al reenviar email de verificacion', err);
+        throw err;
+      })
+    );
+  }
+
+  requestPasswordReset(email: string): Observable<RequestPasswordResetResponse> {
+    return this.http.get<RequestPasswordResetResponse>(`${this.apiUrl}/auth/request-password-reset`, {
+      params: { email },
+    }).pipe(
+      catchError(err => {
+        console.error('Error al solicitar recuperacion de contrasena', err);
+        throw err;
+      })
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<ResetPasswordResponse> {
+    return this.http.post<ResetPasswordResponse>(`${this.apiUrl}/auth/reset-password`, {
+      token,
+      newPassword,
+    }).pipe(
+      catchError(err => {
+        console.error('Error al restablecer la contrasena', err);
         throw err;
       })
     );

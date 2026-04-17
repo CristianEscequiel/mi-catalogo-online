@@ -20,11 +20,7 @@ export class CartController {
 
   @ApiOperation({ summary: 'Update quantity for a cart item' })
   @Patch('items/:productId')
-  updateItem(
-    @Param('productId', ParseIntPipe) productId: number,
-    @Body() updateCartItemDto: UpdateCartItemDto,
-    @Request() req,
-  ) {
+  updateItem(@Param('productId', ParseIntPipe) productId: number, @Body() updateCartItemDto: UpdateCartItemDto, @Request() req) {
     const payload = req.user as Payload;
     return this.cartService.upsertItem(payload.sub, productId, updateCartItemDto.quantity);
   }

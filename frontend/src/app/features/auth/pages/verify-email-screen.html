@@ -1,0 +1,40 @@
+<div class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+  <div class="card bg-base-100 border border-base-300 rounded-2xl shadow-lg w-full max-w-md transition duration-300">
+    <div class="card-body p-6 sm:p-8 text-center space-y-4">
+      @if (state().loading) {
+        <div class="mx-auto size-14 rounded-full bg-info/10 text-info flex items-center justify-center" aria-hidden="true">
+          <span class="loading loading-spinner loading-md"></span>
+        </div>
+      }
+
+      @if (state().success) {
+        <div class="mx-auto size-14 rounded-full bg-success/10 text-success flex items-center justify-center text-2xl" aria-hidden="true">
+          &#10003;
+        </div>
+      }
+
+      @if (state().error) {
+        <div class="mx-auto size-14 rounded-full bg-error/10 text-error flex items-center justify-center text-2xl" aria-hidden="true">
+          !
+        </div>
+      }
+
+      <h1 class="card-title justify-center text-2xl font-semibold">{{ title() }}</h1>
+      <p class="text-base-content/80">{{ state().message }}</p>
+
+      @if (!state().loading) {
+        <div class="space-y-2 pt-2">
+          <a routerLink="/login" class="btn btn-primary w-full">Ir al login</a>
+
+          @if (state().error) {
+            <a routerLink="/register" class="btn btn-outline w-full">Volver al registro</a>
+          }
+
+          @if (state().success) {
+            <a routerLink="/home" class="btn btn-ghost w-full">Ir al inicio</a>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -12,6 +12,10 @@ import { CheckoutSuccessPage } from './features/checkout/checkout-success-page';
 import { ProductDetailPage } from './features/product-detail/product-detail-page';
 import { RegisterForm } from './features/auth/components/register-form/register-form';
 import { OrderAdminPage } from './features/catalog-admin/orders/pages/order-admin.page';
+import { VerifyEmailComponent } from './features/auth/pages/verify-email-screen';
+import { CheckEmailComponent } from './features/auth/pages/check-email-page';
+import { RequestPasswordResetComponent } from './features/auth/pages/forgot-password-page';
+import { ResetPasswordComponent } from './features/auth/pages/reset-password-page';
 
 export const routes: Routes = [
   {
@@ -25,9 +29,34 @@ export const routes: Routes = [
     component: LoginForm,
   },
   {
+    path: 'auth/login',
+    canActivate:[loginGuard],
+    component: LoginForm,
+  },
+  {
     path: 'register',
     canActivate: [loginGuard],
     component: RegisterForm,
+  },
+  {
+    path: 'auth/check-email',
+    component: CheckEmailComponent,
+  },
+  {
+    path: 'auth/request-password-reset',
+    component: RequestPasswordResetComponent,
+  },
+  {
+    path: 'auth/forgot-password',
+    component: RequestPasswordResetComponent,
+  },
+  {
+    path: 'auth/reset-password',
+    component: ResetPasswordComponent,
+  },
+  {
+    path: 'auth/verify-email',
+    component: VerifyEmailComponent,
   },
   {
     path: 'home',
