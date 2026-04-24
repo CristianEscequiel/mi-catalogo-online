@@ -24,10 +24,12 @@ Never modify unrelated files.
 Available skills:
 
 angular-component → ./skills/angular-component/SKILL.md  
-angular-signals → ./skills/angular-signals/SKILL.md  
+angular-signals → ./skills/angular-signals/SKILL.md 
+angular-developer: skills/angular-developer/SKILL.md
 nestjs-api → ./skills/nestjs-api/SKILL.md  
 nestjs-best-practices → ./skills/nestjs-best-practices/SKILL.md  
 postgres-optimization → ./skills/postgres-optimization/SKILL.md  
+ui-ux-pro → ./skills/ui-ux-pro/SKILL.md  
 
 ---
 

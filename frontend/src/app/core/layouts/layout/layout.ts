@@ -8,12 +8,11 @@ import { ToastContainer } from '../../../shared/notifications/toast-container';
   selector: 'app-layout',
   imports: [RouterOutlet, Header, ToastContainer],
   template: `
-  <app-header></app-header>
   <app-toast-container></app-toast-container>
-  <div class="container mx-auto h-[calc(100vh-60px)] mt-18">
+  <app-header>
     <router-outlet></router-outlet>
-  </div>
-`
+  </app-header>
+`,
 })
 export class Layout {
 

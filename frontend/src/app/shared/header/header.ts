@@ -1,19 +1,20 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit } from '@angular/core';
+import { CdkMenuModule, CdkMenuTrigger } from '@angular/cdk/menu';
 import { AuthStore } from '../../core/state/auth.store';
 import { RouterLink } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { AuthFacade } from '../../features/auth/services/auth.facade';
 import { CartStore } from '../../core/state/cart.store';
-import { DecimalPipe } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
 import { resolveImageUrl } from '../../core/config/api.config';
 
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [RouterLink, FontAwesomeModule, DecimalPipe],
-  templateUrl: './header2.html'
+  imports: [RouterLink, FontAwesomeModule, DecimalPipe, CdkMenuModule],
+  templateUrl: './header.html'
 })
 
 export class Header implements OnInit {
@@ -42,10 +43,10 @@ export class Header implements OnInit {
     this.cartStore.loadCart().catch((error: unknown) => console.error(error));
   }
   resolvedImageUrl(imageUrl: string | null): string | null {
-    return resolveImageUrl(imageUrl);
+    return resolveImageUrl(imageUrl) ?? 'https://placehold.co/80x80?text=Perfil';
   }
 
-  async removeItem(productId: number): Promise<void> {
+  async removeItem(productId: number, _trigger?: CdkMenuTrigger): Promise<void> {
     try {
       await this.cartStore.remove(productId);
     } catch (error) {
@@ -53,7 +54,9 @@ export class Header implements OnInit {
     }
   }
 
-  async clearCart(): Promise<void> {
+  async clearCart(trigger?: CdkMenuTrigger): Promise<void> {
+    trigger?.close();
+
     try {
       await this.cartStore.clear();
     } catch (error) {
@@ -66,7 +69,8 @@ export class Header implements OnInit {
     this.themeService.setTheme(input.checked ? 'meadowdark' : 'meadowlight');
   }
 
-  logOut() {
+  logOut(trigger?: CdkMenuTrigger) {
+    trigger?.close();
     this.authFacade.logout();
   }
 

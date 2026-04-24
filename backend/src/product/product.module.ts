@@ -7,9 +7,10 @@ import { CategoryController } from './controllers/category.controller';
 import { Product } from './entities/product.entity';
 import { Category } from './entities/category.entity';
 import { FilesModule } from 'src/files/files.module';
+import { AiModule } from 'src/ai/ai.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Category]), FilesModule],
+  imports: [TypeOrmModule.forFeature([Product, Category]), FilesModule, AiModule],
   controllers: [ProductController, CategoryController],
   providers: [ProductService, CategoryService],
   exports: [ProductService, CategoryService],

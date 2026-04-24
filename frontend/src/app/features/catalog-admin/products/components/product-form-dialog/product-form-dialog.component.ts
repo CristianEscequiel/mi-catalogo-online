@@ -3,46 +3,54 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Dialog, DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { ProductModel } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { PrdFormComponent } from '../product-form/product-form.component';
 import { NotificationService } from '../../../../../core/services/notification.service';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../../../../shared/utils/image-replacement.helper';
-import { HttpErrorResponse } from '@angular/common/http';
 
 type FormMode = 'create' | 'edit';
 
 @Component({
   standalone: true,
   selector: 'app-product-form-dialog',
-  imports: [CommonModule, ReactiveFormsModule, DialogModule, PrdFormComponent ,FontAwesomeModule],
+  imports: [CommonModule, ReactiveFormsModule, DialogModule, PrdFormComponent, FontAwesomeModule],
   template: `
-  <div class="bg-base-200 rounded-2xl shadow-xl max-w-xl w-full mx-auto p-2">
-    <div class="flex p-1">
-      @if(data.mode === 'edit'){
-        <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Editar producto</h3>
-      } @else {
-        <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Crear nuevo producto</h3>
-      }
-      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost">
+  <div class="bg-base-200 border border-base-300/40 rounded-3xl shadow-xl max-w-5xl w-[96vw] mx-auto overflow-hidden">
+    <div class="flex items-start gap-3 p-4 sm:p-5 border-b border-base-300/50 bg-base-100/45">
+      <div class="flex-1">
+        @if (data.mode === 'edit') {
+          <h3 class="text-xl font-semibold">Editar producto</h3>
+          <p class="text-sm text-base-content/70 mt-1">Completa la información del producto y utiliza IA para acelerar la carga.</p>
+        } @else {
+          <h3 class="text-xl font-semibold">Nuevo producto</h3>
+          <p class="text-sm text-base-content/70 mt-1">Completa la información del producto y utiliza IA para acelerar la carga.</p>
+        }
+      </div>
+      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost mt-0.5" aria-label="Cerrar modal de producto" [disabled]="isSaving">
         <fa-icon [icon]="faTimes"></fa-icon>
       </button>
     </div>
-    <app-product-form
-      [productForm]="form"
-      [mode]="data.mode"
-      [imageUrl]="imageUrl"
-      [imageError]="imageError"
-      [isUploadingImage]="isUploadingImage"
-      [isDeletingImage]="isDeletingImage"
-      (imageFileSelected)="onImageFileSelected($event)"
-      (uploadImage)="onUploadImage()"
-      (deleteImage)="onDeleteImage()"
-      (submitForm)="onSubmit()"
-      (cancel)="onCancel()">
-    </app-product-form>
+
+    <div class="p-4 sm:p-5 max-h-[85vh] overflow-y-auto">
+      <app-product-form
+        [productForm]="form"
+        [mode]="data.mode"
+        [imageUrl]="imageUrl"
+        [imageError]="imageError"
+        [isUploadingImage]="isUploadingImage"
+        [isDeletingImage]="isDeletingImage"
+        [isSaving]="isSaving"
+        (imageFileSelected)="onImageFileSelected($event)"
+        (uploadImage)="onUploadImage()"
+        (deleteImage)="onDeleteImage()"
+        (submitForm)="onSubmit()"
+        (cancel)="onCancel()">
+      </app-product-form>
+    </div>
   </div>
   `
 })
@@ -55,6 +63,7 @@ export class ProductFormDialogComponent {
   selectedImageFile: File | null = null;
   isUploadingImage = false;
   isDeletingImage = false;
+  isSaving = false;
 
   constructor(
     private fb: FormBuilder,
@@ -100,25 +109,33 @@ export class ProductFormDialogComponent {
       return;
     }
 
+    this.isSaving = true;
+
     if (this.data.mode === 'edit') {
-      if (this.selectedImageFile && !this.imageUrl) {
-        await this.uploadImageForEntity(this.data.id);
+      try {
+        if (this.selectedImageFile && !this.imageUrl) {
+          await this.uploadImageForEntity(this.data.id);
+        }
+
+        const body = this.form.getRawValue() as ProductModel;
+        body.thumbnailUrl = this.imageUrl || null;
+        body.categoryIds = Array.from(new Set((body.categoryIds ?? []).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
+
+        this.productService.editProduct(this.data.id, body).subscribe({
+          next: () => {
+            this.notificationService.success('Producto actualizado correctamente.');
+            this.dialogRef.close('updated');
+          },
+          error: () => {
+            this.notificationService.error('No se pudo actualizar el producto.');
+            this.isSaving = false;
+          },
+        });
+        return;
+      } catch {
+        this.isSaving = false;
+        return;
       }
-
-      const body = this.form.getRawValue() as ProductModel;
-      body.thumbnailUrl = this.imageUrl || null;
-      body.categoryIds = Array.from(new Set((body.categoryIds ?? []).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
-
-      this.productService.editProduct(this.data.id, body).subscribe({
-        next: () => {
-          this.notificationService.success('Producto actualizado correctamente.');
-          this.dialogRef.close('updated');
-        },
-        error: () => {
-          this.notificationService.error('No se pudo actualizar el producto.');
-        },
-      });
-      return;
     }
 
     const formValue = this.form.getRawValue();
@@ -138,13 +155,18 @@ export class ProductFormDialogComponent {
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 403) {
         this.notificationService.error('Límite de demo alcanzado');
+        this.isSaving = false;
         return;
       }
       this.notificationService.error('No se pudo crear el producto.');
+      this.isSaving = false;
     }
   }
 
   onCancel() {
+    if (this.isSaving) {
+      return;
+    }
     this.dialogRef.close('cancel');
   }
 
@@ -227,5 +249,4 @@ export class ProductFormDialogComponent {
       this.isDeletingImage = false;
     }
   }
-
 }

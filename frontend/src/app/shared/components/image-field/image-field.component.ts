@@ -26,6 +26,7 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
   @Input() maxImages = 1;
   @Input() errorMessage: string | null = null;
   @Input() autoUploadOnSelect = false;
+  @Input() mode: 'default' | 'controls' = 'default';
 
   @Output() fileSelected = new EventEmitter<File | null>();
   @Output() uploadRequested = new EventEmitter<void>();

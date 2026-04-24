@@ -1,91 +1,224 @@
-<div class="p-4 space-y-3">
-  <div class="flex items-center gap-2">
-    <details class="dropdown dropdown-start" #categoryDropdown>
-      <summary class="btn btn-sm" [class.btn-primary]="hasActiveCategoryFilter()"
-        [class.btn-outline]="!hasActiveCategoryFilter()">
-        <fa-icon [icon]="faFilter"></fa-icon>
-      </summary>
+<section class="space-y-6">
+  <header class="rounded-4xl border border-base-300 bg-base-100 p-4 shadow-sm sm:p-6">
+    <div class="flex flex-col gap-4">
+      <div class="space-y-2">
+        <p class="text-sm font-medium uppercase tracking-[0.25em] text-primary">Catalogo</p>
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+          <div class="space-y-1">
+            <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Encuentra productos listos para comprar</h1>
+            <p class="max-w-2xl text-sm text-base-content/70 sm:text-base">
+              Busca por nombre, filtra por categoria y agrega productos al carrito sin salir del listado.
+            </p>
+          </div>
 
-      <div
-        class="dropdown-content z-10 mt-2 w-64 max-h-80 overflow-y-auto rounded-box bg-base-100 border border-base-300 p-2">
-        <p class="text-sm font-semibold px-2 py-1">Categorías</p>
-        <button type="button" class="btn btn-sm justify-start w-full mb-1"
-          [class.btn-primary]="!hasActiveCategoryFilter()" [class.btn-ghost]="hasActiveCategoryFilter()"
-          (click)="setCategory(null, categoryDropdown)">
-          Todas
-        </button>
-
-        @for (cat of categories; track cat.id) {
-        <button type="button" class="btn btn-sm justify-start w-full mb-1"
-          [class.btn-primary]="isCategorySelected(cat.id)" [class.btn-ghost]="!isCategorySelected(cat.id)"
-          (click)="setCategory(cat, categoryDropdown)">
-          {{ cat.name }}
-        </button>
-        }
+          <div class="text-sm text-base-content/70">
+            {{ filteredProducts().length }} {{ filteredProducts().length === 1 ? 'resultado' : 'resultados' }}
+          </div>
+        </div>
       </div>
-    </details>
-    <input placeholder="Buscar productos" [formControl]="searchControl"
-      class="input input-primary input-ghost input-sm w-full border-primary" type="search" />
 
-  </div>
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <label class="input input-bordered flex w-full items-center gap-2 rounded-2xl border-base-300 bg-base-100 lg:flex-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
+          </svg>
+          <input type="search" [formControl]="searchControl" placeholder="Buscar productos"
+            aria-label="Buscar productos por nombre o descripcion" />
+        </label>
 
-  @if (hasActiveCategoryFilter() && selectedCategoryName) {
-  <div>
-    <span class="badge badge-primary badge-soft gap-2 py-3 px-3">
-      {{ selectedCategoryName }}
-      <button type="button" class="btn btn-ghost btn-xs btn-circle" aria-label="Limpiar categoría"
-        (click)="clearCategoryFilter()">✕</button>
-    </span>
-  </div>
-  }
-</div>
+        <details class="dropdown dropdown-end w-full lg:w-auto" #categoryDropdown>
+          <summary class="btn w-full rounded-2xl lg:w-auto" [class.btn-primary]="hasActiveCategoryFilter()"
+            [class.btn-outline]="!hasActiveCategoryFilter()">
+            <fa-icon [icon]="faFilter"></fa-icon>
+            Filtrar por categoria
+          </summary>
 
-<div class="p-1 sm:p-4 grid grid-cols-2 xxl:grid-cols-6 lg:grid-cols-4 md:grid-cols-3 gap-4 transition">
-  @for (item of products; track $index) {
+          <div class="dropdown-content z-20 mt-2 w-full min-w-64 rounded-3xl border border-base-300 bg-base-100 p-3 shadow-xl">
+            <p class="px-2 pb-2 text-sm font-semibold">Categorias</p>
 
-  <a [routerLink]="detailLink(item)"
-    class="group flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm border border-base-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary">
-    <a class="relative w-full h-48 overflow-hidden bg-base-200 flex items-center justify-center"
-      [routerLink]="detailLink(item)">
-      @if(item.thumbnailUrl) {
-      <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        [src]="resolvedImageUrl(item.thumbnailUrl)" [alt]="item.name" />
-      } @else {
-      <span class="text-sm opacity-70">Sin imagen</span>
+            <div class="flex flex-col gap-1">
+              <button type="button" class="btn justify-start rounded-2xl"
+                [class.btn-primary]="!hasActiveCategoryFilter()" [class.btn-ghost]="hasActiveCategoryFilter()"
+                (click)="setCategory(null, categoryDropdown)">
+                Todas
+              </button>
+
+              @for (cat of categories(); track cat.id) {
+                <button type="button" class="btn justify-start rounded-2xl"
+                  [class.btn-primary]="isCategorySelected(cat.id)" [class.btn-ghost]="!isCategorySelected(cat.id)"
+                  (click)="setCategory(cat, categoryDropdown)">
+                  {{ cat.name }}
+                </button>
+              }
+            </div>
+          </div>
+        </details>
+      </div>
+
+      @if (hasActiveCategoryFilter() || searchControl.value) {
+        <div class="flex flex-wrap items-center gap-2">
+          @if (selectedCategoryName(); as activeCategoryName) {
+            <span class="badge badge-primary badge-lg gap-2 px-4 py-3">
+              {{ activeCategoryName }}
+            </span>
+          }
+
+          @if (searchControl.value) {
+            <span class="badge badge-outline badge-lg gap-2 px-4 py-3">
+              Busqueda: {{ searchControl.value }}
+            </span>
+          }
+
+          <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">
+            Limpiar filtros
+          </button>
+        </div>
       }
-
-      <span class="absolute right-3 top-3 badge badge-sm" [class.badge-success]="item.stock > 0"
-        [class.badge-error]="item.stock === 0">
-        {{ item.stock > 0 ? 'Disponible' : 'Sin stock' }}
-      </span>
-    </a>
-
-    <div class="flex flex-1 flex-col p-4">
-      <div class="space-y-1">
-        <a class="line-clamp-1 text-lg font-semibold hover:text-primary transition" [routerLink]="detailLink(item)">{{
-          item.name }}</a>
-
-        <p class="text-2xl font-semibold text-primary">
-          $ {{ item.price | number:'1.0-0' }}
-        </p>
-
-        <p class="min-h-10 text-sm opacity-80 line-clamp-2">
-          {{ item.description }}
-        </p>
-      </div>
-
-      <div class="mt-2 flex items-center justify-between">
-        <span class="text-xs opacity-70">
-          Stock: {{ item.stock }}
-        </span>
-      </div>
-<!--
-      <div class="mt-auto pt-4">
-        <a [routerLink]="detailLink(item)" class="btn btn-primary btn-sm w-full rounded-xl">Ver detalle</a>
-      </div> -->
     </div>
-  </a>
+  </header>
 
+  @if (loading()) {
+    <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      @for (card of skeletonCards; track card) {
+        <article class="overflow-hidden rounded-[2rem] border border-base-300 bg-base-100 shadow-sm">
+          <div class="skeleton aspect-[4/3] w-full"></div>
+          <div class="space-y-3 p-4 sm:p-5">
+            <div class="space-y-2">
+              <div class="skeleton h-5 w-4/5"></div>
+              <div class="space-y-2">
+                <div class="skeleton h-4 w-full"></div>
+                <div class="skeleton h-4 w-11/12"></div>
+                <div class="skeleton h-4 w-3/4"></div>
+              </div>
+            </div>
+            <div class="skeleton h-6 w-1/2"></div>
+            <div class="skeleton h-10 w-full rounded-2xl"></div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-[2rem] border border-error/40 bg-base-100 p-6 shadow-sm">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="space-y-1">
+          <h2 class="text-xl font-semibold">No pudimos cargar la tienda</h2>
+          <p class="text-sm text-base-content/70">{{ error() }}</p>
+        </div>
+
+        <button type="button" class="btn btn-primary" (click)="retryLoad()">Reintentar</button>
+      </div>
+    </div>
+  } @else if (!hasProducts()) {
+    <div class="rounded-[2rem] border border-dashed border-base-300 bg-base-100 p-8 text-center shadow-sm">
+      <div class="mx-auto max-w-xl space-y-3">
+        <h2 class="text-2xl font-semibold">No encontramos productos para ese filtro</h2>
+        <p class="text-sm text-base-content/70 sm:text-base">
+          Ajusta la busqueda o limpia los filtros para volver a ver todo el catalogo disponible.
+        </p>
+        <div class="flex flex-col justify-center gap-2 sm:flex-row">
+          <button type="button" class="btn btn-primary" (click)="clearFilters()">Ver todo el catalogo</button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      @for (item of filteredProducts(); track item.id) {
+        <article class="group flex h-full flex-col overflow-hidden rounded-4xl border border-base-300 bg-base-100 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <a [routerLink]="detailLink(item)" class="relative block aspect-4/3 overflow-hidden bg-base-200">
+            <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              [src]="resolvedImageUrl(item.thumbnailUrl)" [alt]="item.name" />
+
+            <button
+              type="button"
+              class="btn btn-circle btn-sm absolute right-3 top-3 z-10 border-none bg-base-100/90 text-base-content shadow-md backdrop-blur transition hover:bg-base-100"
+              [class.text-error]="isFavorite(item.id)"
+              [disabled]="isFavoriteBusy(item.id)"
+              [attr.aria-label]="isFavorite(item.id) ? 'Quitar favorito' : 'Guardar favorito'"
+              (click)="$event.preventDefault(); $event.stopPropagation(); toggleFavorite(item.id)"
+            >
+              @if (isFavoriteBusy(item.id)) {
+                <span class="loading loading-spinner loading-xs"></span>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4"
+                  [attr.fill]="isFavorite(item.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m12 21-1.45-1.32C5.4 15.03 2 11.94 2 8.15 2 5.06 4.42 2.75 7.5 2.75c1.74 0 3.41.81 4.5 2.09 1.09-1.28 2.76-2.09 4.5-2.09 3.08 0 5.5 2.31 5.5 5.4 0 3.79-3.4 6.88-8.55 11.54z" />
+                </svg>
+              }
+            </button>
+
+            <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-gradient-to-t from-black/60 to-transparent p-4 text-white">
+              <span class="badge border-none bg-white/15 text-white">
+                {{ item.stock > 0 ? 'Disponible' : 'Sin stock' }}
+              </span>
+              <span class="text-xs font-medium">Stock {{ item.stock }}</span>
+            </div>
+          </a>
+
+          <div class="flex flex-1 flex-col p-4 sm:p-5">
+            <div class="flex min-h-[9rem] flex-col space-y-3">
+              <div class="space-y-2">
+                <a [routerLink]="detailLink(item)" class="block truncate text-base font-semibold leading-tight transition hover:text-primary sm:text-xl">
+                  {{ item.name }}
+                </a>
+                <p class="line-clamp-3 min-h-[3.75rem] text-sm text-base-content/70">
+                  {{ item.description || 'Este producto aun no tiene una descripcion publicada.' }}
+                </p>
+              </div>
+
+              @if (item.categories.length > 0) {
+                <div class="flex flex-wrap gap-2">
+                  @for (category of item.categories; track category.id) {
+                    <span class="badge badge-outline">{{ category.name || ('Categoria #' + category.id) }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="mt-5 flex items-end justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-xs uppercase tracking-[0.2em] text-base-content/60">Precio</p>
+                <p class="text-xl font-semibold text-primary sm:text-2xl">$ {{ item.price | number:'1.0-0' }}</p>
+              </div>
+
+              @if (item.stock > 0) {
+                <div class="flex shrink-0 items-center rounded-2xl border border-base-300 bg-base-100">
+                  <button type="button" class="btn btn-ghost btn-sm rounded-r-none" aria-label="Disminuir cantidad"
+                    [disabled]="getQuantity(item.id) <= 1" (click)="decreaseQuantity(item.id)">
+                    -
+                  </button>
+                  <span class="min-w-10 px-2 text-center text-sm font-semibold">{{ getQuantity(item.id) }}</span>
+                  <button type="button" class="btn btn-ghost btn-sm rounded-l-none" aria-label="Aumentar cantidad"
+                    [disabled]="getQuantity(item.id) >= item.stock" (click)="increaseQuantity(item.id, item.stock)">
+                    +
+                  </button>
+                </div>
+              }
+            </div>
+
+            @if (item.stock < 1) {
+              <p class="mt-3 text-sm font-medium text-error">No disponible para agregar al carrito.</p>
+            }
+
+            <div class="mt-5">
+              <button type="button" class="btn btn-primary text-sm w-full" [disabled]="item.stock < 1 || isAddingToCart(item.id)"
+                (click)="addToCart(item)">
+                @if (isAddingToCart(item.id)) {
+                  <span class="loading loading-spinner loading-sm"></span>
+                } @else {
+                  <span>Agregar al carrito</span>
+                }
+              </button>
+            </div>
+
+            <a [routerLink]="detailLink(item)" class="mt-2 text-sm font-medium text-primary transition hover:text-primary/80">
+              Ver detalle
+            </a>
+          </div>
+        </article>
+      }
+    </div>
   }
-
-</div>
+</section>

@@ -10,6 +10,24 @@ interface ImageMutationResponse {
   imageUrl: string | null;
 }
 
+export interface ProductImageCategoryOption {
+  id: number;
+  name: string;
+}
+
+export interface GenerateProductFromImageRequest {
+  imageUrl: string;
+  categories: ProductImageCategoryOption[];
+}
+
+export interface GenerateProductFromImageResponse {
+  name: string;
+  description: string;
+  categoryId: number | null;
+  categoryName: string | null;
+  slug: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -36,6 +54,14 @@ export class ProductService {
 
   getProductsByUserId(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users/${id}/products`);
+  }
+
+  getDescriptionByAi(name: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/products/generate-ai/${name}`);
+  }
+
+  generateFromImage(body: GenerateProductFromImageRequest): Observable<GenerateProductFromImageResponse> {
+    return this.http.post<GenerateProductFromImageResponse>(`${this.apiUrl}/products/generate-from-image`, body);
   }
 
   editProduct(id:number , body:ProductModel): Observable<any>{

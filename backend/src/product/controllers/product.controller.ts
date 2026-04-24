@@ -11,10 +11,15 @@ import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createImageMulterOptions } from 'src/files/multer-image-options.factory';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
+import { OpenaiService } from 'src/ai/service/openai.service';
+import { GenerateProductFromImageDto } from '../dto/generate-product-from-image.dto';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly postService: ProductService) {}
+  constructor(
+    private readonly postService: ProductService,
+    private readonly openAiService: OpenaiService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new Post' })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -63,6 +68,20 @@ export class ProductController {
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto) {
     return this.postService.update(id, updateProductDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
+  @Get('generate-ai/:name')
+  generateAi(@Param('name') name: string) {
+    return this.openAiService.generateProductContent(name);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'GUEST')
+  @Post('generate-from-image')
+  generateFromImage(@Body() body: GenerateProductFromImageDto) {
+    return this.openAiService.generateProductFromImage(body.imageUrl, body.categories);
   }
 
   @ApiOperation({ summary: 'Publish a post Product by id with AI' })

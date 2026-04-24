@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../core/services/notification.service';
@@ -30,7 +30,10 @@ export class CheckoutPage implements OnInit {
 
   readonly items = this.cartStore.items;
   readonly total = this.cartStore.total;
-  readonly loading = signal(false);
+  readonly cartLoading = signal(true);
+  readonly cartError = signal<string | null>(null);
+  readonly submitError = signal<string | null>(null);
+  readonly submitting = signal(false);
   readonly hasItems = computed(() => this.items().length > 0);
 
   readonly checkoutForm = new FormGroup<CheckoutForm>({
@@ -39,34 +42,64 @@ export class CheckoutPage implements OnInit {
       nonNullable: true,
       validators: [Validators.required, Validators.email],
     }),
-    address: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+    address: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(10)],
+    }),
   });
 
   ngOnInit(): void {
-    this.cartStore.loadCart().catch((error: unknown) => console.error(error));
+    this.prefillForm();
+    void this.loadCart();
+  }
 
-    const profile = this.authStore.userProfile();
-    const userLite = this.authStore.userLite();
+  async retryLoad(): Promise<void> {
+    await this.loadCart();
+  }
 
-    this.checkoutForm.patchValue({
-      name: `${profile?.name ?? ''} ${profile?.lastName ?? ''}`.trim(),
-      email: userLite?.email ?? '',
-    });
+  hasFieldError(controlName: keyof CheckoutForm): boolean {
+    const control = this.checkoutForm.controls[controlName];
+    return control.invalid && (control.dirty || control.touched);
+  }
+
+  getFieldError(controlName: keyof CheckoutForm): string | null {
+    const control = this.checkoutForm.controls[controlName];
+
+    if (!this.hasFieldError(controlName)) {
+      return null;
+    }
+
+    if (control.errors?.['required']) {
+      return 'Este campo es obligatorio.';
+    }
+
+    if (control.errors?.['email']) {
+      return 'Ingresa un email valido.';
+    }
+
+    if (control.errors?.['minlength']) {
+      return 'Describe una direccion mas completa.';
+    }
+
+    return 'Revisa este dato.';
   }
 
   async placeOrder(): Promise<void> {
+    this.submitError.set(null);
+
     if (this.checkoutForm.invalid) {
       this.checkoutForm.markAllAsTouched();
       return;
     }
 
     if (!this.hasItems()) {
-      this.notificationService.info('Tu carrito está vacío.');
+      this.submitError.set('Agrega productos al carrito antes de finalizar el pedido.');
       return;
     }
 
+    this.submitting.set(true);
+
     try {
-      this.loading.set(true);
       const payload = this.checkoutForm.getRawValue();
       const response = await firstValueFrom(this.ordersService.placeOrder(payload));
 
@@ -77,14 +110,41 @@ export class CheckoutPage implements OnInit {
       if (error instanceof HttpErrorResponse) {
         const backendMessage = error.error?.message;
         if (typeof backendMessage === 'string' && backendMessage.trim()) {
+          this.submitError.set(backendMessage);
           this.notificationService.error(backendMessage);
+          this.submitting.set(false);
           return;
         }
       }
 
+      this.submitError.set('No se pudo procesar la orden. Intenta nuevamente.');
       this.notificationService.error('No se pudo procesar la orden. Intenta nuevamente.');
     } finally {
-      this.loading.set(false);
+      this.submitting.set(false);
+    }
+  }
+
+  private prefillForm(): void {
+    const profile = this.authStore.userProfile();
+    const userLite = this.authStore.userLite();
+
+    this.checkoutForm.patchValue({
+      name: `${profile?.name ?? ''} ${profile?.lastName ?? ''}`.trim(),
+      email: userLite?.email ?? '',
+    });
+  }
+
+  private async loadCart(): Promise<void> {
+    this.cartLoading.set(true);
+    this.cartError.set(null);
+
+    try {
+      await this.cartStore.loadCart();
+    } catch (error) {
+      console.error(error);
+      this.cartError.set('No pudimos cargar el resumen del carrito.');
+    } finally {
+      this.cartLoading.set(false);
     }
   }
 }

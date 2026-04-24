@@ -1,127 +1,200 @@
-<div class="flex flex-col w-full justify-center items-start">
-
-  <form [formGroup]="productForm" (ngSubmit)="createProduct()"
-    class="fieldset bg-base-200 border-base-300 rounded-box w-sm border p-4">
-
-      <app-image-field
-      class="text-center"
-      label="Imagen"
-      [imageUrl]="resolvedImageUrl()"
-      [autoUploadOnSelect]="mode === 'edit'"
-      [isUploading]="isUploadingImage"
-      [isDeleting]="isDeletingImage"
-      [errorMessage]="imageError"
-      [maxImages]="3"
-      (fileSelected)="onImageFileSelected($event)"
-      (uploadRequested)="onUploadImage()"
-      (deleteRequested)="onDeleteImage()"
-    />
-
-
-    <label for="name" class="label">Nombre</label>
-    <div class="relative">
-      <input id="name" formControlName="name" type="text" placeholder="Nombre" class="input w-full" />
-
-      @let nameCtrl = productForm.get('name');
-
-      @if (nameCtrl?.touched && nameCtrl?.hasError('required')) {
-      <div class="hidden sm:block absolute top-1/2 -right-2 -translate-y-1/2">
-        <div class="tooltip tooltip-error tooltip-open tooltip-right" data-tip="El nombre es obligatorio"></div>
-      </div>
-      <p class="sm:hidden text-error text-sm mt-1">
-        El nombre es obligatorio.
-      </p>
-      }
-    </div>
-    <label class="label">Descripcion</label>
-    <textarea formControlName="description" class="textarea textarea-bordered w-full" placeholder="Descripción"
-      rows="2"></textarea>
-
-    @if (loadingCategories) {
-    <span class="loading loading-spinner loading-xs">Cargando categorías</span>
-    } @else if (categories.length > 0) {
-    <label class="label">Categorías</label>
-    <div class="dropdown w-full">
-      <div tabindex="0" role="button" class="input bg-base-100 w-full justify-between cursor-pointer">
-        <span class="">
-          {{ selectedCategoriesNames }}
-        </span>
+<div class="w-full">
+  <form [formGroup]="productForm" (ngSubmit)="createProduct()" class="space-y-5">
+    <section class="rounded-2xl border border-base-300/50 bg-base-200/35 p-4 sm:p-5">
+      <div class="mb-4">
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/80">Imagen del producto</h4>
+        <p class="text-xs text-base-content/60">Sube una imagen clara para mejorar sugerencias con IA.</p>
       </div>
 
-      <div tabindex="0" class="dropdown-content bg-base-100 rounded-box p-4 shadow mt-2 w-64">
-        <div class="flex flex-col gap-2">
-          @for (category of categories; track category.id) {
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="checkbox" [checked]="isSelected(category.id)"
-              (change)="toggleCategory(category.id, $event)" />
-            {{ category.name }}
-          </label>
+      <div class="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+        <div class="relative rounded-xl border border-base-300/50 bg-base-100/50 overflow-hidden min-h-56">
+          @if (resolvedImageUrl()) {
+          <img [src]="resolvedImageUrl()" alt="Vista previa del producto" class="h-56 w-full object-cover sm:h-72" />
+          } @else {
+          <div class="h-full sm:h-72 w-full flex flex-col items-center justify-center gap-2 text-sm text-base-content/55">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-base-300/70 bg-base-200/60">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
+                <path d="M3 6.75A2.25 2.25 0 0 1 5.25 4.5h13.5A2.25 2.25 0 0 1 21 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 17.25V6.75Zm2.25-.75a.75.75 0 0 0-.75.75v7.19l3.26-3.26a1.5 1.5 0 0 1 2.12 0l2.12 2.12 3.88-3.88a1.5 1.5 0 0 1 2.12 0l1.5 1.5V6.75a.75.75 0 0 0-.75-.75H5.25Zm14.25 5.03-2.56-2.56-4.03 4.03a.75.75 0 0 1-1.06 0l-2.28-2.28-4.02 4.02v2.99c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-6.19ZM8.25 8.625a1.125 1.125 0 1 0 0-2.25 1.125 1.125 0 0 0 0 2.25Z" />
+              </svg>
+            </span>
+            <p class="font-medium text-base-content/70">Sin imagen seleccionada</p>
+            <p class="text-xs text-base-content/50">Sube una imagen para visualizar el producto</p>
+          </div>
+          }
+
+          @if (isUploadingImage || isDeletingImage) {
+          <div class="absolute inset-0 bg-black/45 flex flex-col items-center justify-center gap-2 text-white">
+            <span class="loading loading-spinner loading-md"></span>
+            <p class="text-xs">Procesando imagen...</p>
+          </div>
           }
         </div>
+
+        <div class="rounded-xl border border-base-300/50 bg-base-100/35 h-full flex items-center align-middle p-3 sm:p-4">
+          <app-image-field class="text-center w-full" label="Imagen principal" [imageUrl]="resolvedImageUrl()" mode="controls"
+            [autoUploadOnSelect]="mode === 'edit'" [isUploading]="isUploadingImage" [isDeleting]="isDeletingImage"
+            [errorMessage]="imageError" [maxImages]="3" (fileSelected)="onImageFileSelected($event)"
+            (uploadRequested)="onUploadImage()" (deleteRequested)="onDeleteImage()" />
+        </div>
       </div>
-    </div>
-    } @else {
-    <p class="text-sm opacity-70">No hay categorías disponibles.</p>
-    }
+    </section>
 
-    <label class="label">Slug</label>
-    <input formControlName="slug" type="text" class="input w-full" placeholder="my-awesome-page" />
+    <section class="rounded-2xl border border-base-300/50 bg-base-200/30">
+      <button type="button" class="w-full px-4 py-4 sm:px-5 sm:py-4 flex items-center justify-between gap-3 text-left"
+        (click)="toggleAiSection()" [attr.aria-expanded]="isAiSectionOpen" aria-label="Mostrar u ocultar asistencia con IA">
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/80">Asistencia con IA</h4>
+          <p class="text-xs text-base-content/65 mt-0.5">Analiza la imagen o genera contenido automáticamente</p>
+        </div>
+        <span class="transition-transform duration-200" [class.rotate-180]="isAiSectionOpen">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5 text-base-content/70" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+          </svg>
+        </span>
+      </button>
 
-    <label for="price" class="label">Precio</label>
-    <div class="relative">
-      <input id="price" formControlName="price" type="number" placeholder="$" class="input w-full" />
+      <div class="border-t border-base-300/50 px-4 sm:px-5 overflow-hidden transition-all duration-200 ease-out"
+        [class.max-h-0]="!isAiSectionOpen"
+        [class.opacity-0]="!isAiSectionOpen"
+        [class.pb-0]="!isAiSectionOpen"
+        [class.pointer-events-none]="!isAiSectionOpen"
+        [class.max-h-72]="isAiSectionOpen"
+        [class.opacity-100]="isAiSectionOpen"
+        [class.pb-4]="isAiSectionOpen">
+        <div class="grid gap-3 md:grid-cols-2">
+          @let nameCtrl = productForm.get('name');
+          <button class="btn btn-success justify-start w-full" type="button" (click)="analyzeImageWithAi()"
+            [disabled]="!canAnalyzeImageWithAi() || isGeneratingContent || isSaving" aria-label="Analizar imagen con IA">
+            @if (!isAnalyzingImage) {
+            <span>Analizar imagen con IA</span>
+            } @else {
+            <span class="loading loading-spinner loading-sm"></span>
+            <span>Analizando imagen...</span>
+            }
+          </button>
 
-      @let priceCtrl = productForm.get('price');
-
-      @if (priceCtrl?.touched && priceCtrl?.invalid) {
-
-      <div class="hidden sm:block absolute top-1/2 -right-2 -translate-y-1/2">
-        <div class="tooltip tooltip-error tooltip-open tooltip-right" [attr.data-tip]="
-          priceCtrl?.hasError('required')
-            ? 'El precio es obligatorio'
-            : priceCtrl?.hasError('min')
-              ? 'El precio no puede ser negativo'
-              : 'Valor inválido'
-        "></div>
+          <button class="btn btn-outline btn-success justify-start w-full" type="button" (click)="generate(nameCtrl?.value)"
+            [disabled]="nameCtrl?.invalid || isGeneratingContent || isAnalyzingImage || isSaving" aria-label="Generar descripción y slug con IA">
+            @if (!isGeneratingContent) {
+            <span>Generar descripción y slug</span>
+            } @else {
+            <span class="loading loading-spinner loading-sm"></span>
+            <span>Generando contenido...</span>
+            }
+          </button>
+        </div>
       </div>
-      <p class="sm:hidden text-error text-sm mt-1">
-        @if (priceCtrl?.hasError('required')) {
-        El precio es obligatorio.
-        } @else if (priceCtrl?.hasError('min')) {
-        El precio no puede ser negativo.
+    </section>
+
+    <section class="rounded-2xl border border-base-300/50 bg-base-200/35 p-4 sm:p-5 space-y-4">
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/80">Información principal</h4>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="name" class="label"><span class="label-text font-medium">Nombre</span></label>
+          <input id="name" formControlName="name" type="text" placeholder="Ej: Teclado mecánico RGB"
+            class="input input-bordered w-full" />
+          @if (productForm.get('name')?.touched && productForm.get('name')?.hasError('required')) {
+          <p class="text-error text-xs mt-1">El nombre es obligatorio.</p>
+          }
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Categoría</span></label>
+          @if (loadingCategories) {
+          <span class="loading loading-spinner loading-xs">Cargando categorías</span>
+          } @else if (categories.length > 0) {
+          <div class="dropdown w-full">
+            <div tabindex="0" role="button" class="input input-bordered bg-base-100 w-full justify-between cursor-pointer">
+              <span>{{ selectedCategoriesNames }}</span>
+            </div>
+            <div tabindex="0" class="dropdown-content bg-base-100 rounded-box border border-base-300/70 p-4 shadow mt-2 w-full max-h-64 overflow-y-auto">
+              <div class="flex flex-col gap-2">
+                @for (category of categories; track category.id) {
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="checkbox checkbox-sm" [checked]="isSelected(category.id)"
+                    (change)="toggleCategory(category.id, $event)" />
+                  <span>{{ category.name }}</span>
+                </label>
+                }
+              </div>
+            </div>
+          </div>
+          } @else {
+          <p class="text-sm text-base-content/60">No hay categorías disponibles.</p>
+          }
+        </div>
+
+        <div>
+          <label for="description" class="label"><span class="label-text">Descripción</span></label>
+          <textarea id="description" formControlName="description" rows="5" class="textarea textarea-bordered w-full resize-y min-h-28"
+            placeholder="Describe el producto de forma breve y clara"></textarea>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label for="slug" class="label"><span class="label-text text-base-content/70">Slug</span></label>
+            <input id="slug" formControlName="slug" type="text" class="input input-bordered bg-base-200/40 text-base-content/75 w-full"
+              placeholder="teclado-mecanico-rgb" />
+          </div>
+          <div>
+            <label for="sku" class="label"><span class="label-text text-base-content/70">SKU (opcional)</span></label>
+            <input id="sku" formControlName="sku" type="text" class="input input-bordered w-full" placeholder="SKU-001" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-base-300/50 bg-base-200/35 p-4 sm:p-5 space-y-4">
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/80">Datos comerciales</h4>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <div>
+          <label for="price" class="label"><span class="label-text">Precio</span></label>
+          <input id="price" formControlName="price" type="number" min="0" placeholder="0" class="input input-bordered w-full" />
+          @if (productForm.get('price')?.touched && productForm.get('price')?.invalid) {
+          <p class="text-error text-xs mt-1">
+            @if (productForm.get('price')?.hasError('required')) {
+            El precio es obligatorio.
+            } @else if (productForm.get('price')?.hasError('min')) {
+            El precio no puede ser negativo.
+            } @else {
+            Valor inválido.
+            }
+          </p>
+          }
+        </div>
+
+        <div>
+          <label for="stock" class="label"><span class="label-text">Stock</span></label>
+          <input id="stock" formControlName="stock" type="number" min="0" placeholder="0" class="input input-bordered w-full" />
+        </div>
+
+        <div class="lg:col-span-2">
+          <label for="status" class="label"><span class="label-text">Estado</span></label>
+          <select id="status" formControlName="status" class="select select-bordered w-full" required>
+            @for (status of statuses; track $index) {
+            <option [value]="status">{{ status }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="sticky bottom-0 z-10 rounded-xl border border-base-300/60 bg-base-100/95 backdrop-blur p-3 shadow-[0_-10px_20px_rgba(0,0,0,0.18)] flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <button class="btn btn-ghost w-full sm:w-auto" type="button" (click)="cancel.emit()" [disabled]="isSaving">Cancelar</button>
+      <button class="btn btn-primary w-full sm:w-auto" type="submit" [disabled]="!productForm.valid || isSaving">
+        @if (!isSaving) {
+        <span>{{ mode === 'create' ? 'Crear producto' : 'Guardar producto' }}</span>
         } @else {
-        Valor inválido.
+        <span class="loading loading-spinner loading-sm"></span>
+        <span>Guardando…</span>
         }
-      </p>
-      }
+      </button>
     </div>
-
-    <label for="stock" class="label">Stock</label>
-    <input id="stock" formControlName="stock" type="number" placeholder="0" class="input w-full" />
-
-
-    <label for="status" class="label">Estado</label>
-    <div class="relative">
-      <select id="status" formControlName="status" class="select w-full" required>
-        @for (status of statuses; track $index) {
-        <option [value]="status">{{ status }}</option>
-        }
-      </select>
-
-      @let statusCtrl = productForm.get('status');
-
-      @if (statusCtrl?.touched && statusCtrl?.hasError('required')) {
-      <div class="hidden sm:block absolute top-1/2 -right-2 -translate-y-1/2">
-        <div class="tooltip tooltip-error tooltip-open tooltip-right" data-tip="El status es obligatorio"></div>
-      </div>
-      <p class="sm:hidden text-error text-sm mt-1">
-        El status es obligatorio.
-      </p>
-      }
-    </div>
-
-    <button class="btn btn-primary btn-outline mt-5" type="submit" [disabled]="!productForm.valid">Guardar</button>
-
   </form>
-
 </div>
