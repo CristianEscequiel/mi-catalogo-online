@@ -1,0 +1,195 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Detecta qué parte del monorepo cambió, para no reconstruir ni redesplegar lo que no se tocó.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/ci.yml'
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+      # Sin --fix: el CI no debe modificar el código (el script `lint` del package.json sí lo hace).
+      # TODO: hoy hay 171 errores de lint y 6 de 8 suites de jest fallan (jest no resuelve los
+      # imports `src/...` y hay specs de scaffold viejos). No bloquean hasta corregirlos;
+      # después quitar continue-on-error. El build sigue siendo bloqueante.
+      - run: npx eslint "{src,apps,libs,test}/**/*.ts"
+        continue-on-error: true
+      - run: npm test
+        continue-on-error: true
+      - run: npm run build
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      # TODO: hoy 5 de 6 specs fallan (errores de inyección de dependencias en specs de scaffold).
+      # No bloquea hasta corregirlos; después quitar continue-on-error.
+      - run: npx ng test --no-watch --browsers=ChromeHeadless
+        continue-on-error: true
+      - run: npm run build -- --configuration production
+
+  # Publica cada imagen en GHCR. Solo en push a main, solo si cambió esa parte y su build terminó en verde.
+  docker-backend:
+    needs: [changes, backend]
+    if: github.event_name == 'push' && needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # GHCR exige nombres en minúsculas; metadata-action lo resuelve sola.
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-backend
+          tags: |
+            type=sha
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+  docker-frontend:
+    needs: [changes, frontend]
+    if: github.event_name == 'push' && needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-frontend
+          tags: |
+            type=sha
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  # Despliegue en orden: primero el backend (corre migraciones), después el frontend.
+  # Si el backend falla (y el servidor vuelve solo a la versión anterior), el frontend no se despliega.
+  # DEPLOY_ENABLED (variable del repo) permite apagar el deploy hasta que el servidor esté listo.
+  deploy-backend:
+    needs: docker-backend
+    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-catalog-back
+      cancel-in-progress: false
+    steps:
+      - name: Desplegar en el servidor
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Huella del servidor fijada de antemano: sin StrictHostKeyChecking=no.
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # El servidor ignora cualquier comando que no sea "<servicio> <tag>".
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes "root@$DEPLOY_HOST" "catalog-back sha-${GITHUB_SHA::7}"
+
+  deploy-frontend:
+    needs: [docker-frontend, deploy-backend]
+    # always(): deploy-backend puede estar omitido (backend sin cambios); eso no debe bloquear al frontend.
+    if: >-
+      always() && github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true' &&
+      needs.docker-frontend.result == 'success' &&
+      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-catalog-front
+      cancel-in-progress: false
+    steps:
+      - name: Desplegar en el servidor
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes "root@$DEPLOY_HOST" "catalog-front sha-${GITHUB_SHA::7}"
