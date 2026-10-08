@@ -78,7 +78,7 @@ Panel simple para gestionar productos:
 
 # 🤖 Desarrollo asistido por IA
 
-Este proyecto integra un **asistente de desarrollo basado en IA (OpenAI Codex CLI)** para mejorar el flujo de desarrollo.
+Este proyecto integra un **asistente de desarrollo basado en IA (Claude Code)** con un flujo de **spec-driven development (sdd-flow)**: se planifica antes de escribir código.
 
 El agente tiene contexto del proyecto y puede:
 
@@ -88,50 +88,56 @@ El agente tiene contexto del proyecto y puede:
 - Proponer optimizaciones SQL
 - Mantener coherencia arquitectónica
 
-La arquitectura del agente se basa en:
-AGENTS.md
-skills/
-memory/
+La configuración del agente se basa en:
 
+```
+CLAUDE.md          instrucciones, reglas de seguridad y enrutamiento de skills
+.claude/skills/    skills especializadas
+steering/          contexto del proyecto
+specs/             specs de sdd-flow
+```
 
 ---
 
 ## 🧠 Skills del agente
 
-El agente utiliza habilidades especializadas para entender el proyecto:
+Skills en `.claude/skills/`, con ámbito definido para que no se solapen (la tabla de precedencia está en `CLAUDE.md`):
 
-
-/skills
-angular-component
-angular-signals
-nestjs-api
-nestjs-best-practices
-postgres-optimization
-
-
-Esto permite que el agente entienda correctamente:
-
-- UI Angular
-- Estado reactivo con Signals
-- Arquitectura NestJS
-- Optimización de consultas PostgreSQL
+```
+angular-component       estructura de componentes
+angular-signals         estado reactivo
+ui-ux-pro               diseño visual y UX
+angular-developer       referencia de APIs de Angular
+nestjs-api              endpoints, DTOs, Swagger
+nestjs-best-practices   arquitectura, auth, testing
+postgres-optimization   SQL, índices y migraciones
+```
 
 ---
 
 ## 🧠 Contexto persistente del proyecto
 
-El agente también utiliza memoria estructurada del repositorio:
+Contexto estructurado en `steering/`, siempre cargado en cada sesión:
 
-
-/memory
-stack.md
-architecture.md
-patterns.md
-
+```
+steering/
+  product.md      qué es el producto, usuarios y alcance
+  tech.md         stack, versiones, infraestructura y convenciones
+  structure.md    organización de carpetas y capas
+```
 
 Esto le permite:
 
 - respetar la arquitectura del proyecto
+- seguir patrones de código existentes
+- generar código consistente con el repo
+
+## 📐 Flujo sdd-flow
+
+- **Flujo completo** (`specs/<feature>/`): requirements → design → tasks, con aprobación en cada fase.
+- **Flujo rápido** (`specs/rapidas/<cambio>/`): spec corta + plan + log de resultados. No se versiona.
+
+Más detalle en `specs/README.md`.
 - seguir patrones de código existentes
 - generar código consistente con el repo
 
@@ -145,9 +151,9 @@ El repositorio contiene **frontend y backend en un mismo workspace**.
 /mi-catalogo-online
 /frontend → Angular 20 + Tailwind + Signals
 /backend → NestJS REST API (auth, products, cart, favorites)
-/skills → Skills utilizadas por el agente IA
-/memory → Contexto del proyecto para el agente
-/docs → Documentación técnica
+/.claude/skills → Skills utilizadas por el agente IA
+/steering → Contexto del proyecto para el agente (producto, stack, estructura)
+/specs → Specs del flujo sdd-flow (rapidas/ no se versiona)
 README.md
 
 
@@ -216,7 +222,7 @@ models/
 ## Herramientas
 
 - Docker (base de datos en desarrollo)
-- OpenAI Codex CLI (asistente de desarrollo)
+- Claude Code (asistente de desarrollo) + flujo sdd-flow
 
 ---
 

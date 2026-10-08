@@ -1,13 +1,23 @@
 ---
 name: angular-developer
-description: Generates Angular code and provides architectural guidance. Trigger when creating projects, components, or services, or for best practices on reactivity (signals, linkedSignal, resource), forms, dependency injection, routing, SSR, accessibility (ARIA), animations, styling (component styles, Tailwind CSS), testing, or CLI tooling.
-license: MIT
+description: Referencia oficial de APIs de Angular - router, formularios, inyección de dependencias, SSR, accesibilidad (ARIA), animaciones, testing y CLI - leída desde references/. Usar como consulta de APIs; las convenciones del proyecto mandan (angular-component para componentes, angular-signals para estado, ui-ux-pro para estilos).
 metadata:
   author: Copyright 2026 Google LLC
   version: '1.0'
 ---
 
 # Angular Developer Guidelines
+
+## Overrides del proyecto (tienen prioridad sobre el resto de este archivo)
+
+Este repo usa **Angular 20.3**, no la última versión. Donde esta skill y el proyecto discrepan, gana el proyecto:
+
+- **Formularios:** usar **Reactive Forms**. No usar Signal Forms (requieren Angular 21), aunque más abajo se los recomiende.
+- **Tests:** el runner es **Karma + Jasmine** (`ng test`), no Vitest. Ignorar lo específico de Vitest de `references/testing-fundamentals.md`.
+- **Componentes y estado:** seguir `angular-component` y `angular-signals`; esas skills definen la estructura y la ubicación (`core/`, `features/`, `shared/`).
+- **Estilos y UX:** seguir `ui-ux-pro` (Tailwind 4 + DaisyUI 5).
+- **Proyecto existente:** no usar `ng new`; los pasos de "Creating New Projects" no aplican.
+- **Verificación:** correr `npm run build` en `frontend/` al terminar. Los tests actuales están parcialmente rotos (ver `CLAUDE.md`); no asumir que fallan por el cambio propio.
 
 1. Always analyze the project's Angular version before providing guidance, as best practices and available features can vary significantly between versions. If creating a new project with Angular CLI, do not specify a version unless prompted by the user.
 

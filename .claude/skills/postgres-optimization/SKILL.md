@@ -1,13 +1,6 @@
 ---
 name: postgres-optimization
-description: Optimize PostgreSQL queries, schema design, and indexing strategies to improve performance and maintainability.
-triggers:
-  - optimize sql
-  - postgres performance
-  - slow query
-  - sql optimization
-  - postgres index
-  - database tuning
+description: Optimizar SQL, índices y esquema de PostgreSQL y manejar migraciones TypeORM en este proyecto. Usar ante consultas lentas, nuevos índices, cambios de esquema o revisión de migraciones. Para endpoints y DTOs usar nestjs-api.
 ---
 
 # PostgreSQL Optimization Skill
@@ -198,15 +191,13 @@ Anti-Patterns
 
 Avoid:
 
-missing indexes
-```sql 
-SELECT *
-```
-large OFFSET pagination
+- missing indexes
+- `SELECT *`
+- large OFFSET pagination
 
-functions in WHERE filters
+- functions in WHERE filters
 
-unbounded queries
+- unbounded queries
 
 Expected Output
 
@@ -222,3 +213,17 @@ recommend schema improvements
 
 
 ---
+
+---
+
+# Migraciones TypeORM (este proyecto)
+
+- El esquema solo cambia con migraciones en `backend/src/database/migrations/`; la config está en `backend/src/database/ormconfig.ts`. Nunca usar `synchronize`.
+- Comandos (desde `backend/`):
+  - Generar desde las entidades: `npm run migrations:generate -- src/database/migrations/<Nombre>`
+  - Crear vacía: `npm run migrations:create -- src/database/migrations/<Nombre>`
+  - Ver estado: `npm run migrations:show`
+  - Aplicar: `npm run migrations:run`
+- En producción el contenedor del backend ejecuta `migrations:run:prod` al arrancar, así que una migración defectuosa rompe el deploy: revisar el SQL generado antes de commitear.
+- Una migración por cambio, con `up` y `down` coherentes. No editar migraciones ya aplicadas en producción; crear una nueva.
+- Verificar nombres de tabla y columna contra las entidades en `backend/src/*/entities/`.
