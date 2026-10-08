@@ -1,4 +1,5 @@
 import { NestFactory, Reflector } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -8,7 +9,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { static as expressStatic } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -46,6 +47,10 @@ async function bootstrap() {
   app.enableCors({
     origin,
   });
+
+  // Detras de un unico nginx: req.ip toma la IP que ese proxy agrego a X-Forwarded-For.
+  // Necesario para el limite por IP de /contact. Si se suma otro proxy/CDN, subir el valor.
+  app.set('trust proxy', 1);
 
   await app.listen(Number(process.env.PORT ?? 3000));
 }

@@ -16,4 +16,7 @@ export interface Env {
   JWT_SECRET: string;
   UPLOADS_DIR: string;
   MAX_IMAGE_SIZE_BYTES: number;
+  CONTACT_TO_EMAIL: string;
+  CONTACT_RATE_LIMIT: number;
+  CONTACT_RATE_TTL_SECONDS: number;
 }

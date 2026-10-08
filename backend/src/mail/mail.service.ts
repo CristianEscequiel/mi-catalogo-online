@@ -66,4 +66,37 @@ export class MailService {
       throw new InternalServerErrorException('Error sending email');
     }
   }
+
+  async sendContactMessage(input: { to: string; name: string; email: string; message: string }): Promise<void> {
+    const { to, name, email, message } = input;
+    const subjectName = name.replace(/\s+/g, ' ').trim();
+    const safeName = this.escapeHtml(name);
+    const safeEmail = this.escapeHtml(email);
+    const safeMessage = this.escapeHtml(message).replace(/\r?\n/g, '<br>');
+
+    const { error } = await this.resend.emails.send({
+      from: this.from,
+      to,
+      replyTo: email,
+      subject: `Contacto portfolio: ${subjectName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height:1.5;">
+          <h2>Nuevo mensaje desde el portfolio</h2>
+          <p><strong>Nombre:</strong> ${safeName}</p>
+          <p><strong>Email:</strong> ${safeEmail}</p>
+          <p><strong>Mensaje:</strong></p>
+          <p>${safeMessage}</p>
+        </div>
+      `,
+      text: `Nuevo mensaje desde el portfolio\n\nNombre: ${name}\nEmail: ${email}\n\n${message}`,
+    });
+
+    if (error) {
+      throw new InternalServerErrorException('Error sending contact message');
+    }
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
 }
