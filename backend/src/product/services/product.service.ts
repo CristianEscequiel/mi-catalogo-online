@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -9,6 +9,8 @@ import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Injectable()
 export class ProductService {
+  private readonly logger = new Logger(ProductService.name);
+
   constructor(
     @InjectRepository(Product)
     private postRepository: Repository<Product>,
@@ -35,7 +37,8 @@ export class ProductService {
       if (error instanceof ForbiddenException) {
         throw error;
       }
-      throw new BadRequestException(`Error creating product: ${error.message}`);
+      this.logger.error('Error creating product', error instanceof Error ? error.stack : String(error));
+      throw new BadRequestException('Error creating product');
     }
   }
 
@@ -85,7 +88,8 @@ export class ProductService {
       }
       return await this.postRepository.save(updatedProduct);
     } catch (error) {
-      throw new BadRequestException(`Error updating product: ${error.message}`);
+      this.logger.error('Error updating product', error instanceof Error ? error.stack : String(error));
+      throw new BadRequestException('Error updating product');
     }
   }
 
@@ -162,7 +166,6 @@ export class ProductService {
     if (!products || products.length === 0) {
       throw new NotFoundException(`Products for user with id ${id} not found`);
     }
-    console.log('Products found for user', id, products);
     return products;
   }
 

@@ -7,7 +7,7 @@ import { Payload } from '../models/payload.model';
 import { RegisterDto } from '../dto/register.dto';
 import { Role } from '../roles/roles.enum';
 import { MailService } from 'src/mail/mail.service';
-import * as crypto from 'crypto';
+import { generateOpaqueToken, hashToken } from '../token.util';
 
 @Injectable()
 export class AuthService {
@@ -39,11 +39,11 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = generateOpaqueToken();
     await this.usersService.create({
       ...registerDto,
       role: Role.CLIENT,
-      verificationToken: verificationToken,
+      verificationToken: hashToken(verificationToken),
       verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000), // Token válido por 15 minutos
     });
     // this.mailService.sendMail(registerDto.email, 'Verifica tu cuenta', `Tu token de verificación es: ${verificationToken}`);
@@ -54,12 +54,12 @@ export class AuthService {
   }
 
   async verifyEmail(token: string) {
-    const user = await this.usersService.findByVerificationToken(token);
+    const user = await this.usersService.findByVerificationToken(hashToken(token));
     if (!user) {
       throw new BadRequestException('Invalid verification token');
     }
 
-    if (user.verificationExpiresAt && user.verificationExpiresAt < new Date()) {
+    if (!user.verificationExpiresAt || user.verificationExpiresAt < new Date()) {
       throw new BadRequestException('Verification token has expired');
     }
     await this.usersService.markEmailAsVerified(user);
@@ -76,8 +76,8 @@ export class AuthService {
       };
     }
 
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    user.verificationToken = verificationToken;
+    const verificationToken = generateOpaqueToken();
+    user.verificationToken = hashToken(verificationToken);
     user.verificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
     await this.usersService.saveUser(user);
 
@@ -91,20 +91,20 @@ export class AuthService {
   async requestPasswordReset(email: string) {
     const user = await this.usersService.getUserByEmail(email);
     if (user) {
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      await this.usersService.setPasswordResetToken(user.id, resetToken, new Date(Date.now() + 15 * 60 * 1000));
+      const resetToken = generateOpaqueToken();
+      await this.usersService.setPasswordResetToken(user.id, hashToken(resetToken), new Date(Date.now() + 15 * 60 * 1000));
 
       await this.mailService.sendResetPasswordMail(email, 'Password Reset', resetToken);
     }
   }
   async resetPassword(token: string, newPassword: string) {
-    const user = await this.usersService.findByPasswordResetToken(token);
+    const user = await this.usersService.findByPasswordResetToken(hashToken(token));
 
     if (!user) {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    if (user.passwordResetExpiresAt && user.passwordResetExpiresAt < new Date()) {
+    if (!user.passwordResetExpiresAt || user.passwordResetExpiresAt < new Date()) {
       throw new BadRequestException('Token expired');
     }
 

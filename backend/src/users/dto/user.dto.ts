@@ -1,14 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsString, IsEmail, IsNotEmpty, MinLength, ValidateNested, IsOptional, IsEnum, IsBoolean } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength, MaxLength, ValidateNested, IsOptional, IsEnum } from 'class-validator';
 import { CreateProfileDto, UpdateProfileDto } from './profile.dto';
-import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Role } from 'src/auth/roles/roles.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+// Solo campos que puede mandar un cliente. Los campos internos (emailVerified, tokens)
+// nunca deben poder fijarse desde la API: ver CreateUserData en users.service.ts.
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
+  @MaxLength(72) // bcrypt ignora lo que exceda los 72 bytes
   @ApiProperty({
     description: 'User password (min 8 characters)',
     example: 'StrongPass123',
@@ -28,50 +30,11 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(Role)
   @ApiPropertyOptional({
-    description: 'User role',
+    description: 'User role (solo lo respeta el alta hecha por un ADMIN)',
     enum: Role,
-    example: Role.ADMIN,
+    example: Role.CLIENT,
   })
   role?: Role;
-
-  @IsOptional()
-  @IsBoolean()
-  @ApiPropertyOptional({
-    description: 'Indicates if the user email is verified',
-    example: false,
-  })
-  emailVerified?: boolean;
-
-  @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    description: 'Verification token for email verification',
-    example: 'abc123def456',
-  })
-  verificationToken?: string | null;
-
-  @IsOptional()
-  @Type(() => Date)
-  @ApiPropertyOptional({
-    description: 'Expiration date of the verification token',
-    example: '2024-06-30T12:00:00Z',
-  })
-  verificationExpiresAt?: Date | null;
-  @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    description: 'Verification token for email verification',
-    example: 'abc123def456',
-  })
-  passwordResetToken?: string | null;
-
-  @IsOptional()
-  @Type(() => Date)
-  @ApiPropertyOptional({
-    description: 'Expiration date of the verification token',
-    example: '2024-06-30T12:00:00Z',
-  })
-  passwordResetExpiresAt?: Date | null;
 
   @ValidateNested()
   @Type(() => CreateProfileDto)
@@ -89,18 +52,28 @@ export class CreateUserDto {
   profile?: CreateProfileDto;
 }
 
-export class UpdateUserDto extends PartialType(OmitType(CreateUserDto, ['profile'])) {
+// Un usuario solo puede cambiar su contraseña y su perfil. El email y el rol tienen flujos propios.
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(72)
+  @ApiPropertyOptional({ description: 'New password (min 8 characters)' })
+  password?: string;
+
   @ValidateNested()
   @Type(() => UpdateProfileDto)
   @IsOptional()
   @ApiPropertyOptional({
     description: 'User profile updates',
     type: () => UpdateProfileDto,
-    example: {
-      name: 'Ana',
-      lastName: 'Gomez',
-      avatar: 'https://example.com/avatars/ana.png',
-    },
+    example: { name: 'Ana', lastName: 'Gomez' },
   })
   profile?: UpdateProfileDto;
+}
+
+export class UpdateUserRoleDto {
+  @IsEnum(Role)
+  @ApiProperty({ enum: Role, example: Role.CLIENT })
+  role: Role;
 }
