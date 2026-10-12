@@ -9,12 +9,15 @@ import { ConfigService } from '@nestjs/config';
 import { Env } from '../env.model';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from 'src/mail/mail.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     MailModule,
+    // Límite por defecto de /auth: 20 req/min por IP; login y otros endpoints sensibles lo ajustan con @Throttle.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<Env>) => ({

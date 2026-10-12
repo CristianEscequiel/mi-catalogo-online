@@ -1,5 +1,7 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { Role } from '../auth/roles/roles.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +9,14 @@ import { QueryFailedError } from 'typeorm';
 import { Profile } from './entities/profile.entity';
 import { FileStorageService } from 'src/files/file-storage.service';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
+
+// Datos de alta que solo puede fijar el servidor (flujo de verificación de email).
+// Nunca se exponen en un DTO HTTP.
+export interface CreateUserData extends CreateUserDto {
+  emailVerified?: boolean;
+  verificationToken?: string | null;
+  verificationExpiresAt?: Date | null;
+}
 
 @Injectable()
 export class UsersService {
@@ -25,11 +35,7 @@ export class UsersService {
     return users;
   }
   async getUserByID(id: number) {
-    const user = await this.findOne(id);
-    if (user.id === 9) {
-      throw new ForbiddenException('You are not alloewd acces this user');
-    }
-    return user;
+    return this.findOne(id);
   }
 
   async getProfileByUserId(id: number) {
@@ -59,7 +65,7 @@ export class UsersService {
     return user.categories;
   }
 
-  async create(body: CreateUserDto) {
+  async create(body: CreateUserData) {
     const existingUser = await this.getUserByEmail(body.email);
     if (existingUser) {
       throw new ConflictException('Email already registered');
@@ -87,14 +93,24 @@ export class UsersService {
         : undefined;
 
       const updatedUser = this.usersRepository.merge(user, {
-        ...changes,
+        // @BeforeInsert solo hashea al crear: al actualizar hay que hashear a mano.
+        password: changes.password ? await bcrypt.hash(changes.password, 10) : undefined,
         profile: sanitizedProfile,
       });
       const saveUser = await this.usersRepository.save(updatedUser);
       return saveUser;
-    } catch {
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException('Error updating user');
     }
+  }
+
+  async updateRole(id: number, role: Role) {
+    const user = await this.findOne(id);
+    user.role = role;
+    return this.usersRepository.save(user);
   }
   async delete(id: number) {
     const user = await this.findOne(id);
@@ -158,7 +174,10 @@ export class UsersService {
     });
     return user;
   }
+  // Los métodos *Token reciben el hash. Con un valor vacío/undefined TypeORM ignora la condición
+  // y devolvería el primer usuario de la tabla, así que se corta antes de consultar.
   async findByVerificationToken(token: string) {
+    if (!token) return null;
     return this.usersRepository.findOne({
       where: { verificationToken: token },
     });
@@ -178,7 +197,8 @@ export class UsersService {
     await this.usersRepository.save(user);
   }
 
-  findByPasswordResetToken(token: string) {
+  async findByPasswordResetToken(token: string) {
+    if (!token) return null;
     return this.usersRepository.findOne({
       where: { passwordResetToken: token },
     });

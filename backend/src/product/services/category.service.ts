@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
@@ -9,6 +9,8 @@ import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Injectable()
 export class CategoryService {
+  private readonly logger = new Logger(CategoryService.name);
+
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
@@ -33,7 +35,8 @@ export class CategoryService {
       if (error instanceof ForbiddenException) {
         throw error;
       }
-      throw new BadRequestException(`Error creating category: ${error.message}`);
+      this.logger.error('Error creating category', error instanceof Error ? error.stack : String(error));
+      throw new BadRequestException('Error creating category');
     }
   }
 

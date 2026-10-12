@@ -78,8 +78,8 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
   }
 
   requestPasswordReset(email: string): Observable<RequestPasswordResetResponse> {
-    return this.http.get<RequestPasswordResetResponse>(`${this.apiUrl}/auth/request-password-reset`, {
-      params: { email },
+    return this.http.post<RequestPasswordResetResponse>(`${this.apiUrl}/auth/request-password-reset`, {
+      email,
     }).pipe(
       catchError(err => {
         console.error('Error al solicitar recuperacion de contrasena', err);
