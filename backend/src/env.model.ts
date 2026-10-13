@@ -19,4 +19,5 @@ export interface Env {
   CONTACT_TO_EMAIL: string;
   CONTACT_RATE_LIMIT: number;
   CONTACT_RATE_TTL_SECONDS: number;
+  ORDER_PAYMENT_TTL_HOURS: number;
 }

@@ -1,12 +1,11 @@
 import { CdkTableModule } from '@angular/cdk/table';
+import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { OrderResponse, OrderSummaryResponse, OrdersService } from '../../../../core/services/orders.service';
-
-type OrderStatus = OrderResponse['status'];
+import { OrderResponse, OrderStatus, OrderSummaryResponse, OrdersService } from '../../../../core/services/orders.service';
 
 @Component({
   standalone: true,
@@ -77,33 +76,49 @@ export class OrderAdminPage implements OnInit {
     }
   }
 
-  async updateSelectedOrderStatus(nextStatus: string) {
+  async updateSelectedOrderStatus(nextStatus: OrderStatus) {
     const order = this.selectedOrder();
-    if (!order) {
-      return;
-    }
-
-    const status = nextStatus as OrderStatus;
-    if (status === order.status) {
+    if (!order || this.statusLoading() || !order.allowedTransitions.includes(nextStatus)) {
       return;
     }
 
     try {
       this.statusLoading.set(true);
-      const response = await firstValueFrom(this.ordersService.updateOrderStatus(order.id, status));
-      this.selectedOrder.set({
-        ...order,
-        status: response.status,
-      });
+      const response = await firstValueFrom(this.ordersService.updateOrderStatus(order.id, nextStatus));
+      const changes = { status: response.status, allowedTransitions: response.allowedTransitions };
 
-      this.orders.update((items) => items.map((item) => (item.id === order.id ? { ...item, status: response.status } : item)));
+      this.selectedOrder.set({ ...order, ...changes });
+      this.orders.update((items) => items.map((item) => (item.id === order.id ? { ...item, ...changes } : item)));
       this.applyFilters();
       this.notificationService.success('Estado actualizado correctamente.');
-    } catch {
-      this.notificationService.error('No se pudo actualizar el estado del pedido.');
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 409) {
+        // Otro admin (o el vencimiento automático) ya cambió la orden: mostrar su estado real.
+        this.notificationService.error('El estado del pedido cambió mientras lo editabas. Se recargó con su estado actual.');
+        await Promise.all([this.selectOrder(order.id), this.loadOrders()]);
+      } else {
+        this.notificationService.error('No se pudo actualizar el estado del pedido.');
+      }
     } finally {
       this.statusLoading.set(false);
     }
+  }
+
+  actionLabel(status: OrderStatus) {
+    if (status === 'PAID') {
+      return 'Marcar como pagado';
+    }
+    if (status === 'DELIVERED') {
+      return 'Marcar como entregado';
+    }
+    if (status === 'CANCELLED') {
+      return 'Cancelar pedido';
+    }
+    return this.statusLabel(status);
+  }
+
+  actionClass(status: OrderStatus) {
+    return status === 'CANCELLED' ? 'btn-outline btn-error' : 'btn-primary';
   }
 
   statusLabel(status: OrderStatus) {

@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 
+export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'DELIVERED';
+
 export interface CreateOrderPayload {
   name: string;
   email: string;
@@ -19,13 +21,15 @@ export interface OrderItemSnapshot {
 
 export interface OrderResponse {
   id: number;
-  status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'DELIVERED';
+  status: OrderStatus;
   customerName: string;
   customerEmail: string;
   customerAddress: string;
   total: number;
   createdAt: string;
   items: OrderItemSnapshot[];
+  // Estados a los que esta orden puede pasar (los calcula el backend; vacío si ya es final).
+  allowedTransitions: OrderStatus[];
 }
 
 export interface OrderSummaryResponse {
@@ -33,8 +37,15 @@ export interface OrderSummaryResponse {
   customerName: string;
   customerEmail: string;
   total: number;
-  status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'DELIVERED';
+  status: OrderStatus;
   createdAt: string;
+  allowedTransitions: OrderStatus[];
+}
+
+export interface OrderStatusUpdateResponse {
+  id: number;
+  status: OrderStatus;
+  allowedTransitions: OrderStatus[];
 }
 
 @Injectable({
@@ -56,7 +67,7 @@ export class OrdersService {
     return this.http.get<OrderSummaryResponse[]>(`${this.apiUrl}/orders`);
   }
 
-  updateOrderStatus(orderId: number, status: OrderResponse['status']): Observable<{ id: number; status: OrderResponse['status'] }> {
-    return this.http.patch<{ id: number; status: OrderResponse['status'] }>(`${this.apiUrl}/orders/${orderId}/status`, { status });
+  updateOrderStatus(orderId: number, status: OrderStatus): Observable<OrderStatusUpdateResponse> {
+    return this.http.patch<OrderStatusUpdateResponse>(`${this.apiUrl}/orders/${orderId}/status`, { status });
   }
 }

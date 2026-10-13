@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Status } from '../models/status.enum';
 
@@ -36,7 +36,8 @@ export class CreateProductDto {
   })
   sku?: string;
 
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
   @IsOptional()
   @ApiPropertyOptional({
     description: 'Product price',
@@ -44,7 +45,8 @@ export class CreateProductDto {
   })
   price?: number;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   @IsOptional()
   @ApiPropertyOptional({
     description: 'Product stock',

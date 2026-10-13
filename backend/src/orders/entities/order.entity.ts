@@ -3,6 +3,7 @@ import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMa
 import { User } from '../../users/entities/user.entity';
 import { OrderItem } from './order-item.entity';
 import { OrderStatus } from './order-status.enum';
+import { numericTransformer } from '../../common/numeric.transformer';
 
 @Entity({ name: 'orders' })
 @Index('IDX_orders_user', ['userId'])
@@ -27,7 +28,7 @@ export class Order {
   @ApiProperty({ description: 'Shipping address', example: 'Av. Siempre Viva 742', required: true })
   shippingAddress: string;
 
-  @Column({ type: 'float', default: 0 })
+  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0, transformer: numericTransformer })
   @ApiProperty({ description: 'Order total amount', example: 240, required: true })
   total: number;
 

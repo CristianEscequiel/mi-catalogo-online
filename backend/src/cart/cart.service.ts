@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../product/entities/product.entity';
 import { CartItem } from './entities/cart-item.entity';
+import { lineTotal, sumMoney } from '../common/money';
 
 @Injectable()
 export class CartService {
@@ -27,12 +28,12 @@ export class CartService {
       quantity: item.quantity,
       stock: item.product.stock,
       thumbnailUrl: item.product.thumbnailUrl,
-      subtotal: item.product.price * item.quantity,
+      subtotal: lineTotal(item.product.price, item.quantity),
     }));
 
     return {
       items,
-      total: items.reduce((acc, item) => acc + item.subtotal, 0),
+      total: sumMoney(items.map((item) => item.subtotal)),
     };
   }
 
