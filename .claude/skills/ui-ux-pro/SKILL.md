@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro
-description: UI/UX design intelligence for Angular + Tailwind apps. Generates clean, responsive and production-ready interfaces using best practices.
+description: Diseño visual y UX de las pantallas Angular del proyecto con Tailwind 4 y DaisyUI 5 - mobile-first, espaciado, jerarquía, formularios, listas y estados loading/empty/error. Usar al diseñar o mejorar una vista. Para la estructura TypeScript del componente usar angular-component; para estado usar angular-signals.
 ---
 
 # UI UX PRO (Angular + Tailwind)
@@ -17,7 +17,7 @@ description: UI/UX design intelligence for Angular + Tailwind apps. Generates cl
 ## Stack objetivo
 - Angular (standalone + signals)
 - Tailwind CSS
-- DaisyUI (opcional)
+- DaisyUI 5 (ya instalado, usarlo para botones, cards, modales y formularios)
 
 ---
 
