@@ -2,7 +2,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Payload } from '../../auth/models/payload.model';
-import { FileStorageService } from '../../files/file-storage.service';
+import { ImageStorage } from '../../files/image-storage.port';
 import { Category } from '../entities/category.entity';
 import { CategoryService } from './category.service';
 
@@ -22,7 +22,7 @@ describe('CategoryService (propiedad, REQ-3)', () => {
     repository.merge.mockImplementation((entity: object, changes: object) => Object.assign(entity, changes));
     repository.save.mockImplementation((entity: object) => Promise.resolve(entity));
     const moduleRef = await Test.createTestingModule({
-      providers: [CategoryService, { provide: getRepositoryToken(Category), useValue: repository }, { provide: FileStorageService, useValue: files }],
+      providers: [CategoryService, { provide: getRepositoryToken(Category), useValue: repository }, { provide: ImageStorage, useValue: files }],
     }).compile();
     service = moduleRef.get(CategoryService);
   });

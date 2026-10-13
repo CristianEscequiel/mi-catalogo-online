@@ -7,7 +7,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 import { Profile } from './entities/profile.entity';
-import { FileStorageService } from 'src/files/file-storage.service';
+import { ImageStorage } from 'src/files/image-storage.port';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 // Datos de alta que solo puede fijar el servidor (flujo de verificación de email).
@@ -25,7 +25,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Profile)
     private profilesRepository: Repository<Profile>,
-    private readonly fileStorageService: FileStorageService,
+    private readonly fileStorageService: ImageStorage,
   ) {}
 
   async findAll() {

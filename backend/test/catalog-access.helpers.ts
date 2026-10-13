@@ -9,7 +9,7 @@ import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
-import { OpenaiService } from '../src/ai/service/openai.service';
+import { AiContentGenerator } from '../src/ai/ai-content-generator.port';
 import { CartModule } from '../src/cart/cart.module';
 import { FavoritesModule } from '../src/favorites/favorites.module';
 import { OrdersModule } from '../src/orders/orders.module';
@@ -49,7 +49,7 @@ export const createCatalogTestModule = async (env: Record<string, string> = {}) 
   })
     .overrideGuard(AuthGuard('jwt'))
     .useValue(fakeJwtGuard)
-    .overrideProvider(OpenaiService)
+    .overrideProvider(AiContentGenerator)
     .useValue(openai)
     .compile();
 

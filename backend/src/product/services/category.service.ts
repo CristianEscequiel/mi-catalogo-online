@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { FileStorageService } from 'src/files/file-storage.service';
+import { ImageStorage } from 'src/files/image-storage.port';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 import { canModify } from 'src/common/ownership';
 import { Payload } from 'src/auth/models/payload.model';
@@ -16,7 +16,7 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    private readonly fileStorageService: FileStorageService,
+    private readonly fileStorageService: ImageStorage,
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto, userId: number, role: string) {

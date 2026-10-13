@@ -1,7 +1,7 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { isEmail } from 'class-validator';
-import { MailService } from '../mail/mail.service';
+import { MailSender } from '../mail/mail-sender.port';
 import { CreateContactDto } from './dto/create-contact.dto';
 
 export const CONTACT_SUCCESS_MESSAGE = 'Mensaje enviado correctamente.';
@@ -15,7 +15,7 @@ export class ContactService {
 
   constructor(
     config: ConfigService,
-    private readonly mail: MailService,
+    private readonly mail: MailSender,
   ) {
     const to = config.get<string>('CONTACT_TO_EMAIL');
     if (!to || !isEmail(to)) {
