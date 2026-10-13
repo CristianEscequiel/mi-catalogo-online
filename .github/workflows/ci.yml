@@ -57,6 +57,16 @@ jobs:
       - run: npm test
         continue-on-error: true
       - run: npm run build
+      # Informativo: no bloquea. Hace visibles las vulnerabilidades de las dependencias de producción.
+      - run: npm audit --omit=dev
+        continue-on-error: true
+      # La imagen no debe correr como root (spec infra-hardening, REQ-2.1): si alguien quita `USER node`, falla.
+      - name: Verificar que la imagen del backend no corre como root
+        run: |
+          docker build -t catalog-backend:ci .
+          uid="$(docker run --rm catalog-backend:ci id -u)"
+          echo "UID del proceso en la imagen: $uid"
+          test "$uid" != "0"
 
   frontend:
     needs: changes
@@ -80,6 +90,9 @@ jobs:
       - run: npx ng test --no-watch --browsers=ChromeHeadless
         continue-on-error: true
       - run: npm run build -- --configuration production
+      # Informativo: no bloquea. Hace visibles las vulnerabilidades de las dependencias de producción.
+      - run: npm audit --omit=dev
+        continue-on-error: true
 
   # Publica cada imagen en GHCR. Solo en push a main, solo si cambió esa parte y su build terminó en verde.
   docker-backend:
