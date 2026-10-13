@@ -91,9 +91,9 @@ Orden: primero lo que deja el repo limpio y compilando (T1, T2), después el bac
 - [x] **T13. [O] Checklist de despliegue manual** (lo ejecuta una persona; esta tarea es dejarlo escrito y verificado contra T11).
   - Hacer: completar abajo, con los comandos reales que funcionaron en T11. Orden obligatorio:
     1. [x] `JWT_SECRET` de producción con 32+ caracteres y `CORS_ORIGIN` definida y distinta de `*`.
-    2. [ ] _(sin evidencia de que se haya corrido)_ En el servidor, **antes** de desplegar el backend: `docker run --rm -v <volumen_uploads_data>:/app/uploads alpine chown -R 1000:1000 /app/uploads` (una sola vez; el backend anterior, que corre como root, sigue funcionando con el volumen ya corregido).
+    2. [x] En el servidor, **antes** de desplegar el backend: `docker run --rm -v <volumen_uploads_data>:/app/uploads alpine chown -R 1000:1000 /app/uploads` (una sola vez; el backend anterior, que corre como root, sigue funcionando con el volumen ya corregido).
     3. [x] En `web-stack`: cambiar el upstream del frontend a `catalog_frontend:8080` **en el mismo despliegue** que la imagen nueva del frontend, y el healthcheck de `catalog_frontend` al 8080. (Los `ports` de db y backend no existían en `web-stack`: nada que quitar.)
-    4. [ ] _(parcial: backend sano con la imagen nueva; falta la subida de imagen de prueba)_ Desplegar el backend; comprobar `GET /health` y subir una imagen de prueba.
+    4. [x] Desplegar el backend; comprobar `GET /health` y subir una imagen de prueba.
     5. [x] Desplegar el frontend; comprobar el sitio y una ruta del SPA.
     6. [ ] _(parcial: /api/docs da 404; falta comprobar el 5433 desde fuera)_ Comprobar que `https://<dominio>/api/docs` da 404 y que el puerto 5433 del servidor no responde desde fuera.
   - Dep: T11.
@@ -219,7 +219,9 @@ Cada criterio de `requirements.md` con su evidencia. **Sí** = verificado; **No 
 - **Hallazgos al leer `web-stack` (no estaban en el checklist original):** el healthcheck de `catalog_frontend` consultaba el puerto 80, así que con la imagen nueva `deploy.sh` lo habría marcado no saludable y hecho rollback; hubo que cambiarlo al 8080 junto con el upstream del nginx del borde. Rama `fix/catalog-frontend-8080` en `web-stack` (commit `92ce657`). Además, esa rama sale de `feat/contact-form` y le faltan 4 commits de `master`: no se debe usar con `git checkout` en el servidor, solo mergear por PR.
 - **502 transitorio:** entre el cambio del contenedor del frontend (8080) y la recarga del nginx del borde, el sitio devolvió 502. Es la ventana prevista; se resolvió recargando el nginx.
 - **Verificado en producción:** `catalog_backend` y `catalog_frontend` corren `sha-c72c55b` y están `healthy`; `/` → 200; `/product/x` → 200; `/api/health` → `{"status":"ok"}` 200; `/api/docs` → 404.
-- **Sin verificar:** subida de una imagen de prueba (depende del `chown` del volumen), que el puerto 5433 no responda desde fuera, y el `chown` en sí.
+- **Subida de imagen (confirmada por el usuario, 2026-10-13):** subir una imagen desde el panel funciona con el backend nuevo (`USER node`), lo que confirma que el `chown` del volumen se aplicó (T13, pasos 2 y 4). Cierra el criterio REQ-2.4 en producción.
+- **Todavía sin verificar:** que el puerto 5433 del servidor no responda desde fuera (T13, paso 6, parte restante).
+- **`web-stack` (2026-10-13):** el PR #4 `fix/catalog-frontend-8080` está mergeado en `master` (`150f862`); el usuario confirmó que `web-stack` está actualizado. Revisado en `origin/master`: upstream y healthcheck del frontend en el 8080.
 
 ## Opcionales (2026-10-13)
 
