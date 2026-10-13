@@ -6,7 +6,7 @@ import { User } from '../../users/entities/user.entity';
 import { Payload } from '../models/payload.model';
 import { RegisterDto } from '../dto/register.dto';
 import { Role } from '../roles/roles.enum';
-import { MailService } from 'src/mail/mail.service';
+import { MailSender } from 'src/mail/mail-sender.port';
 import { generateOpaqueToken, hashToken } from '../token.util';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private mailService: MailService,
+    private mailService: MailSender,
   ) {}
 
   async validateUser(email: string, pass: string) {

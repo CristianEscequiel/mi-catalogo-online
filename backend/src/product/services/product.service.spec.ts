@@ -2,7 +2,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Payload } from '../../auth/models/payload.model';
-import { FileStorageService } from '../../files/file-storage.service';
+import { ImageStorage } from '../../files/image-storage.port';
 import { ListProductsQueryDto } from '../dto/list-products-query.dto';
 import { Product } from '../entities/product.entity';
 import { Status } from '../models/status.enum';
@@ -33,7 +33,7 @@ describe('ProductService', () => {
     jest.clearAllMocks();
     repository.createQueryBuilder.mockReturnValue(qb);
     const moduleRef = await Test.createTestingModule({
-      providers: [ProductService, { provide: getRepositoryToken(Product), useValue: repository }, { provide: FileStorageService, useValue: files }],
+      providers: [ProductService, { provide: getRepositoryToken(Product), useValue: repository }, { provide: ImageStorage, useValue: files }],
     }).compile();
     service = moduleRef.get(ProductService);
   });

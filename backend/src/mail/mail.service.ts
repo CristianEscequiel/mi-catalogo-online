@@ -1,9 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import { ContactMessageInput, MailSender } from './mail-sender.port';
 
 @Injectable()
-export class MailService {
+export class MailService implements MailSender {
   private readonly resend: Resend;
   private readonly from: string;
   private readonly frontendUrl: string;
@@ -67,7 +68,7 @@ export class MailService {
     }
   }
 
-  async sendContactMessage(input: { to: string; name: string; email: string; message: string }): Promise<void> {
+  async sendContactMessage(input: ContactMessageInput): Promise<void> {
     const { to, name, email, message } = input;
     const subjectName = name.replace(/\s+/g, ' ').trim();
     const safeName = this.escapeHtml(name);

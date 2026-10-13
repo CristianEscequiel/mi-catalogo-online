@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import type { AuthenticatedRequest } from '../auth/models/authenticated-request.model';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { Payload } from '../auth/models/payload.model';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CartService } from './cart.service';
 
@@ -13,19 +14,19 @@ export class CartController {
 
   @ApiOperation({ summary: 'Get authenticated user cart' })
   @Get()
-  findAll(@Request() req: AuthenticatedRequest) {
-    return this.cartService.findAllByUser(req.user.sub);
+  findAll(@CurrentUser() user: Payload) {
+    return this.cartService.findAllByUser(user.sub);
   }
 
   @ApiOperation({ summary: 'Update quantity for a cart item' })
   @Patch('items/:productId')
-  updateItem(@Param('productId', ParseIntPipe) productId: number, @Body() updateCartItemDto: UpdateCartItemDto, @Request() req: AuthenticatedRequest) {
-    return this.cartService.upsertItem(req.user.sub, productId, updateCartItemDto.quantity);
+  updateItem(@Param('productId', ParseIntPipe) productId: number, @Body() updateCartItemDto: UpdateCartItemDto, @CurrentUser() user: Payload) {
+    return this.cartService.upsertItem(user.sub, productId, updateCartItemDto.quantity);
   }
 
   @ApiOperation({ summary: 'Remove a product from cart' })
   @Delete('items/:productId')
-  removeItem(@Param('productId', ParseIntPipe) productId: number, @Request() req: AuthenticatedRequest) {
-    return this.cartService.removeItem(req.user.sub, productId);
+  removeItem(@Param('productId', ParseIntPipe) productId: number, @CurrentUser() user: Payload) {
+    return this.cartService.removeItem(user.sub, productId);
   }
 }

@@ -62,3 +62,10 @@ Repositorios TypeORM → PostgreSQL
 - Controllers delgados; la lógica vive en services; los DTOs validan toda entrada.
 - Imágenes: se guarda una ruta relativa `/uploads/<carpeta>/<archivo>` en DB; el frontend la resuelve con `resolveImageUrl` y `API_BASE_URL`. Regla actual: 1 imagen por entidad.
 - Cada capa tiene una responsabilidad clara; no mezclar responsabilidades de frontend y backend.
+- Usuario autenticado: los controllers lo reciben con `@CurrentUser() user: Payload` (`backend/src/auth/current-user.decorator.ts`), no con `@Request()`. El único `@Request()` que queda es el login con la estrategia `local`.
+- Proveedores externos detrás de puertos: los servicios de dominio no dependen de Resend, OpenAI ni del disco, sino de `MailSender` (`mail/mail-sender.port.ts`), `AiContentGenerator` (`ai/ai-content-generator.port.ts`) e `ImageStorage` (`files/image-storage.port.ts`).
+  - El puerto es una clase abstracta (sirve de token de inyección de Nest, sin `@Inject`). El adaptador la implementa (`implements`) y su módulo lo registra **bajo el token del puerto**: `providers: [{ provide: MailSender, useClass: MailService }], exports: [MailSender]`. Solo se exporta el puerto.
+  - Los consumidores importan el puerto, nunca el archivo del adaptador (`mail.service`, `file-storage.service`, `openai.service`), que solo se importa desde su módulo y su spec.
+  - Pruebas: los consumidores se prueban con `{ provide: MailSender, useValue: doble }` (sin `jest.mock('resend')`); los tests de integración usan `overrideProvider(MailSender)`, lo que además evita construir el adaptador (que exige su API key). El adaptador se prueba aparte, con el SDK reemplazado.
+  - Un puerto nuevo se agrega solo cuando hay un proveedor externo o un segundo implementador previsto.
+- Specs de controller: `backend/test/controller-testing.ts` (`createControllerApp`) levanta el controller real con un guard JWT falso que fija `request.user`, para que `@CurrentUser()` y los guards de rol corran de verdad sin base de datos.

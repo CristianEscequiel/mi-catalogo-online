@@ -174,7 +174,7 @@ Independientes entre sí (se pueden hacer en cualquier orden o en paralelo): **T
 - `npm audit --omit=dev`: backend 24 (1 crítica, 12 altas); frontend 15 (2 críticas, 11 altas).
 
 ### Desvíos respecto del diseño (anotados durante la implementación)
-- **T4-T7:** el diseño hablaba de un `login` en `AuthService`; el código real expone `validateUser` y `generateToken` (el `login` está en el controller). Las pruebas se escribieron contra los métodos reales. `UsersService.create` **no** oculta el hash de la contraseña (devuelve `findOne`): no se afirmó nada al respecto; queda anotado en `pendientes.md`.
+- **T4-T7:** el diseño hablaba de un `login` en `AuthService`; el código real expone `validateUser` y `generateToken` (el `login` está en el controller). Las pruebas se escribieron contra los métodos reales. `UsersService.create` devuelve `findOne` (la entidad completa); no se afirmó nada sobre el hash en las pruebas. *(Corrección del 2026-10-13, al hacer `backend-architecture`: aquí se había anotado que la entidad "no oculta" el hash, y eso era un error. `User.password` tiene `@Exclude()` y `ClassSerializerInterceptor` es global, por lo que el hash no sale por HTTP; lo prueba `auth-dto.security.spec.ts`.)*
 - **T1:** los controllers importan el tipo con `import type` (TS1272: una interfaz en una firma decorada lo exige con `isolatedModules` + `emitDecoratorMetadata`).
 - **T10:** tras actualizar, el lint dio 11 errores nuevos `no-unnecessary-type-assertion` (tipos más precisos en las versiones nuevas). Se corrigieron con `eslint --fix` en 6 archivos de spec y helpers e2e (solo se quitaron casts) y se borraron 3 imports que quedaron sin usar.
 - **T11:** los `@angular/*` estaban fijados en versión exacta, por lo que `npm audit fix` no los movía: se subieron los pines en `package.json` (20.3.0 → 20.3.33; `ssr`, `cli` y `build` → 20.3.39; mismo minor). `npm install` normal falla con ERESOLVE por peers (cada paquete exige la versión exacta de su hermano mientras el lock conserva la vieja); se resolvió con `npm install --legacy-peer-deps` y se comprobó que `npm ci` (sin flags) funciona. **Ojo:** al próximo cambio de versión de Angular va a pasar lo mismo.
@@ -243,4 +243,4 @@ Evidencia local: sección "Verificación en limpio (T14)". Evidencia de Actions 
 - REQ-4.4 se verificó por lectura del YAML, no con un PR roto a propósito.
 - REQ-6.2 y REQ-6.3 dependen de lo que informó el usuario.
 
-**Spec cerrada.** Lo que queda abierto está en `specs/pendientes.md` (audit de desarrollo, Angular fijado en versión exacta, hash de contraseña en `UsersService`, e2e en el CI, bundle del frontend).
+**Spec cerrada.** Lo que queda abierto está en `specs/pendientes.md` (audit de desarrollo, Angular fijado en versión exacta, e2e en el CI, bundle del frontend).

@@ -10,7 +10,7 @@ import { ListProductsQueryDto } from '../dto/list-products-query.dto';
 import { escapeLike } from 'src/common/escape-like';
 import { canModify } from 'src/common/ownership';
 import { Payload } from 'src/auth/models/payload.model';
-import { FileStorageService } from 'src/files/file-storage.service';
+import { ImageStorage } from 'src/files/image-storage.port';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private postRepository: Repository<Product>,
-    private readonly fileStorageService: FileStorageService,
+    private readonly fileStorageService: ImageStorage,
   ) {}
 
   async create(body: CreateProductDto, userId: number, role: string) {

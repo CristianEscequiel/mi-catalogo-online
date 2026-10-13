@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { QueryFailedError } from 'typeorm';
-import { FileStorageService } from '../files/file-storage.service';
+import { ImageStorage } from '../files/image-storage.port';
 import { Role } from '../auth/roles/roles.enum';
 import { Profile } from './entities/profile.entity';
 import { User } from './entities/user.entity';
@@ -17,7 +17,7 @@ describe('UsersService', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [UsersService, { provide: getRepositoryToken(User), useValue: users }, { provide: getRepositoryToken(Profile), useValue: profiles }, { provide: FileStorageService, useValue: files }],
+      providers: [UsersService, { provide: getRepositoryToken(User), useValue: users }, { provide: getRepositoryToken(Profile), useValue: profiles }, { provide: ImageStorage, useValue: files }],
     }).compile();
     service = moduleRef.get(UsersService);
   });
@@ -92,7 +92,7 @@ describe('UsersService', () => {
       expect(profiles.save).not.toHaveBeenCalled();
     });
 
-    it('guarda la ruta pública construida por FileStorageService', async () => {
+    it('guarda la ruta pública construida por ImageStorage', async () => {
       const profile = { avatar: null as string | null };
       users.findOne.mockResolvedValue({ id: 1, profile });
       files.buildPublicPath.mockReturnValue('/uploads/profiles/b.png');

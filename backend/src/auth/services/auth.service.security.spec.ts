@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import { MailService } from '../../mail/mail.service';
+import { MailSender } from '../../mail/mail-sender.port';
 import { UsersService } from '../../users/users.service';
 import { generateOpaqueToken, hashToken } from '../token.util';
 import { AuthService } from './auth.service';
@@ -23,7 +23,7 @@ describe('AuthService (seguridad de tokens)', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [AuthService, { provide: UsersService, useValue: users }, { provide: JwtService, useValue: { sign: jest.fn() } }, { provide: MailService, useValue: mail }],
+      providers: [AuthService, { provide: UsersService, useValue: users }, { provide: JwtService, useValue: { sign: jest.fn() } }, { provide: MailSender, useValue: mail }],
     }).compile();
     service = moduleRef.get(AuthService);
   });

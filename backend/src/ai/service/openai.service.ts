@@ -2,11 +2,7 @@ import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/co
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { Env } from 'src/env.model';
-
-export interface ProductCategoryOption {
-  id: number;
-  name: string;
-}
+import { AiContentGenerator, ProductCategoryOption } from '../ai-content-generator.port';
 
 interface ProductFromImageAiResponse {
   name: string;
@@ -15,7 +11,7 @@ interface ProductFromImageAiResponse {
 }
 
 @Injectable()
-export class OpenaiService {
+export class OpenaiService implements AiContentGenerator {
   private openai: OpenAI;
 
   constructor(configService: ConfigService<Env>) {

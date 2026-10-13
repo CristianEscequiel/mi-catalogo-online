@@ -1,6 +1,6 @@
 import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MailService } from '../mail/mail.service';
+import { MailSender } from '../mail/mail-sender.port';
 import { CONTACT_FAILURE_MESSAGE, CONTACT_SEND_TIMEOUT_MS, CONTACT_SUCCESS_MESSAGE, ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 
@@ -16,14 +16,14 @@ const configWith = (value: string | undefined) => ({ get: jest.fn().mockReturnVa
 
 describe('ContactService', () => {
   let sendContactMessage: jest.Mock;
-  let mail: MailService;
+  let mail: MailSender;
   let service: ContactService;
   let warnSpy: jest.SpyInstance;
   let errorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     sendContactMessage = jest.fn().mockResolvedValue(undefined);
-    mail = { sendContactMessage } as unknown as MailService;
+    mail = { sendContactMessage } as unknown as MailSender;
     service = new ContactService(configWith('yo@test.dev'), mail);
     warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
     errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();

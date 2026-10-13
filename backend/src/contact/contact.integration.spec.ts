@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { HealthModule } from '../health/health.module';
-import { MailService } from '../mail/mail.service';
+import { MailSender } from '../mail/mail-sender.port';
 import { ContactModule } from './contact.module';
 
 // Replica la configuración de main.ts (pipe global, trust proxy y CORS) porque main.ts no es importable.
@@ -37,7 +37,7 @@ describe('POST /contact (integración)', () => {
         HealthModule,
       ],
     })
-      .overrideProvider(MailService)
+      .overrideProvider(MailSender)
       .useValue({ sendContactMessage })
       .compile();
 

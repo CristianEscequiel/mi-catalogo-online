@@ -2,9 +2,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { promises as fs } from 'fs';
 import { join, resolve } from 'path';
 import { UPLOAD_FOLDERS, UploadFolder } from './file.constants';
+import { ImageStorage } from './image-storage.port';
 
 @Injectable()
-export class FileStorageService implements OnModuleInit {
+export class FileStorageService implements ImageStorage, OnModuleInit {
   private readonly uploadsRoot = resolve(process.cwd(), process.env.UPLOADS_DIR ?? 'uploads');
 
   async onModuleInit() {

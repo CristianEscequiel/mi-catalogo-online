@@ -2,7 +2,7 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import { MailService } from '../../mail/mail.service';
+import { MailSender } from '../../mail/mail-sender.port';
 import { User } from '../../users/entities/user.entity';
 import { UsersService } from '../../users/users.service';
 import { Role } from '../roles/roles.enum';
@@ -16,7 +16,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [AuthService, { provide: UsersService, useValue: users }, { provide: JwtService, useValue: jwt }, { provide: MailService, useValue: {} }],
+      providers: [AuthService, { provide: UsersService, useValue: users }, { provide: JwtService, useValue: jwt }, { provide: MailSender, useValue: {} }],
     }).compile();
     service = moduleRef.get(AuthService);
   });
