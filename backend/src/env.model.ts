@@ -20,4 +20,6 @@ export interface Env {
   CONTACT_RATE_LIMIT: number;
   CONTACT_RATE_TTL_SECONDS: number;
   ORDER_PAYMENT_TTL_HOURS: number;
+  AI_RATE_LIMIT: number;
+  AI_RATE_TTL_SECONDS: number;
 }

@@ -49,15 +49,15 @@ export class CategoryController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoryService.update(id, updateCategoryDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto, @Request() req: { user: Payload }) {
+    return this.categoryService.update(id, updateCategoryDto, req.user);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.categoryService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }) {
+    return this.categoryService.remove(id, req.user);
   }
 
   @ApiOperation({ summary: 'Upload category image' })
@@ -78,18 +78,18 @@ export class CategoryController {
   @Roles('ADMIN', 'GUEST')
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.categories)))
-  uploadImage(@Param('id', ParseIntPipe) id: number, @UploadedFile() file?: { filename: string }) {
+  uploadImage(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }, @UploadedFile() file?: { filename: string }) {
     if (!file?.filename) {
       throw new BadRequestException('File is required');
     }
-    return this.categoryService.uploadImage(id, file.filename);
+    return this.categoryService.uploadImage(id, file.filename, req.user);
   }
 
   @ApiOperation({ summary: 'Delete category image' })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Delete(':id/image')
-  deleteImage(@Param('id', ParseIntPipe) id: number) {
-    return this.categoryService.deleteImage(id);
+  deleteImage(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }) {
+    return this.categoryService.deleteImage(id, req.user);
   }
 }

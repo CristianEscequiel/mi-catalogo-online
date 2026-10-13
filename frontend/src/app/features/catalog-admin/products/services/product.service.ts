@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ProductModel } from '../models/product.model';
 import { firstValueFrom, Observable } from 'rxjs';
@@ -13,6 +13,21 @@ interface ImageMutationResponse {
 export interface ProductImageCategoryOption {
   id: number;
   name: string;
+}
+
+export interface ProductPage {
+  items: ProductResModel[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ProductPageRequest {
+  page: number;
+  limit?: number;
+  search?: string;
+  categoryId?: number | null;
 }
 
 export interface GenerateProductFromImageRequest {
@@ -48,8 +63,20 @@ export class ProductService {
     return res
   }
 
-  getAllProducts(): Observable<ProductResModel[]> {
-    return this.http.get<ProductResModel[]>(`${this.apiUrl}/products`);
+  // Catálogo público: solo productos PUBLISHED, paginados y filtrados en el servidor.
+  getProductsPage(opts: ProductPageRequest): Observable<ProductPage> {
+    let params = new HttpParams().set('page', opts.page);
+    if (opts.limit !== undefined) {
+      params = params.set('limit', opts.limit);
+    }
+    const search = opts.search?.trim();
+    if (search) {
+      params = params.set('search', search);
+    }
+    if (opts.categoryId != null) {
+      params = params.set('categoryId', opts.categoryId);
+    }
+    return this.http.get<ProductPage>(`${this.apiUrl}/products`, { params });
   }
 
   getProductsByUserId(id: number): Observable<any> {

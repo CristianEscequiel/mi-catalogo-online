@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In } from 'typeorm';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../product/entities/product.entity';
+import { Status } from '../product/models/status.enum';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
@@ -38,6 +39,9 @@ export class OrdersService {
         const product = productsById.get(cartItem.productId);
         if (!product) {
           throw new BadRequestException(`Product ${cartItem.productId} is no longer available`);
+        }
+        if (product.status !== Status.PUBLISHED) {
+          throw new BadRequestException(`Product ${product.name} is not available`);
         }
         if (!product.price || product.price <= 0) {
           throw new BadRequestException(`Product ${product.name} has no valid price`);

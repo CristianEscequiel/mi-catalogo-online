@@ -80,14 +80,17 @@ export const seedUser = async (dataSource: DataSource, role: Role = Role.CLIENT)
   );
 };
 
-export const seedProduct = async (dataSource: DataSource, input: { userId: number; name?: string; price?: number | null; stock?: number | null }) => {
+export const seedProduct = async (dataSource: DataSource, input: { userId: number; name?: string; price?: number | null; stock?: number | null; status?: Status; description?: string; slug?: string; thumbnailUrl?: string }) => {
   const repo = dataSource.getRepository(Product);
   return repo.save(
     repo.create({
       name: input.name ?? 'Producto de prueba',
       price: input.price === undefined ? 10 : (input.price as number),
       stock: input.stock === undefined ? 5 : (input.stock as number),
-      status: Status.PUBLISHED,
+      status: input.status ?? Status.PUBLISHED,
+      description: input.description,
+      slug: input.slug,
+      thumbnailUrl: input.thumbnailUrl ?? null,
       user: { id: input.userId } as User,
     }),
   );
@@ -125,7 +128,7 @@ export const getStock = async (dataSource: DataSource, productId: number) => {
 
 // Reemplaza SOLO el login JWT: el usuario llega en el header x-test-user. El RolesGuard y el
 // ValidationPipe son los reales, así se prueban permisos y validación de punta a punta.
-const fakeJwtGuard = {
+export const fakeJwtGuard = {
   canActivate: (context: ExecutionContext) => {
     const req = context.switchToHttp().getRequest<{ headers: Record<string, string>; user?: unknown }>();
     const raw = req.headers['x-test-user'];

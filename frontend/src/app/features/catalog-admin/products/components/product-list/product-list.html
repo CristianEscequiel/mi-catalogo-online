@@ -131,7 +131,7 @@
     <td cdk-cell *cdkCellDef="let row">
       <span class="badge badge-sm" [ngClass]="{
           'badge-ghost': row.status === 'DRAFT',
-          'badge-success': row.status === 'PUBLIC',
+          'badge-success': row.status === 'PUBLISHED',
           'badge-neutral': row.status === 'ARCHIVED'
         }">
         {{ row.status }}

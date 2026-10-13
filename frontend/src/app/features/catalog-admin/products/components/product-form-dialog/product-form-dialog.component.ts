@@ -96,7 +96,7 @@ export class ProductFormDialogComponent {
         stock: this.fb.control<number>(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
         categoryIds: this.fb.control<number[]>([], { nonNullable: true }),
         thumbnailUrl: this.fb.control<string | null>(null),
-        status: this.fb.control<'DRAFT' | 'PUBLIC' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
+        status: this.fb.control<'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
       });
     }
   }

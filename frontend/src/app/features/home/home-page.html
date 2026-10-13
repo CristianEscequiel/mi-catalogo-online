@@ -12,7 +12,7 @@
           </div>
 
           <div class="text-sm text-base-content/70">
-            {{ filteredProducts().length }} {{ filteredProducts().length === 1 ? 'resultado' : 'resultados' }}
+            {{ total() }} {{ total() === 1 ? 'resultado' : 'resultados' }}
           </div>
         </div>
       </div>
@@ -125,7 +125,7 @@
     </div>
   } @else {
     <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-      @for (item of filteredProducts(); track item.id) {
+      @for (item of products(); track item.id) {
         <article class="group flex h-full flex-col overflow-hidden rounded-4xl border border-base-300 bg-base-100 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
           <a [routerLink]="detailLink(item)" class="relative block aspect-4/3 overflow-hidden bg-base-200">
             <img class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
@@ -221,5 +221,22 @@
         </article>
       }
     </div>
+
+    @if (hasMore() || loadMoreError()) {
+      <div class="flex flex-col items-center gap-2">
+        @if (loadMoreError()) {
+          <p class="text-sm text-error">No pudimos cargar mas productos.</p>
+        }
+        <button type="button" class="load-more btn btn-outline rounded-2xl" [disabled]="loadingMore()" (click)="loadMore()">
+          @if (loadingMore()) {
+            <span class="loading loading-spinner loading-sm"></span>
+          } @else if (loadMoreError()) {
+            <span>Reintentar</span>
+          } @else {
+            <span>Cargar mas</span>
+          }
+        </button>
+      </div>
+    }
   }
 </section>
