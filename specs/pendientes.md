@@ -64,10 +64,21 @@ Spec en `specs/quality-baseline/`, desplegada y comprobada en producción (segú
 **Abierto tras esta spec (anotado):**
 - **`npm audit` solo de desarrollo o con salto mayor.** Backend: 21 moderadas (cadena de `jest` / `@istanbuljs`; 2 de producción: `@nestjs/swagger` → `js-yaml` 5.x, sin arreglo compatible hoy). Frontend (solo `devDependencies`): 6 altas: `karma`, `karma-jasmine`, `karma-jasmine-html-reporter`, `braces`, `chokidar` (`npm audit` propone bajar a `karma@4`, que es un salto mayor hacia atrás: no sirve) y `@angular/build` (propone 19.x, también hacia atrás). Revisar cuando salgan versiones nuevas de esos paquetes.
 - **Angular fijado en versión exacta** (`"@angular/core": "20.3.33"`, etc.): `npm audit fix` no los mueve y `npm install` da ERESOLVE por peers; la actualización se hace editando `package.json` y corriendo `npm install --legacy-peer-deps`. Candidato a Renovate/Dependabot (T18 de la spec).
-- **`UsersService.create` y `findOne` devuelven la entidad `User` completa**, incluido el hash de la contraseña (`/users` es solo ADMIN o el propio usuario). Lo resuelve `backend-architecture` con DTOs de respuesta.
+- ~~`UsersService.create` y `findOne` devuelven el hash de la contraseña~~ **(nota errónea, corregida el 2026-10-13):** el hash no sale por HTTP, porque `User.password` tiene `@Exclude()` y `app.setup.ts` aplica `ClassSerializerInterceptor` (lo prueba `auth-dto.security.spec.ts`). Sí es cierto que los controllers devuelven entidades de TypeORM y que dependen de ese mecanismo: los DTOs de respuesta explícitos siguen siendo una mejora pendiente (ver Fase 3).
 - **`backend/test/app.e2e-spec.ts`** sigue fallando (espera `GET /` → `Hello World!`): test de scaffold; borrar o reescribir al hacer la spec de e2e en el CI.
 - **Las 11 suites e2e no corren en el CI** (hoy corren a mano con Postgres descartable): candidato a spec propia.
 - **Bundle inicial del frontend**: 882 kB, sobre el presupuesto de 800 kB (`frontend-cleanup`).
+
+### Fase 3, spec 2: `backend-architecture` (implementada, falta PR y despliegue)
+
+Spec en `specs/backend-architecture/`. Rama local `refactor/backend-architecture`, sin commitear. Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
+
+**Abierto del backend (sin spec todavía):**
+- **DTOs/presenters de respuesta:** los controllers devuelven entidades de TypeORM y dependen de `@Exclude()` + `ClassSerializerInterceptor` para no filtrar campos.
+- **Repositorios por contexto y reglas de dominio** (límite de demo, transiciones de orden) fuera de los services; empezar por `ordering` e `identity`.
+- **`MailController`** está vacío (código muerto).
+- **El puerto no pertenece al consumidor:** viven en el módulo del adaptador. Revisar si aparece un segundo adaptador.
+- **`login`** sigue con `@Request() req: { user: User }` (usuario de la estrategia `local`, no el `Payload`).
 
 ### Fase 3: arquitectura y calidad (resto, pendiente)
 - Decorador `@CurrentUser()` y presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)
