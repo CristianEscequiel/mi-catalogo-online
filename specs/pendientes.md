@@ -30,20 +30,20 @@
 - [ ] **UI del home en el navegador** (con el backend local y más de 12 productos publicados): "Cargar más", una búsqueda y su combinación con una categoría.
 - [ ] Avisar que `GET /products` cambió de arreglo a `{items,total,page,limit,totalPages}`: cualquier cliente que no sea este frontend tiene que adaptarse.
 
-## 3. `infra-hardening` (tercera spec de la Fase 2): código hecho, falta el despliegue
+## 3. `infra-hardening` (tercera spec de la Fase 2): desplegada en producción, faltan 3 comprobaciones
 
 Spec en `specs/infra-hardening/` (requisitos, diseño y tareas aprobados; las 14 tareas obligatorias hechas y el cierre escrito). Cambios sin commitear en la rama local `fix/infra-hardening`, que sale de `fix/catalog-access`. Cuando se pida el commit: código y docs de la spec en commits separados.
 
 **Qué quedó hecho:** `validateEnv` al arrancar (sale con código 1 y lista todo lo que falta o está mal), CORS sin comodín en producción, Swagger apagado en producción, backend `USER node`, frontend `nginx-unprivileged` en el 8080, compose sin puertos publicados más `docker-compose.dev.yml` en loopback, `uploads/` fuera de git y de la imagen, `aide` eliminada.
 
-**Manuales de despliegue (los hace una persona), en este orden. Detalle y comandos en `specs/infra-hardening/tasks.md`, T13:**
-- [ ] `JWT_SECRET` de producción con 32+ caracteres y `CORS_ORIGIN` definida y distinta de `*`.
-- [ ] Confirmar que `web-stack` le pasa al backend `OPENAI_API_KEY`, `RESEND_API_KEY` y `CONTACT_TO_EMAIL` (ya hacían falta para arrancar; ahora se validan juntas).
-- [ ] **Antes** de desplegar el backend: `docker run --rm -v <volumen_uploads_data>:/app/uploads alpine chown -R 1000:1000 /app/uploads`. Sin esto las subidas de imágenes fallan con `EACCES`.
-- [ ] En `web-stack`: upstream del frontend a `catalog_frontend:8080` **en el mismo despliegue** que la imagen nueva del frontend; quitar los `ports` de db y backend si los define ahí.
-- [ ] Desplegar el backend y comprobar `/health` y una subida de imagen; desplegar el frontend; comprobar que `/api/docs` da 404 y que el 5433 no responde desde fuera.
+**Estado en producción (2026-10-13):** backend y frontend corren `sha-c72c55b`, `healthy`; `/`, el SPA y `/api/health` dan 200 y `/api/docs` da 404. El primer intento del CI falló y volvió solo atrás porque `JWT_SECRET` tenía 14 caracteres (se rotó). Detalle en `specs/infra-hardening/tasks.md`, sección "Despliegue en producción".
 
-**Abierto fuera de alcance (anotado):** `CORS_ORIGIN` por defecto del compose es `http://localhost:8080`; el real lo define `web-stack`. El deploy sigue entrando por SSH como `root@`. Opcionales T15 (verificar `USER node` en el CI) y T16 (`npm audit`) sin hacer.
+**Todavía sin comprobar (los hace una persona):**
+- [ ] Que el `chown` del volumen se haya aplicado, y **subir una imagen de prueba** desde el panel (si falla con `EACCES`: `docker run --rm -v <nombre real del volumen>:/app/uploads alpine chown -R 1000:1000 /app/uploads`; el nombre se saca con `docker inspect catalog_backend --format '{{range .Mounts}}{{.Name}} -> {{.Destination}}{{println}}{{end}}'`).
+- [ ] Que el puerto 5433 del servidor no responda desde fuera.
+- [ ] **Mergear por PR `fix/catalog-frontend-8080` de `web-stack`** (commit `92ce657`: upstream del frontend y su healthcheck al 8080) y dejar el servidor igual a `master` (`git pull`, descartando la edición manual si la hubo). Esa rama no se usa con `git checkout`: le faltan 4 commits de `master`.
+
+**Abierto fuera de alcance (anotado):** `CORS_ORIGIN` por defecto del compose es `http://localhost:8080`; el real lo define `web-stack`. El deploy sigue entrando por SSH como `root@`. Opcionales T15 (verificar `USER node` en el CI) y T16 (`npm audit` informativo) hechos en `ci.yml`, sin commitear y sin haber corrido todavía en Actions. `npm audit` reporta vulnerabilidades preexistentes (backend: 24, 1 crítica; frontend: 15, 2 críticas): candidato para la Fase 3.
 
 
 ## 3b. Plan completo de la auditoría: lo que sigue después de la Fase 2

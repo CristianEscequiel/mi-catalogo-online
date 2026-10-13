@@ -90,12 +90,12 @@ Orden: primero lo que deja el repo limpio y compilando (T1, T2), después el bac
 
 - [x] **T13. [O] Checklist de despliegue manual** (lo ejecuta una persona; esta tarea es dejarlo escrito y verificado contra T11).
   - Hacer: completar abajo, con los comandos reales que funcionaron en T11. Orden obligatorio:
-    1. [ ] `JWT_SECRET` de producción con 32+ caracteres y `CORS_ORIGIN` definida y distinta de `*`.
-    2. [ ] En el servidor, **antes** de desplegar el backend: `docker run --rm -v <volumen_uploads_data>:/app/uploads alpine chown -R 1000:1000 /app/uploads` (una sola vez; el backend anterior, que corre como root, sigue funcionando con el volumen ya corregido).
-    3. [ ] En `web-stack`: cambiar el upstream del frontend a `catalog_frontend:8080` **en el mismo despliegue** que la imagen nueva del frontend; quitar los `ports` de db y backend si los define ahí.
-    4. [ ] Desplegar el backend; comprobar `GET /health` y subir una imagen de prueba.
-    5. [ ] Desplegar el frontend; comprobar el sitio y una ruta del SPA.
-    6. [ ] Comprobar que `https://<dominio>/api/docs` da 404 y que el puerto 5433 del servidor no responde desde fuera.
+    1. [x] `JWT_SECRET` de producción con 32+ caracteres y `CORS_ORIGIN` definida y distinta de `*`.
+    2. [ ] _(sin evidencia de que se haya corrido)_ En el servidor, **antes** de desplegar el backend: `docker run --rm -v <volumen_uploads_data>:/app/uploads alpine chown -R 1000:1000 /app/uploads` (una sola vez; el backend anterior, que corre como root, sigue funcionando con el volumen ya corregido).
+    3. [x] En `web-stack`: cambiar el upstream del frontend a `catalog_frontend:8080` **en el mismo despliegue** que la imagen nueva del frontend, y el healthcheck de `catalog_frontend` al 8080. (Los `ports` de db y backend no existían en `web-stack`: nada que quitar.)
+    4. [ ] _(parcial: backend sano con la imagen nueva; falta la subida de imagen de prueba)_ Desplegar el backend; comprobar `GET /health` y subir una imagen de prueba.
+    5. [x] Desplegar el frontend; comprobar el sitio y una ruta del SPA.
+    6. [ ] _(parcial: /api/docs da 404; falta comprobar el 5433 desde fuera)_ Comprobar que `https://<dominio>/api/docs` da 404 y que el puerto 5433 del servidor no responde desde fuera.
   - Dep: T11.
   - Cubre: REQ-8.1 (y deja trazado REQ-2.4 en producción).
   - Verifica: el checklist figura completo y con comandos copiables en este archivo; el usuario lo revisa. Los pasos 1 a 6 se tildan **cuando se ejecutan en producción**, no al escribir el documento.
@@ -108,8 +108,8 @@ Orden: primero lo que deja el repo limpio y compilando (T1, T2), después el bac
 
 ## Opcionales
 
-- [ ] **T15. [Opt] Prueba de contenedor en el CI.** Agregar al job `backend` del CI un paso que construya la imagen y ejecute `docker run --rm <imagen> id -u` para que `USER node` no regrese por accidente. Dep: T8. Cubre: REQ-2.1. Verifica: el job pasa en un PR y falla si se quita `USER node` de prueba.
-- [ ] **T16. [Opt] `npm audit --omit=dev` informativo en el CI.** Sin bloquear. Fuera del alcance de los requisitos; solo si el usuario lo pide.
+- [x] **T15. [Opt] Prueba de contenedor en el CI.** Agregar al job `backend` del CI un paso que construya la imagen y ejecute `docker run --rm <imagen> id -u` para que `USER node` no regrese por accidente. Dep: T8. Cubre: REQ-2.1. Verifica: el job pasa en un PR y falla si se quita `USER node` de prueba.
+- [x] **T16. [Opt] `npm audit --omit=dev` informativo en el CI.** Sin bloquear. Fuera del alcance de los requisitos; solo si el usuario lo pide.
 
 ---
 
@@ -211,3 +211,17 @@ Cada criterio de `requirements.md` con su evidencia. **Sí** = verificado; **No 
 - Los 6 pasos de T13 en el servidor y en `web-stack`.
 - El `JWT_SECRET` y el `CORS_ORIGIN` reales de producción cumplen las reglas (T13, paso 1).
 - Que `web-stack` pase `OPENAI_API_KEY`, `RESEND_API_KEY` y `CONTACT_TO_EMAIL` al backend: ya hacía falta para arrancar, pero no pude verlo.
+
+## Despliegue en producción (2026-10-13)
+
+- **Primer intento (CI, `sha-c72c55b`):** el backend no arrancó y el servidor volvió solo a `sha-9fe406a`. Causa confirmada con las longitudes de las variables: `JWT_SECRET` tenía 14 caracteres y `validateEnv` exige 32 o más en producción. El resto de la configuración era válida. El frontend no se desplegó (depende del backend).
+- **Corrección:** se rotó `JWT_SECRET` y se recreó el backend a mano (`deploy.sh` no aplica cambios del `.env`, solo cambia el tag).
+- **Hallazgos al leer `web-stack` (no estaban en el checklist original):** el healthcheck de `catalog_frontend` consultaba el puerto 80, así que con la imagen nueva `deploy.sh` lo habría marcado no saludable y hecho rollback; hubo que cambiarlo al 8080 junto con el upstream del nginx del borde. Rama `fix/catalog-frontend-8080` en `web-stack` (commit `92ce657`). Además, esa rama sale de `feat/contact-form` y le faltan 4 commits de `master`: no se debe usar con `git checkout` en el servidor, solo mergear por PR.
+- **502 transitorio:** entre el cambio del contenedor del frontend (8080) y la recarga del nginx del borde, el sitio devolvió 502. Es la ventana prevista; se resolvió recargando el nginx.
+- **Verificado en producción:** `catalog_backend` y `catalog_frontend` corren `sha-c72c55b` y están `healthy`; `/` → 200; `/product/x` → 200; `/api/health` → `{"status":"ok"}` 200; `/api/docs` → 404.
+- **Sin verificar:** subida de una imagen de prueba (depende del `chown` del volumen), que el puerto 5433 no responda desde fuera, y el `chown` en sí.
+
+## Opcionales (2026-10-13)
+
+- **T15:** paso nuevo en el job `backend` de `.github/workflows/ci.yml` que construye la imagen, ejecuta `id -u` y falla si es `0`. Verificado **solo en local**: la lógica del paso, ejecutada con `bash -e`, pasa con la imagen real (UID 1000) y falla (`exit=1`) forzando `--user 0`. **No verificado en GitHub Actions**: el job todavía no corrió con este cambio. Solo cubre el backend; el frontend (UID 101) no tiene el chequeo equivalente. El paso suma un `docker build` completo al job (~2 a 3 min).
+- **T16:** `npm audit --omit=dev` informativo (`continue-on-error: true`) en los jobs `backend` y `frontend`. YAML validado. Hoy reportaría **24 vulnerabilidades en el backend (1 crítica, 12 altas)** y **15 en el frontend (2 críticas, 11 altas)**; son preexistentes y arreglarlas queda fuera de esta spec (candidato para la Fase 3).
