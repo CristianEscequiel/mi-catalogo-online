@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Env } from './env.model';
+import { validateEnv } from './config/env.validation';
 import { ProductModule } from './product/product.module';
 import { AuthModule } from './auth/auth.module';
 import { FavoritesModule } from './favorites/favorites.module';
@@ -16,6 +17,7 @@ import { ContactModule } from './contact/contact.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnv,
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService<Env>) => ({

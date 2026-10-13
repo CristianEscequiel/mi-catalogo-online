@@ -258,12 +258,14 @@ https://github.com/CristianEscequiel
 cp .env.example .env
 ```
 
-2. Ajustar valores sensibles en `.env`:
+2. Ajustar valores sensibles en `.env`. El backend **valida el entorno al arrancar** y no inicia (código de salida 1, con la lista de lo que falta) si algo está mal:
 
 - `DB_PASSWORD`
-- `JWT_SECRET`
-- `OPENAI_API_KEY` (si aplica)
-- `CORS_ORIGIN`
+- `JWT_SECRET` (mínimo 32 caracteres en producción)
+- `CORS_ORIGIN`: obligatoria en producción, lista de orígenes separados por coma; `*` no se acepta
+- `OPENAI_API_KEY`, `RESEND_API_KEY` y `CONTACT_TO_EMAIL`
+
+Con `NODE_ENV=production` (el compose ya lo fija) la documentación Swagger (`/docs`, `/swagger/json`) **no se publica**; en desarrollo sí.
 
 ## Levantar stack completo
 
@@ -271,11 +273,19 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Servicios:
+Por defecto el compose **no publica ningún puerto en el host**: a la base, al backend y al frontend solo se llega por la red interna de Docker, a través del nginx del borde (repo `web-stack`). Los contenedores no corren como root; el frontend escucha en el puerto `8080` del contenedor.
 
-- Frontend: `http://localhost:${FRONTEND_PORT}`
-- Backend: `http://localhost:${BACKEND_PORT}`
-- DB PostgreSQL con volumen persistente `postgres_data`
+Para trabajar en local, `docker-compose.dev.yml` los publica únicamente en `127.0.0.1`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+- Frontend: `http://127.0.0.1:8080`
+- Backend: `http://127.0.0.1:3000`
+- PostgreSQL: `127.0.0.1:5433`, con volumen persistente `postgres_data`
+
+> Si el volumen `uploads_data` ya existía y lo creó un backend anterior (que corría como root), hay que corregir su dueño una sola vez antes de desplegar: `docker run --rm -v <volumen_uploads_data>:/app/uploads alpine chown -R 1000:1000 /app/uploads`.
 
 ## Persistencia
 
