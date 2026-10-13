@@ -98,13 +98,13 @@ Antes de cada prueba, leer el servicio real: se afirma lo que hace hoy. Si una s
   - Depende de: T10, T11, T13
   - Verificación: todo en verde y los resultados anotados; 0 contenedores sobrantes.
 
-- [ ] **T15. Despliegue y comprobación manual (la hace una persona)** — REQ-6.2, 6.3
+- [x] **T15. Despliegue y comprobación manual (la hace una persona)** — REQ-6.2, 6.3
   - Abrir el PR, confirmar en Actions que `backend` y `frontend` corren eslint, tests y audit **sin** `continue-on-error`, y que el paso "no corre como root" pasa.
   - Después del merge: `/api/health` = 200, login correcto, subida de una imagen y un pedido de prueba.
   - Depende de: T14
   - Verificación: capturas o salida anotadas en la sección "Despliegue" de abajo.
 
-- [ ] **T16. Cierre de la spec** — todos
+- [x] **T16. Cierre de la spec** — todos
   - Recorrer cada criterio de `requirements.md` (sí/no, con evidencia) y anotarlo abajo; actualizar `specs/pendientes.md` (Fase 3: marcar `quality-baseline` hecha, listar las vulnerabilidades que sigan abiertas).
   - Depende de: T15
 
@@ -200,7 +200,47 @@ Independientes entre sí (se pueden hacer en cualquier orden o en paralelo): **T
 Lo que sigue abierto en `npm audit` (solo desarrollo o con salto mayor): ver `specs/pendientes.md`.
 
 ### Despliegue (T15)
-*(pendiente)*
+- **PR abierto (2026-10-13):** `chore/quality-baseline`. **Actions en verde**, según informó el usuario (no lo pude verificar desde acá: `gh` no está autenticado). Pendiente de anotar: que el paso "no corre como root" y los pasos de audit hayan corrido sin `continue-on-error`.
+- **Merge, despliegue y comprobación en producción:** el usuario informó "todo ok" (`/api/health`, login, subida de imagen y pedido de prueba), sin capturas ni salida anotada.
 
-### Cierre de criterios (T16)
-*(pendiente)*
+### Cierre de criterios (T16), 2026-10-13
+
+Evidencia local: sección "Verificación en limpio (T14)". Evidencia de Actions y de producción: informada por el usuario (no verificable desde la sesión).
+
+| Criterio | ¿Cumplido? | Evidencia |
+|---|---|---|
+| REQ-1.1 `npm test` en verde | Sí | 33 suites, 308 tests, código 0 tras `npm ci` |
+| REQ-1.2 pruebas reales en las 6 suites | Sí | `auth.controller`, `auth.service`, `users.controller`, `users.service`, `mail.service`, `openai.service`: 4, 5, 5, 11, 5 y 8 pruebas de comportamiento (camino feliz y errores). Ver desvío: `AuthService` se probó por `validateUser` y `generateToken` |
+| REQ-1.3 import correcto en `auth.controller.spec.ts` | Sí | Importa `./auth.controller`; la suite pasa |
+| REQ-1.4 sin red, base ni variables reales | Sí | `mail` y `openai` con el SDK reemplazado con `jest.mock`; corrieron sin `OPENAI_API_KEY` ni `RESEND_API_KEY` |
+| REQ-1.5 no borrar suites sin confirmar | Sí | No hizo falta borrar ninguna: las 6 tenían qué probar |
+| REQ-2.1 Karma en verde | Sí | 38 de 38, código de salida 0 |
+| REQ-2.2 `HttpClient` de prueba | Sí | `provideHttpClient()` + `provideHttpClientTesting()` en los 4 specs; sin `NG0201` |
+| REQ-2.3 sin `NG0908` | Sí | `provideZonelessChangeDetection()` en los 4 specs; sin `NG0908` en el log |
+| REQ-2.4 cambiar el test, no el componente, y avisar | Sí | Solo `app.spec.ts` cambió de expectativa (h1 de scaffold → `app-layout`); ningún componente tocado |
+| REQ-3.1 lint en 0 | Sí | `npx eslint` con código 0 (antes: 172 errores) |
+| REQ-3.2 migraciones fuera del lint y sin cambios | Sí | `ignores` en `eslint.config.mjs`; `git diff` sin archivos de `src/database/migrations/` |
+| REQ-3.3 request tipado | Sí | `AuthenticatedRequest` en `favorites`, `orders`, `cart` y `RolesGuard`; sin `as Payload` |
+| REQ-3.4 multer y openai sin `no-unsafe-*` | Sí | `@types/multer` + cast de `JSON.parse`; lint en 0, subida de imagen probada en e2e y en producción |
+| REQ-3.5 servicios sin tocar | Sí | `category.service.ts` y `product.service.ts` sin cambios (`ignoreRestSiblings`) |
+| REQ-3.6 sin cambio de comportamiento | Sí, con la salvedad de abajo | Tests y build en verde; e2e 132 de 133 (falla solo `app.e2e-spec.ts`, preexistente) |
+| REQ-4.1 / 4.2 CI bloqueante | Sí | `continue-on-error` solo queda en el audit informativo; YAML validado; PR en verde (informado) |
+| REQ-4.3 TODOs y docs | Sí | Comentarios TODO quitados; `CLAUDE.md` y `steering/tech.md` actualizados |
+| REQ-4.4 cadena de jobs | Sí | `docker-*` y `deploy-*` conservan `needs` sobre `backend`/`frontend` (leído del YAML parseado). **No se probó con un PR en rojo a propósito** |
+| REQ-4.5 / 4.6 audit en dos pasos | Sí | Informativo + `--audit-level=critical` en ambos jobs |
+| REQ-5.1 backend sin altas ni críticas | Sí | `npm audit --omit=dev`: 2 moderadas, 0 altas, 0 críticas |
+| REQ-5.2 frontend sin altas ni críticas | Sí | 0 vulnerabilidades |
+| REQ-5.3 sin `--force` ni mayores | Sí | Mismas versiones mayores (Nest 11, Angular 20); nunca se usó `--force` |
+| REQ-5.4 excepciones registradas | Sí (nada que registrar en producción) | Quedan solo moderadas de producción y altas de desarrollo; anotadas en `pendientes.md` |
+| REQ-5.5 nada se rompe | Sí | Build, tests y lint en verde; imagen con UID 1000 |
+| REQ-5.6 solo `package.json` y lock | Con salvedad | Se agregó `@types/multer` (aprobado en el diseño) y se tocaron los pines de Angular; el código de la app no cambió por las actualizaciones, salvo 6 archivos de test donde se quitaron casts innecesarios (anotado en "Desvíos") |
+| REQ-6.1 verificación en limpio | Sí | Tabla de T14 |
+| REQ-6.2 Actions en verde sin `continue-on-error` | Sí (informado por el usuario) | PR en verde |
+| REQ-6.3 producción | Sí (informado por el usuario) | `/api/health`, login, imagen y pedido de prueba "ok" |
+
+**Salvedades que quedan:**
+- REQ-3.6 y REQ-5.5 se apoyan en las e2e corridas **a mano**: el CI no las ejecuta, así que un cambio de comportamiento en endpoints reales solo se detectaría con esa corrida manual.
+- REQ-4.4 se verificó por lectura del YAML, no con un PR roto a propósito.
+- REQ-6.2 y REQ-6.3 dependen de lo que informó el usuario.
+
+**Spec cerrada.** Lo que queda abierto está en `specs/pendientes.md` (audit de desarrollo, Angular fijado en versión exacta, hash de contraseña en `UsersService`, e2e en el CI, bundle del frontend).

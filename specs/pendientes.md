@@ -57,9 +57,9 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 | 3 | Arquitectura y calidad | Pendiente (abajo) |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
-### Fase 3, spec 1: `quality-baseline` (implementada, falta PR y despliegue)
+### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
 
-Spec en `specs/quality-baseline/`. Rama local `chore/quality-baseline`, sin commitear. Hecho: tests unitarios del backend y de Karma en verde, lint del backend en 0, CI bloqueante (lint, tests, audit crítico), vulnerabilidades de producción resueltas (backend: 0 altas ni críticas; frontend: 0). Falta T15 (PR, Actions en verde, despliegue y comprobación manual) y T16 (cierre de criterios).
+Spec en `specs/quality-baseline/`, desplegada y comprobada en producción (según informó el usuario). Hecho: tests unitarios del backend y de Karma en verde, lint del backend en 0, CI bloqueante (lint, tests, audit crítico), vulnerabilidades de producción resueltas (backend: 0 altas ni críticas; frontend: 0). Cierre de criterios en `tasks.md`. **Siguientes de la Fase 3:** `backend-architecture` y `frontend-cleanup`.
 
 **Abierto tras esta spec (anotado):**
 - **`npm audit` solo de desarrollo o con salto mayor.** Backend: 21 moderadas (cadena de `jest` / `@istanbuljs`; 2 de producción: `@nestjs/swagger` → `js-yaml` 5.x, sin arreglo compatible hoy). Frontend (solo `devDependencies`): 6 altas: `karma`, `karma-jasmine`, `karma-jasmine-html-reporter`, `braces`, `chokidar` (`npm audit` propone bajar a `karma@4`, que es un salto mayor hacia atrás: no sirve) y `@angular/build` (propone 19.x, también hacia atrás). Revisar cuando salgan versiones nuevas de esos paquetes.
