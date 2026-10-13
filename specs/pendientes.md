@@ -57,7 +57,19 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 | 3 | Arquitectura y calidad | Pendiente (abajo) |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
-### Fase 3: arquitectura y calidad (pendiente)
+### Fase 3, spec 1: `quality-baseline` (implementada, falta PR y despliegue)
+
+Spec en `specs/quality-baseline/`. Rama local `chore/quality-baseline`, sin commitear. Hecho: tests unitarios del backend y de Karma en verde, lint del backend en 0, CI bloqueante (lint, tests, audit crítico), vulnerabilidades de producción resueltas (backend: 0 altas ni críticas; frontend: 0). Falta T15 (PR, Actions en verde, despliegue y comprobación manual) y T16 (cierre de criterios).
+
+**Abierto tras esta spec (anotado):**
+- **`npm audit` solo de desarrollo o con salto mayor.** Backend: 21 moderadas (cadena de `jest` / `@istanbuljs`; 2 de producción: `@nestjs/swagger` → `js-yaml` 5.x, sin arreglo compatible hoy). Frontend (solo `devDependencies`): 6 altas: `karma`, `karma-jasmine`, `karma-jasmine-html-reporter`, `braces`, `chokidar` (`npm audit` propone bajar a `karma@4`, que es un salto mayor hacia atrás: no sirve) y `@angular/build` (propone 19.x, también hacia atrás). Revisar cuando salgan versiones nuevas de esos paquetes.
+- **Angular fijado en versión exacta** (`"@angular/core": "20.3.33"`, etc.): `npm audit fix` no los mueve y `npm install` da ERESOLVE por peers; la actualización se hace editando `package.json` y corriendo `npm install --legacy-peer-deps`. Candidato a Renovate/Dependabot (T18 de la spec).
+- **`UsersService.create` y `findOne` devuelven la entidad `User` completa**, incluido el hash de la contraseña (`/users` es solo ADMIN o el propio usuario). Lo resuelve `backend-architecture` con DTOs de respuesta.
+- **`backend/test/app.e2e-spec.ts`** sigue fallando (espera `GET /` → `Hello World!`): test de scaffold; borrar o reescribir al hacer la spec de e2e en el CI.
+- **Las 11 suites e2e no corren en el CI** (hoy corren a mano con Postgres descartable): candidato a spec propia.
+- **Bundle inicial del frontend**: 882 kB, sobre el presupuesto de 800 kB (`frontend-cleanup`).
+
+### Fase 3: arquitectura y calidad (resto, pendiente)
 - Decorador `@CurrentUser()` y presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)
 - Puertos `MailSender`, `ImageStorage`, `AiContentGenerator` y repositorios por contexto; mover las reglas (límite demo, transiciones de orden) al dominio. Empezar por `ordering` e `identity`.
 - Arreglar los tests y el lint y **sacar `continue-on-error` del CI** (hoy los tests no protegen nada).

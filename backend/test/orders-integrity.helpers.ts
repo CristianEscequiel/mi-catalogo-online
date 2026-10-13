@@ -3,7 +3,7 @@ import { App } from 'supertest/types';
 import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { OrdersModule } from '../src/orders/orders.module';
 import { join } from 'path';
@@ -146,7 +146,7 @@ export const createOrdersTestModule = async () => {
     imports: [
       ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
       // pool amplio: los tests de concurrencia abren varias transacciones a la vez
-      TypeOrmModule.forRoot({ ...dbOptions(), extra: { max: 30 } } as TypeOrmModuleOptions),
+      TypeOrmModule.forRoot({ ...dbOptions(), extra: { max: 30 } }),
       OrdersModule,
     ],
   })

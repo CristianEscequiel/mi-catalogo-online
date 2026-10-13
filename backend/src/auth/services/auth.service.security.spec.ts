@@ -23,12 +23,7 @@ describe('AuthService (seguridad de tokens)', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [
-        AuthService,
-        { provide: UsersService, useValue: users },
-        { provide: JwtService, useValue: { sign: jest.fn() } },
-        { provide: MailService, useValue: mail },
-      ],
+      providers: [AuthService, { provide: UsersService, useValue: users }, { provide: JwtService, useValue: { sign: jest.fn() } }, { provide: MailService, useValue: mail }],
     }).compile();
     service = moduleRef.get(AuthService);
   });
@@ -37,8 +32,8 @@ describe('AuthService (seguridad de tokens)', () => {
     users.create.mockResolvedValue({});
     await service.register({ email: 'a@b.com', password: 'password1', profile: { name: 'A', lastName: 'B' } });
 
-    const stored = users.create.mock.calls[0][0].verificationToken as string;
-    const sent = mail.sendVerificationEmail.mock.calls[0][1] as string;
+    const stored = (users.create.mock.calls as [[{ verificationToken: string }]])[0][0].verificationToken;
+    const sent = (mail.sendVerificationEmail.mock.calls as [[string, string]])[0][1];
     expect(sent).toHaveLength(64);
     expect(stored).toBe(hashToken(sent));
     expect(stored).not.toBe(sent);

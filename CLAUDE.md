@@ -65,7 +65,7 @@ Backend (`cd backend`): `npm run start:dev` · `npm run build` · `npm test` · 
 Frontend (`cd frontend`): `npm start` · `npm run build` · `npx ng test --no-watch --browsers=ChromeHeadless`
 Stack completo: `docker compose up -d --build` (requiere `.env` a partir de `.env-example`).
 
-Estado conocido (ver `.github/workflows/ci.yml`): lint y tests están rotos en parte y no bloquean el CI; el build sí. Para validar un cambio: build + tests nuevos que pasen o verificación manual descrita en la spec. No "arreglar" los tests rotos fuera del alcance pedido.
+Estado conocido (ver `.github/workflows/ci.yml`): el CI bloquea si falla el lint del backend, los tests (jest y Karma), el build o `npm audit --omit=dev --audit-level=critical`; las vulnerabilidades altas se muestran sin bloquear. Para validar un cambio: lint + tests + build en verde. Si un cambio rompe un test existente, se corrige en el mismo cambio (no se deja en rojo ni se desactiva).
 
 ## Validación
 

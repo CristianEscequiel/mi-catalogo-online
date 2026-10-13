@@ -121,7 +121,7 @@ describe('ProductService', () => {
     beforeEach(() => repository.findOne.mockResolvedValue(product));
 
     it.each([
-      ['update', (actor: Payload) => service.update(5, { name: 'x' } as never, actor)],
+      ['update', (actor: Payload) => service.update(5, { name: 'x' }, actor)],
       ['remove', (actor: Payload) => service.remove(5, actor)],
       ['uploadImage', (actor: Payload) => service.uploadImage(5, 'new.png', actor)],
       ['deleteImage', (actor: Payload) => service.deleteImage(5, actor)],

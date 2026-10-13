@@ -2,8 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Role } from './roles.enum';
 import { SelfOrAdminGuard } from './self-or-admin.guard';
 
-const ctxFor = (user: unknown, id: string) =>
-  ({ switchToHttp: () => ({ getRequest: () => ({ user, params: { id } }) }) }) as unknown as ExecutionContext;
+const ctxFor = (user: unknown, id: string) => ({ switchToHttp: () => ({ getRequest: () => ({ user, params: { id } }) }) }) as unknown as ExecutionContext;
 
 describe('SelfOrAdminGuard', () => {
   const guard = new SelfOrAdminGuard();

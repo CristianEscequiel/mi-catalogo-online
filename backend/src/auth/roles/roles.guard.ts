@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { AuthenticatedRequest } from '../models/authenticated-request.model';
 import { ROLES_KEY } from './roles.decorator';
 
 @Injectable()
@@ -10,8 +11,7 @@ export class RolesGuard implements CanActivate {
     const required = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [ctx.getHandler(), ctx.getClass()]);
     if (!required || required.length === 0) return true;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { user } = ctx.switchToHttp().getRequest();
+    const { user } = ctx.switchToHttp().getRequest<Partial<AuthenticatedRequest>>();
     if (!user) return false;
 
     return required.includes(user.role);

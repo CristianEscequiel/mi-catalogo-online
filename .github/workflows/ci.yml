@@ -49,17 +49,14 @@ jobs:
 
       - run: npm ci
       # Sin --fix: el CI no debe modificar el código (el script `lint` del package.json sí lo hace).
-      # TODO: hoy hay 171 errores de lint y 6 de 8 suites de jest fallan (jest no resuelve los
-      # imports `src/...` y hay specs de scaffold viejos). No bloquean hasta corregirlos;
-      # después quitar continue-on-error. El build sigue siendo bloqueante.
       - run: npx eslint "{src,apps,libs,test}/**/*.ts"
-        continue-on-error: true
       - run: npm test
-        continue-on-error: true
       - run: npm run build
-      # Informativo: no bloquea. Hace visibles las vulnerabilidades de las dependencias de producción.
+      # Informativo: lista todas las vulnerabilidades de producción sin bloquear.
       - run: npm audit --omit=dev
         continue-on-error: true
+      # Bloquea solo con vulnerabilidades críticas (spec quality-baseline, REQ-4.5).
+      - run: npm audit --omit=dev --audit-level=critical
       # La imagen no debe correr como root (spec infra-hardening, REQ-2.1): si alguien quita `USER node`, falla.
       - name: Verificar que la imagen del backend no corre como root
         run: |
@@ -85,14 +82,13 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
-      # TODO: hoy 5 de 6 specs fallan (errores de inyección de dependencias en specs de scaffold).
-      # No bloquea hasta corregirlos; después quitar continue-on-error.
       - run: npx ng test --no-watch --browsers=ChromeHeadless
-        continue-on-error: true
       - run: npm run build -- --configuration production
-      # Informativo: no bloquea. Hace visibles las vulnerabilidades de las dependencias de producción.
+      # Informativo: lista todas las vulnerabilidades de producción sin bloquear.
       - run: npm audit --omit=dev
         continue-on-error: true
+      # Bloquea solo con vulnerabilidades críticas (spec quality-baseline, REQ-4.5).
+      - run: npm audit --omit=dev --audit-level=critical
 
   # Publica cada imagen en GHCR. Solo en push a main, solo si cambió esa parte y su build terminó en verde.
   docker-backend:

@@ -4,7 +4,7 @@ import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@n
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -15,7 +15,6 @@ import { FavoritesModule } from '../src/favorites/favorites.module';
 import { OrdersModule } from '../src/orders/orders.module';
 import { Category } from '../src/product/entities/category.entity';
 import { ProductModule } from '../src/product/product.module';
-import { User } from '../src/users/entities/user.entity';
 import { UsersModule } from '../src/users/users.module';
 import { dbOptions, fakeJwtGuard } from './orders-integrity.helpers';
 
@@ -46,7 +45,7 @@ export const createCatalogTestModule = async (env: Record<string, string> = {}) 
 
   const openai = createOpenaiDouble();
   const moduleRef = await Test.createTestingModule({
-    imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }), TypeOrmModule.forRoot({ ...dbOptions(), extra: { max: 30 } } as TypeOrmModuleOptions), ProductModule, UsersModule, CartModule, FavoritesModule, OrdersModule],
+    imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }), TypeOrmModule.forRoot({ ...dbOptions(), extra: { max: 30 } }), ProductModule, UsersModule, CartModule, FavoritesModule, OrdersModule],
   })
     .overrideGuard(AuthGuard('jwt'))
     .useValue(fakeJwtGuard)
@@ -74,7 +73,7 @@ let categoryCounter = 0;
 export const seedCategory = async (dataSource: DataSource, input: { userId: number | null; name?: string }) => {
   categoryCounter += 1;
   const repo = dataSource.getRepository(Category);
-  return repo.save(repo.create({ name: input.name ?? `Categoría ${categoryCounter}`, user: input.userId === null ? undefined : ({ id: input.userId } as User) }));
+  return repo.save(repo.create({ name: input.name ?? `Categoría ${categoryCounter}`, user: input.userId === null ? undefined : { id: input.userId } }));
 };
 
 export const linkProductCategory = async (dataSource: DataSource, productId: number, categoryId: number) => {

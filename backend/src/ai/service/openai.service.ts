@@ -88,7 +88,7 @@ export class OpenaiService {
     const text = response.output_text;
 
     try {
-      const parsed = JSON.parse(text);
+      const parsed = JSON.parse(text) as { description: string };
 
       return {
         description: parsed.description,
