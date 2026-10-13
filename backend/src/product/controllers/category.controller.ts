@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
@@ -6,7 +6,8 @@ import { ProductService } from '../services/product.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { Roles } from 'src/auth/roles/roles.decorator';
-import { Payload } from 'src/auth/models/payload.model';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import type { Payload } from 'src/auth/models/payload.model';
 import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createImageMulterOptions } from 'src/files/multer-image-options.factory';
@@ -22,13 +23,8 @@ export class CategoryController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto, @Request() req) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const role = req.user.role as string;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const payload = req.user as Payload;
-    const userID = payload.sub;
-    return this.categoryService.create(createCategoryDto, userID, role);
+  create(@Body() createCategoryDto: CreateCategoryDto, @CurrentUser() user: Payload) {
+    return this.categoryService.create(createCategoryDto, user.sub, user.role);
   }
 
   @Get()
@@ -49,15 +45,15 @@ export class CategoryController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto, @Request() req: { user: Payload }) {
-    return this.categoryService.update(id, updateCategoryDto, req.user);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto, @CurrentUser() user: Payload) {
+    return this.categoryService.update(id, updateCategoryDto, user);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }) {
-    return this.categoryService.remove(id, req.user);
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: Payload) {
+    return this.categoryService.remove(id, user);
   }
 
   @ApiOperation({ summary: 'Upload category image' })
@@ -78,18 +74,18 @@ export class CategoryController {
   @Roles('ADMIN', 'GUEST')
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.categories)))
-  uploadImage(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }, @UploadedFile() file?: { filename: string }) {
+  uploadImage(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: Payload, @UploadedFile() file?: { filename: string }) {
     if (!file?.filename) {
       throw new BadRequestException('File is required');
     }
-    return this.categoryService.uploadImage(id, file.filename, req.user);
+    return this.categoryService.uploadImage(id, file.filename, user);
   }
 
   @ApiOperation({ summary: 'Delete category image' })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Delete(':id/image')
-  deleteImage(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }) {
-    return this.categoryService.deleteImage(id, req.user);
+  deleteImage(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: Payload) {
+    return this.categoryService.deleteImage(id, user);
   }
 }
