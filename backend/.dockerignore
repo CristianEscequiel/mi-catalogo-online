@@ -11,3 +11,4 @@ coverage
 .nestjs
 *.log
 README.md
+uploads

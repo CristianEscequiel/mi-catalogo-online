@@ -1,7 +1,7 @@
 export interface Env {
+  NODE_ENV: string;
   PORT: number;
   CORS_ORIGIN: string;
-  MY_VAR: string;
   OPENAI_API_KEY: string;
   DB_HOST: string;
   DB_PORT: number;

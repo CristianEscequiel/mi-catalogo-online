@@ -64,8 +64,5 @@ backend/.env
 backend/.env.local
 backend/.env.production
 
-# -------------------------------
-# SDD-LITE (bitácora local de specs rápidas)
-# -------------------------------
-specs/rapidas/*
-!specs/rapidas/.gitkeep
+# Archivos subidos por usuarios (viven en el volumen uploads_data, no en git)
+backend/uploads/

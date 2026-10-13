@@ -1,0 +1,14 @@
+# Solo para desarrollo local: publica los servicios en loopback (127.0.0.1), nunca en la red.
+# Se usa de forma explícita, no se carga solo (por eso no se llama docker-compose.override.yml):
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# En producción NO se usa: allí a db y backend solo se llega por la red interna de Docker.
+services:
+  db:
+    ports:
+      - "127.0.0.1:5433:5432"
+  backend:
+    ports:
+      - "127.0.0.1:3000:3000"
+  frontend:
+    ports:
+      - "127.0.0.1:8080:8080"
