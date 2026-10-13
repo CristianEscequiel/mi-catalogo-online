@@ -37,4 +37,4 @@ Versiones tomadas de `frontend/package.json`, `backend/package.json` y los Docke
 ## Restricciones técnicas
 - No introducir frameworks ni dependencias nuevas sin acordarlo.
 - Cambios de esquema solo con migraciones, nunca `synchronize`.
-- Estado actual de calidad: lint y varias suites de test (backend y frontend) fallan y están como `continue-on-error` en el CI; el build es bloqueante.
+- Estado actual de calidad: el CI es bloqueante en lint (backend), tests (jest y Karma), build y `npm audit --omit=dev --audit-level=critical`. Sin `continue-on-error` salvo el audit informativo. Las suites e2e del backend (necesitan Postgres) no corren en el CI.
