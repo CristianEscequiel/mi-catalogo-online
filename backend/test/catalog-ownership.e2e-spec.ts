@@ -36,7 +36,7 @@ describeWithDb('catalog-access: propiedad de productos y categorías (Postgres r
     client = await seedUser(dataSource, Role.CLIENT);
   });
 
-  const as = (user: User) => asUser(user.id, user.role as 'ADMIN' | 'CLIENT' | 'GUEST');
+  const as = (user: User) => asUser(user.id, user.role);
   const png = { filename: 'foto.png', contentType: 'image/png' };
 
   // Los dos recursos tienen las mismas cuatro operaciones protegidas; cambia cómo se siembran y dónde guardan la imagen.

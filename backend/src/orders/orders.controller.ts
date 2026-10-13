@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { Payload } from '../auth/models/payload.model';
+import type { AuthenticatedRequest } from '../auth/models/authenticated-request.model';
 import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '../auth/roles/roles.enum';
 import { RolesGuard } from '../auth/roles/roles.guard';
@@ -26,16 +26,14 @@ export class OrdersController {
 
   @ApiOperation({ summary: 'Create order from authenticated user cart' })
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
-    const payload = req.user as Payload;
-    return this.ordersService.createOrder(payload.sub, createOrderDto);
+  create(@Body() createOrderDto: CreateOrderDto, @Request() req: AuthenticatedRequest) {
+    return this.ordersService.createOrder(req.user.sub, createOrderDto);
   }
 
   @ApiOperation({ summary: 'Get order details by ID for authenticated user' })
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    const payload = req.user as Payload;
-    return this.ordersService.getOrderByIdForRole(id, payload.sub, payload.role as Role);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: AuthenticatedRequest) {
+    return this.ordersService.getOrderByIdForRole(id, req.user.sub, req.user.role as Role);
   }
 
   @ApiOperation({ summary: 'Update order status (admin)' })

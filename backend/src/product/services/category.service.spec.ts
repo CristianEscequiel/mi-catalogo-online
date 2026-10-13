@@ -28,7 +28,7 @@ describe('CategoryService (propiedad, REQ-3)', () => {
   });
 
   it.each([
-    ['update', (actor: Payload) => service.update(3, { name: 'x' } as never, actor)],
+    ['update', (actor: Payload) => service.update(3, { name: 'x' }, actor)],
     ['remove', (actor: Payload) => service.remove(3, actor)],
     ['uploadImage', (actor: Payload) => service.uploadImage(3, 'new.png', actor)],
     ['deleteImage', (actor: Payload) => service.deleteImage(3, actor)],
@@ -52,16 +52,16 @@ describe('CategoryService (propiedad, REQ-3)', () => {
 
   it('el dueño y el ADMIN pueden editar (REQ-3.3, 3.4)', async () => {
     repository.findOne.mockResolvedValue(category(7));
-    await expect(service.update(3, { name: 'Nuevo' } as never, owner)).resolves.toMatchObject({ name: 'Nuevo' });
+    await expect(service.update(3, { name: 'Nuevo' }, owner)).resolves.toMatchObject({ name: 'Nuevo' });
 
     repository.findOne.mockResolvedValue(category(7));
-    await expect(service.update(3, { name: 'Otro' } as never, admin)).resolves.toMatchObject({ name: 'Otro' });
+    await expect(service.update(3, { name: 'Otro' }, admin)).resolves.toMatchObject({ name: 'Otro' });
   });
 
   it('la respuesta no incluye al dueño', async () => {
     repository.findOne.mockResolvedValue(category(7));
 
-    expect(await service.update(3, { name: 'Nuevo' } as never, owner)).not.toHaveProperty('user');
+    expect(await service.update(3, { name: 'Nuevo' }, owner)).not.toHaveProperty('user');
   });
 
   it('una categoría sin dueño solo la modifica un ADMIN', async () => {
