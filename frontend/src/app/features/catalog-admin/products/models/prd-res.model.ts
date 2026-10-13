@@ -14,5 +14,5 @@ export interface ProductResModel {
     imageUrl?: string | null,
   }> ,
   thumbnailUrl?: string | null ,
-  status: 'DRAFT'| 'PUBLIC' | 'ARCHIVED',
+  status: 'DRAFT'| 'PUBLISHED' | 'ARCHIVED',
 }

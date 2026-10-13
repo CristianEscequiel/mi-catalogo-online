@@ -3,6 +3,8 @@ import { Category } from './category.entity';
 import { User } from '../../users/entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Status } from '../models/status.enum';
+import { Transform } from 'class-transformer';
+import { numericTransformer } from '../../common/numeric.transformer';
 
 @Entity({
   name: 'products',
@@ -49,7 +51,7 @@ export class Product {
     description: 'Product price',
     example: 120,
   })
-  @Column({ type: 'float', nullable: true })
+  @Column({ type: 'numeric', precision: 12, scale: 2, nullable: true, transformer: numericTransformer })
   price: number;
 
   @ApiProperty({ description: 'The Stock of the product' })
@@ -110,6 +112,8 @@ export class Product {
     },
     required: true,
   })
+  // El catálogo es público: del dueño solo se expone id y nombre (nada de email, rol ni tokens).
+  @Transform(({ value }: { value?: User }) => (value ? { id: value.id, profile: value.profile ? { name: value.profile.name, lastName: value.profile.lastName, avatar: value.profile.avatar } : undefined } : value), { toPlainOnly: true })
   @ManyToOne(() => User, (user) => user.products, { nullable: false })
   @JoinColumn({ name: 'user_id' })
   user: User;

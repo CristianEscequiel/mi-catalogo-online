@@ -3,7 +3,7 @@ import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { debounceTime, firstValueFrom } from 'rxjs';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import { resolveImageUrl } from '../../core/config/api.config';
@@ -14,7 +14,10 @@ import { FavoritesStore } from '../../core/state/favorites.store';
 import { CategoryResModel } from '../catalog-admin/categories/models/category.model';
 import { CategoryService } from '../catalog-admin/categories/services/category.service';
 import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
-import { ProductService } from '../catalog-admin/products/services/product.service';
+import { ProductPage, ProductService } from '../catalog-admin/products/services/product.service';
+
+const PAGE_SIZE = 12;
+const SEARCH_DEBOUNCE_MS = 300;
 
 @Component({
   standalone: true,
@@ -26,32 +29,20 @@ export class HomePage implements OnInit {
   readonly faFilter = faSliders;
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly loading = signal(true);
+  readonly loadingMore = signal(false);
   readonly error = signal<string | null>(null);
+  readonly loadMoreError = signal(false);
   readonly selectedCategoryId = signal<number | null>(null);
-  readonly searchTerm = signal('');
-  readonly allProducts = signal<ProductResModel[]>([]);
+  // Productos ya cargados (acumulados página a página); la búsqueda y la categoría se resuelven en el servidor.
+  readonly products = signal<ProductResModel[]>([]);
+  readonly page = signal(0);
+  readonly totalPages = signal(0);
+  readonly total = signal(0);
   readonly categories = signal<CategoryResModel[]>([]);
   readonly quantities = signal<Record<number, number>>({});
   readonly pendingCartIds = signal<number[]>([]);
   readonly pendingFavoriteIds = signal<number[]>([]);
   readonly skeletonCards = Array.from({ length: 6 }, (_, index) => index);
-
-  readonly filteredProducts = computed(() => {
-    const searchTerm = this.searchTerm();
-    const selectedCategoryId = this.selectedCategoryId();
-
-    return this.allProducts().filter((product) => {
-      const matchesText =
-        !searchTerm ||
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.description.toLowerCase().includes(searchTerm);
-      const matchesCategory =
-        selectedCategoryId === null ||
-        product.categories.some((category) => category.id === selectedCategoryId);
-
-      return matchesText && matchesCategory;
-    });
-  });
 
   readonly hasActiveCategoryFilter = computed(() => this.selectedCategoryId() !== null);
   readonly selectedCategoryName = computed(() => {
@@ -62,7 +53,8 @@ export class HomePage implements OnInit {
 
     return this.categories().find((category) => category.id === selectedCategoryId)?.name ?? null;
   });
-  readonly hasProducts = computed(() => this.filteredProducts().length > 0);
+  readonly hasProducts = computed(() => this.products().length > 0);
+  readonly hasMore = computed(() => this.page() < this.totalPages());
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly productService = inject(ProductService);
@@ -72,10 +64,19 @@ export class HomePage implements OnInit {
   private readonly authStore = inject(AuthStore);
   private readonly notificationService = inject(NotificationService);
 
+  // Cada pedido de página de reemplazo incrementa el número; una respuesta de un número anterior se descarta.
+  private requestSeq = 0;
+  // Texto de búsqueda con el que se pidió la lista que se está mostrando.
+  private appliedSearch = '';
+
   ngOnInit(): void {
     this.searchControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => this.searchTerm.set(value.toLowerCase().trim()));
+      .pipe(debounceTime(SEARCH_DEBOUNCE_MS), takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (value.trim() !== this.appliedSearch) {
+          void this.reload();
+        }
+      });
 
     void this.loadInitialData();
   }
@@ -84,21 +85,56 @@ export class HomePage implements OnInit {
     await this.loadInitialData();
   }
 
-  setCategory(category: CategoryResModel | number | null, dropdown?: HTMLDetailsElement): void {
-    if (typeof category === 'number') {
-      this.selectedCategoryId.set(category);
-    } else {
-      this.selectedCategoryId.set(category?.id ?? null);
+  async loadMore(): Promise<void> {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) {
+      return;
     }
+
+    const seq = this.requestSeq;
+    this.loadingMore.set(true);
+    this.loadMoreError.set(false);
+
+    try {
+      const result = await firstValueFrom(this.fetchPage(this.page() + 1));
+      if (seq !== this.requestSeq) {
+        return;
+      }
+
+      // Si se publicó algo mientras se navegaba, el resto se desplaza y un producto puede repetirse.
+      const shownIds = new Set(this.products().map((product) => product.id));
+      this.products.update((current) => [...current, ...result.items.filter((item) => !shownIds.has(item.id))]);
+      this.setPageInfo(result);
+    } catch (error) {
+      if (seq === this.requestSeq) {
+        console.error(error);
+        this.loadMoreError.set(true);
+      }
+    } finally {
+      if (seq === this.requestSeq) {
+        this.loadingMore.set(false);
+      }
+    }
+  }
+
+  setCategory(category: CategoryResModel | number | null, dropdown?: HTMLDetailsElement): void {
+    const categoryId = typeof category === 'number' ? category : (category?.id ?? null);
+    const changed = categoryId !== this.selectedCategoryId();
+    this.selectedCategoryId.set(categoryId);
 
     if (dropdown) {
       dropdown.open = false;
     }
+
+    if (changed) {
+      void this.reload();
+    }
   }
 
   clearFilters(): void {
-    this.searchControl.setValue('', { emitEvent: true });
+    // Sin emitir: la recarga es inmediata y no debe esperar al debounce de la búsqueda.
+    this.searchControl.setValue('', { emitEvent: false });
     this.selectedCategoryId.set(null);
+    void this.reload();
   }
 
   isCategorySelected(categoryId: number): boolean {
@@ -198,26 +234,65 @@ export class HomePage implements OnInit {
   }
 
   private async loadInitialData(): Promise<void> {
+    await this.load(true);
+  }
+
+  // Vuelve a la página 1 con la búsqueda y la categoría actuales y reemplaza los productos mostrados.
+  private async reload(): Promise<void> {
+    await this.load(false);
+  }
+
+  private async load(includeCategories: boolean): Promise<void> {
+    const seq = ++this.requestSeq;
+    this.appliedSearch = this.searchControl.value.trim();
     this.loading.set(true);
+    this.loadingMore.set(false);
+    this.loadMoreError.set(false);
     this.error.set(null);
 
     try {
-      const [products, categories] = await Promise.all([
-        firstValueFrom(this.productService.getAllProducts()),
-        firstValueFrom(this.categoryService.getCategories()),
+      const [result, categories] = await Promise.all([
+        firstValueFrom(this.fetchPage(1)),
+        includeCategories ? firstValueFrom(this.categoryService.getCategories()) : Promise.resolve(null),
       ]);
+      if (seq !== this.requestSeq) {
+        return;
+      }
 
-      this.allProducts.set(products);
-      this.categories.set(categories);
+      this.products.set(result.items);
+      this.setPageInfo(result);
+      if (categories) {
+        this.categories.set(categories);
+      }
 
-      if (this.authStore.isLoggedIn()) {
+      if (includeCategories && this.authStore.isLoggedIn()) {
         this.favoritesStore.loadFavorites().catch((error: unknown) => console.error(error));
       }
     } catch (error) {
+      if (seq !== this.requestSeq) {
+        return;
+      }
       console.error(error);
       this.error.set('No pudimos cargar el catalogo. Intenta nuevamente.');
     } finally {
-      this.loading.set(false);
+      if (seq === this.requestSeq) {
+        this.loading.set(false);
+      }
     }
+  }
+
+  private fetchPage(page: number) {
+    return this.productService.getProductsPage({
+      page,
+      limit: PAGE_SIZE,
+      search: this.appliedSearch,
+      categoryId: this.selectedCategoryId(),
+    });
+  }
+
+  private setPageInfo(result: ProductPage): void {
+    this.page.set(result.page);
+    this.totalPages.set(result.totalPages);
+    this.total.set(result.total);
   }
 }

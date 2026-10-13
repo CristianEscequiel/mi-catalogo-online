@@ -1,97 +1,92 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager, In } from 'typeorm';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../product/entities/product.entity';
+import { Status } from '../product/models/status.enum';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.enum';
 import { Role } from '../auth/roles/roles.enum';
+import { lineTotal, sumMoney } from '../common/money';
+import { OrderResponse, toOrderResponse, toOrderSummary } from './order.mapper';
+import { allowedNext, canTransition } from './order-status.machine';
 
 @Injectable()
 export class OrdersService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  async createOrder(userId: number, createOrderDto: CreateOrderDto) {
+  async createOrder(userId: number, createOrderDto: CreateOrderDto): Promise<OrderResponse> {
     return this.dataSource.transaction(async (manager) => {
-      const cartRepository = manager.getRepository(CartItem);
-      const productRepository = manager.getRepository(Product);
-      const orderRepository = manager.getRepository(Order);
-      const orderItemRepository = manager.getRepository(OrderItem);
-
-      const cartItems = await cartRepository.find({
-        where: { userId },
-        relations: ['product'],
-      });
+      // Carrito sin relaciones y ordenado: Postgres no permite FOR UPDATE sobre un outer join, y
+      // bloquear siempre en orden ascendente de id evita deadlocks entre checkouts simultáneos.
+      const cartItems = await manager.find(CartItem, { where: { userId }, order: { productId: 'ASC' } });
 
       if (cartItems.length === 0) {
         throw new BadRequestException('Cart is empty');
       }
 
-      for (const cartItem of cartItems) {
-        const product = cartItem.product;
-        const currentStock = product.stock ?? 0;
+      const products = await manager.find(Product, {
+        where: { id: In(cartItems.map((item) => item.productId)) },
+        order: { id: 'ASC' },
+        lock: { mode: 'pessimistic_write' },
+      });
+      const productsById = new Map(products.map((product) => [product.id, product]));
 
-        if (cartItem.quantity > currentStock) {
+      // Se valida todo ANTES de escribir: si algo falla no se tocó ningún stock.
+      for (const cartItem of cartItems) {
+        const product = productsById.get(cartItem.productId);
+        if (!product) {
+          throw new BadRequestException(`Product ${cartItem.productId} is no longer available`);
+        }
+        if (product.status !== Status.PUBLISHED) {
+          throw new BadRequestException(`Product ${product.name} is not available`);
+        }
+        if (!product.price || product.price <= 0) {
+          throw new BadRequestException(`Product ${product.name} has no valid price`);
+        }
+        if (cartItem.quantity > (product.stock ?? 0)) {
           throw new BadRequestException(`Insufficient stock for product ${product.name}`);
         }
       }
 
-      const total = cartItems.reduce((acc, cartItem) => {
-        const unitPrice = cartItem.product.price ?? 0;
-        return acc + unitPrice * cartItem.quantity;
-      }, 0);
-
-      const order = orderRepository.create({
-        userId,
-        customerName: createOrderDto.name,
-        customerEmail: createOrderDto.email,
-        shippingAddress: createOrderDto.address,
-        total,
-        status: OrderStatus.PENDING_PAYMENT,
+      const lines = cartItems.map((cartItem) => {
+        const product = productsById.get(cartItem.productId) as Product;
+        return { cartItem, product, subtotal: lineTotal(product.price, cartItem.quantity) };
       });
 
-      const savedOrder = await orderRepository.save(order);
+      const savedOrder = await manager.save(
+        manager.create(Order, {
+          userId,
+          customerName: createOrderDto.name,
+          customerEmail: createOrderDto.email,
+          shippingAddress: createOrderDto.address,
+          total: sumMoney(lines.map((line) => line.subtotal)),
+          status: OrderStatus.PENDING_PAYMENT,
+        }),
+      );
 
-      const orderItems = cartItems.map((cartItem) => {
-        const unitPrice = cartItem.product.price ?? 0;
-        return orderItemRepository.create({
-          orderId: savedOrder.id,
-          productId: cartItem.productId,
-          productName: cartItem.product.name,
-          quantity: cartItem.quantity,
-          unitPrice,
-          subtotal: unitPrice * cartItem.quantity,
-        });
-      });
+      const orderItems = await manager.save(
+        lines.map((line) =>
+          manager.create(OrderItem, {
+            orderId: savedOrder.id,
+            productId: line.product.id,
+            productName: line.product.name,
+            quantity: line.cartItem.quantity,
+            unitPrice: line.product.price,
+            subtotal: line.subtotal,
+          }),
+        ),
+      );
 
-      await orderItemRepository.save(orderItems);
-
-      for (const cartItem of cartItems) {
-        const product = cartItem.product;
-        const newStock = (product.stock ?? 0) - cartItem.quantity;
-        await productRepository.update(product.id, { stock: newStock });
+      for (const { cartItem, product } of lines) {
+        await manager.update(Product, product.id, { stock: (product.stock ?? 0) - cartItem.quantity });
       }
 
-      await cartRepository.delete({ userId });
+      await manager.delete(CartItem, { userId });
 
-      return {
-        id: savedOrder.id,
-        status: savedOrder.status,
-        customerName: savedOrder.customerName,
-        customerEmail: savedOrder.customerEmail,
-        customerAddress: savedOrder.shippingAddress,
-        total: savedOrder.total,
-        createdAt: savedOrder.createdAt,
-        items: orderItems.map((item) => ({
-          productId: item.productId,
-          productName: item.productName,
-          unitPrice: item.unitPrice,
-          quantity: item.quantity,
-          subtotal: item.subtotal,
-        })),
-      };
+      return toOrderResponse(savedOrder, orderItems);
     });
   }
 
@@ -105,22 +100,7 @@ export class OrdersService {
       throw new NotFoundException(`Order with id ${orderId} not found`);
     }
 
-    return {
-      id: order.id,
-      status: order.status,
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      customerAddress: order.shippingAddress,
-      total: order.total,
-      createdAt: order.createdAt,
-      items: order.items.map((item) => ({
-        productId: item.productId,
-        productName: item.productName,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
-    };
+    return toOrderResponse(order);
   }
 
   async getAllOrders() {
@@ -128,62 +108,106 @@ export class OrdersService {
       order: { createdAt: 'DESC' },
     });
 
-    return orders.map((order) => ({
-      id: order.id,
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      total: order.total,
-      status: order.status,
-      createdAt: order.createdAt,
-    }));
+    return orders.map(toOrderSummary);
   }
 
   async getOrderByIdForRole(orderId: number, userId: number, role: Role) {
-    if (role === Role.ADMIN) {
-      const order = await this.dataSource.getRepository(Order).findOne({
-        where: { id: orderId },
-        relations: ['items'],
-      });
-
-      if (!order) {
-        throw new NotFoundException(`Order with id ${orderId} not found`);
-      }
-
-      return {
-        id: order.id,
-        status: order.status,
-        customerName: order.customerName,
-        customerEmail: order.customerEmail,
-        customerAddress: order.shippingAddress,
-        total: order.total,
-        createdAt: order.createdAt,
-        items: order.items.map((item) => ({
-          productId: item.productId,
-          productName: item.productName,
-          unitPrice: item.unitPrice,
-          quantity: item.quantity,
-          subtotal: item.subtotal,
-        })),
-      };
+    if (role !== Role.ADMIN) {
+      return this.getOrderById(orderId, userId);
     }
 
-    return this.getOrderById(orderId, userId);
-  }
-
-  async updateStatus(orderId: number, status: OrderStatus) {
-    const orderRepository = this.dataSource.getRepository(Order);
-    const order = await orderRepository.findOne({ where: { id: orderId } });
+    const order = await this.dataSource.getRepository(Order).findOne({
+      where: { id: orderId },
+      relations: ['items'],
+    });
 
     if (!order) {
       throw new NotFoundException(`Order with id ${orderId} not found`);
     }
 
-    order.status = status;
-    const savedOrder = await orderRepository.save(order);
+    return toOrderResponse(order);
+  }
+
+  async updateStatus(orderId: number, status: OrderStatus) {
+    const order = await this.dataSource.transaction((manager) => this.transition(manager, orderId, status));
 
     return {
-      id: savedOrder.id,
-      status: savedOrder.status,
+      id: order.id,
+      status: order.status,
+      allowedTransitions: [...allowedNext(order.status)],
     };
+  }
+
+  // Ids de órdenes PENDING_PAYMENT que superan el plazo de pago. Usa NOW() de la base (la misma
+  // expresión que el DEFAULT de created_at) para no depender de la zona horaria de Node.
+  async findStaleOrderIds(ttlHours: number, limit: number): Promise<number[]> {
+    const found: unknown = await this.dataSource.query(`SELECT "id" FROM "orders" WHERE "status" = $1 AND "created_at" < NOW() - ($2 * INTERVAL '1 hour') ORDER BY "id" LIMIT $3`, [OrderStatus.PENDING_PAYMENT, ttlHours, limit]);
+    return (found as Array<{ id: number }>).map((row) => row.id);
+  }
+
+  // Cancela la orden solo si SIGUE pendiente y vencida; devuelve si la canceló. La revalidación bajo lock
+  // evita devolver el stock dos veces si el admin la tocó o si otra ejecución llegó primero.
+  async expireIfStale(orderId: number, ttlHours: number): Promise<boolean> {
+    return this.dataSource.transaction(async (manager) => {
+      const order = await manager.findOne(Order, { where: { id: orderId }, lock: { mode: 'pessimistic_write' } });
+      if (!order || order.status !== OrderStatus.PENDING_PAYMENT) {
+        return false;
+      }
+
+      const stale: unknown = await manager.query(`SELECT 1 FROM "orders" WHERE "id" = $1 AND "created_at" < NOW() - ($2 * INTERVAL '1 hour')`, [orderId, ttlHours]);
+      if ((stale as unknown[]).length === 0) {
+        return false;
+      }
+
+      await this.transition(manager, orderId, OrderStatus.CANCELLED);
+      return true;
+    });
+  }
+
+  // Cambio de estado transaccional. Lo usan el admin y, más adelante, el vencimiento automático.
+  // Se bloquea la fila de la orden: una segunda solicitud simultánea espera, ve el estado nuevo y recibe 409.
+  private async transition(manager: EntityManager, orderId: number, target: OrderStatus): Promise<Order> {
+    const order = await manager.findOne(Order, { where: { id: orderId }, lock: { mode: 'pessimistic_write' } });
+
+    if (!order) {
+      throw new NotFoundException(`Order with id ${orderId} not found`);
+    }
+
+    if (!canTransition(order.status, target)) {
+      throw new ConflictException(`Cannot change order from ${order.status} to ${target}`);
+    }
+
+    if (target === OrderStatus.CANCELLED) {
+      await this.restock(manager, order.id);
+    }
+
+    order.status = target;
+    return manager.save(order);
+  }
+
+  // Devuelve al stock lo que descontó el checkout. Bloquea los productos en orden ascendente de id
+  // (igual que createOrder) para no provocar deadlocks. COALESCE: products.stock admite NULL.
+  private async restock(manager: EntityManager, orderId: number): Promise<void> {
+    const items = await manager.find(OrderItem, { where: { orderId }, order: { productId: 'ASC' } });
+
+    if (items.length === 0) {
+      return;
+    }
+
+    await manager.find(Product, {
+      where: { id: In(items.map((item) => item.productId)) },
+      order: { id: 'ASC' },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    for (const item of items) {
+      await manager
+        .createQueryBuilder()
+        .update(Product)
+        .set({ stock: () => 'COALESCE("stock", 0) + :quantity' })
+        .setParameter('quantity', item.quantity)
+        .where('id = :productId', { productId: item.productId })
+        .execute();
+    }
   }
 }

@@ -141,17 +141,23 @@
                   {{ statusLabel(detail.status) }}
                 </span>
               </div>
-              <select
-                class="select select-bordered w-full"
-                [value]="detail.status"
-                [disabled]="statusLoading()"
-                (change)="updateSelectedOrderStatus($any($event.target).value)"
-              >
-                <option value="PENDING_PAYMENT">Esperando transferencia</option>
-                <option value="PAID">Pagado</option>
-                <option value="CANCELLED">Cancelado</option>
-                <option value="DELIVERED">Entregado</option>
-              </select>
+              @if (detail.allowedTransitions.length > 0) {
+                <div class="flex flex-wrap gap-2">
+                  @for (next of detail.allowedTransitions; track next) {
+                    <button
+                      type="button"
+                      class="btn btn-sm status-action"
+                      [class]="'btn btn-sm status-action ' + actionClass(next)"
+                      [disabled]="statusLoading()"
+                      (click)="updateSelectedOrderStatus(next)"
+                    >
+                      {{ actionLabel(next) }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <p class="status-final text-sm opacity-70">Este pedido está en un estado final: no admite más cambios.</p>
+              }
             </div>
 
             <div class="divider my-1"></div>

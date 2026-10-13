@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../product/entities/product.entity';
+import { Status } from '../product/models/status.enum';
 import { Favorite } from './entities/favorite.entity';
 
 @Injectable()
@@ -15,7 +16,7 @@ export class FavoritesService {
 
   async findAllByUser(userId: number) {
     const favorites = await this.favoritesRepository.find({
-      where: { userId },
+      where: { userId, product: { status: Status.PUBLISHED } },
       relations: ['product', 'product.categories'],
       order: { createdAt: 'DESC' },
     });
@@ -24,7 +25,7 @@ export class FavoritesService {
   }
 
   async add(userId: number, productId: number) {
-    const product = await this.productsRepository.findOne({ where: { id: productId } });
+    const product = await this.productsRepository.findOne({ where: { id: productId, status: Status.PUBLISHED } });
     if (!product) {
       throw new NotFoundException(`Product with id ${productId} not found`);
     }

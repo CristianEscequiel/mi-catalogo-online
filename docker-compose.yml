@@ -36,6 +36,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      ORDER_PAYMENT_TTL_HOURS: ${ORDER_PAYMENT_TTL_HOURS:-48}
+      AI_RATE_LIMIT: ${AI_RATE_LIMIT:-20}
+      AI_RATE_TTL_SECONDS: ${AI_RATE_TTL_SECONDS:-3600}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     volumes:

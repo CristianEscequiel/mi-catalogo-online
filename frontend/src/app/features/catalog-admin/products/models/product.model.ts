@@ -7,5 +7,5 @@ export interface ProductModel {
   stock: number ,
   categoryIds: number[] ,
   thumbnailUrl?: string | null ,
-  status: 'DRAFT'| 'PUBLIC' | 'ARCHIVED',
+  status: 'DRAFT'| 'PUBLISHED' | 'ARCHIVED',
 }

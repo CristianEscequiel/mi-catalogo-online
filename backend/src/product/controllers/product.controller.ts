@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Put, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Put, Query, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -13,6 +13,8 @@ import { createImageMulterOptions } from 'src/files/multer-image-options.factory
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 import { OpenaiService } from 'src/ai/service/openai.service';
 import { GenerateProductFromImageDto } from '../dto/generate-product-from-image.dto';
+import { ListProductsQueryDto } from '../dto/list-products-query.dto';
+import { AiThrottlerGuard } from 'src/ai/ai-throttler.guard';
 
 @Controller('products')
 export class ProductController {
@@ -34,11 +36,11 @@ export class ProductController {
     return this.postService.create(createPostDto, userID, role);
   }
 
-  @ApiOperation({ summary: 'Get all Products' })
-  @ApiResponse({ status: 200, description: 'The list of products' })
+  @ApiOperation({ summary: 'List published products (paginated)' })
+  @ApiResponse({ status: 200, description: 'A page of published products: { items, total, page, limit, totalPages }' })
   @Get()
-  findAll() {
-    return this.postService.findAll();
+  findAll(@Query() query: ListProductsQueryDto) {
+    return this.postService.findPublicPage(query);
   }
 
   @ApiOperation({ summary: 'Get a Product by slug' })
@@ -52,32 +54,32 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'The post', type: ProductEntity })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.postService.findOne(id);
+    return this.postService.findPublishedById(id);
   }
 
-  @ApiOperation({ summary: 'Get a Propduct by User id' })
+  @ApiOperation({ summary: 'Get the published Products of a User' })
   @ApiResponse({ status: 200, description: 'The post', type: ProductEntity })
   @Get('user/:id')
   findOneByUserId(@Param('id', ParseIntPipe) id: number) {
-    return this.postService.findOneByUserId(id);
+    return this.postService.findPublishedByUserId(id);
   }
 
   @ApiOperation({ summary: 'Update a Product by id' })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto) {
-    return this.postService.update(id, updateProductDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto, @Request() req: { user: Payload }) {
+    return this.postService.update(id, updateProductDto, req.user);
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(AuthGuard('jwt'), RolesGuard, AiThrottlerGuard)
   @Roles('ADMIN', 'GUEST')
   @Get('generate-ai/:name')
   generateAi(@Param('name') name: string) {
     return this.openAiService.generateProductContent(name);
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(AuthGuard('jwt'), RolesGuard, AiThrottlerGuard)
   @Roles('ADMIN', 'GUEST')
   @Post('generate-from-image')
   generateFromImage(@Body() body: GenerateProductFromImageDto) {
@@ -99,8 +101,8 @@ export class ProductController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.postService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }) {
+    return this.postService.remove(id, req.user);
   }
 
   @ApiOperation({ summary: 'Upload product image' })
@@ -121,18 +123,18 @@ export class ProductController {
   @Roles('ADMIN', 'GUEST')
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file', createImageMulterOptions(UPLOAD_FOLDERS.products)))
-  uploadImage(@Param('id', ParseIntPipe) id: number, @UploadedFile() file?: { filename: string }) {
+  uploadImage(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }, @UploadedFile() file?: { filename: string }) {
     if (!file?.filename) {
       throw new BadRequestException('File is required');
     }
-    return this.postService.uploadImage(id, file.filename);
+    return this.postService.uploadImage(id, file.filename, req.user);
   }
 
   @ApiOperation({ summary: 'Delete product image' })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'GUEST')
   @Delete(':id/image')
-  deleteImage(@Param('id', ParseIntPipe) id: number) {
-    return this.postService.deleteImage(id);
+  deleteImage(@Param('id', ParseIntPipe) id: number, @Request() req: { user: Payload }) {
+    return this.postService.deleteImage(id, req.user);
   }
 }

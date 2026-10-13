@@ -54,7 +54,7 @@ export class PrdListComponent implements OnInit {
     price: this.fb.control<number>(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
     categoryIds: this.fb.control<number[]>([], { nonNullable: true, validators: [] }),
     thumbnailUrl: this.fb.control<string | null>(null),
-    status: this.fb.control<'DRAFT' | 'PUBLIC' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
+    status: this.fb.control<'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT', { nonNullable: true, validators: [Validators.required] }),
   });
 
   ngOnInit(): void {
@@ -68,15 +68,6 @@ export class PrdListComponent implements OnInit {
     });
   }
 
-  getAllProducts() {
-    this.productService.getAllProducts().subscribe({
-      next: res => {
-        this.products = res;
-        this.applyFilters();
-      },
-      error: err => console.error(err),
-    });
-  }
   getProductsByUserId(id: number) {
     this.productService.getProductsByUserId(id).subscribe({
       next: res => {

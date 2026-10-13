@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
 import { Order } from './order.entity';
+import { numericTransformer } from '../../common/numeric.transformer';
 
 @Entity({ name: 'order_items' })
 @Index('IDX_order_items_order', ['orderId'])
@@ -27,11 +28,11 @@ export class OrderItem {
   @ApiProperty({ description: 'Ordered quantity', example: 2, required: true })
   quantity: number;
 
-  @Column({ name: 'unit_price', type: 'float' })
+  @Column({ name: 'unit_price', type: 'numeric', precision: 12, scale: 2, transformer: numericTransformer })
   @ApiProperty({ description: 'Unit price snapshot', example: 120, required: true })
   unitPrice: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'numeric', precision: 12, scale: 2, transformer: numericTransformer })
   @ApiProperty({ description: 'Line subtotal', example: 240, required: true })
   subtotal: number;
 
