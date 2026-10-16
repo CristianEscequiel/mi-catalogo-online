@@ -92,10 +92,10 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
 
 ## Grupo G: `OnPush` y `Profile` (REQ-2, 3)
 
-Para cada componente de un grupo: (1) inventariar los campos que cambian por eventos, HTTP o temporizadores y que usa la plantilla, y pasarlos a `signal`/`computed`; (2) agregar `changeDetection: ChangeDetectionStrategy.OnPush`; (3) agregar un test con `detectChanges` para cada componente con estado mutable.
+**Orden:** hojas primero y padres después; un componente solo pasa a `OnPush` cuando todo su subárbol ya es seguro (diseño D2). Para cada componente de un grupo: (1) inventariar los campos que cambian por eventos, HTTP o temporizadores y que usa la plantilla, y pasarlos a `signal`/`computed`; (2) agregar `changeDetection: ChangeDetectionStrategy.OnPush`; (3) agregar un test con `detectChanges` para cada componente con estado mutable.
 
-- [ ] **T13. `OnPush` en `shared/` y `core/layouts`** — REQ-2.1, 2.2, 2.3
-  - `header`, `toast-container`, `confirm-dialog`, `image-field`, `layout` y `app.ts`.
+- [x] **T13. `OnPush` en las hojas de `shared/`** — REQ-2.1, 2.2, 2.3
+  - `header`, `toast-container`, `confirm-dialog` e `image-field`. **`layout` y `app.ts` ya no van aquí:** pasan a T17b, porque son ancestros de todas las pantallas (ver diseño D2).
   - Depende de: T2
   - Verificación: tests `REQ-2.2` para los que tienen estado mutable; `npm run lint` en 0; tests y build ok.
 
@@ -124,9 +124,14 @@ Para cada componente de un grupo: (1) inventariar los campos que cambian por eve
   - Depende de: T13
   - Verificación: en `profile.spec.ts`, un `it` por criterio (`REQ-3.1` a `REQ-3.11`), incluido «subir imagen durante la edición no pisa los campos del formulario»; `npm run lint` en 0; tests y build ok.
 
+- [ ] **T17b. `OnPush` en `layout` y `app.ts`** — REQ-2.1, 2.2
+  - Solo cuando todas las pantallas ya son seguras. `App` y `Layout` no tienen estado propio (solo el `signal` `title` de `App`).
+  - Depende de: T14, T15, T16a, T16b, T17
+  - Verificación: el humo parcial de T20 (login, perfil, admin) con `OnPush` en la raíz; `npm run lint` en 0; tests y build ok.
+
 - [ ] **T18. Verificar `OnPush` en todos los componentes** — REQ-2.1
   - Comprobar que ningún componente quedó sin `OnPush`.
-  - Depende de: T14, T15, T16a, T16b, T17
+  - Depende de: T17b
   - Verificación (con Bash, sintaxis POSIX): `grep -rL "changeDetection: ChangeDetectionStrategy.OnPush" $(grep -rl "@Component" src/app --include=*.ts | grep -v spec)` vacío; el patrón completo evita que un import sin uso cuente como `OnPush`.
 
 - [ ] **T19. Activar la regla de `OnPush` en ESLint** — REQ-2.4, 9.2
@@ -172,7 +177,7 @@ T0 → T1 → T2 ─┬→ T3 ────────────────�
                       ├→ T16a                      │
                       ├→ T16b                      │
                       └→ T17                       │
-T14, T15, T16a, T16b, T17 → T18 → T19 → T21 ───────┤
+T14, T15, T16a, T16b, T17 → T17b → T18 → T19 → T21 ┤
 T18 → T20 ────────────────────────────────────────┴→ T22
 ```
 
@@ -274,6 +279,13 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **`git diff -- angular.json`:** vacío (REQ-6.4).
 - **Margen:** 5,73 kB bajo el presupuesto. Es poco; el build de T22 lo vuelve a medir y, si se pasara de 800 kB, se hacen T11 y T12.
 - **Verificación:** lint código 0; build código 0; tests **99 en verde** (89 + 10).
+
+### `OnPush` en las hojas de `shared/` (T13), 2026-10-16
+- **Corrección de la spec al empezar (algo no contemplado):** el plan original ponía `layout` y `app.ts` en T13, es decir **primero**. Con `zone.js` (la app del navegador arranca por `main.ts`), un ancestro `OnPush` no se revisa si sus descendientes en `Default` cambian campos comunes por HTTP o temporizadores: `App` y `Layout` son ancestros de todas las pantallas y habrían roto, por ejemplo, `LoginForm.isLoading` y el perfil. Se cambió el diseño (D2: de las hojas hacia la raíz, un componente pasa a `OnPush` solo cuando todo su subárbol ya es seguro) y las tareas: T13 queda con las 4 hojas y `layout` y `app.ts` pasan a la nueva **T17b**, al final. No se escribió código antes de corregir la spec.
+- **Inventario de estado mutable:** `app.ts` (solo el `signal` `title`), `layout` (sin estado), `confirm-dialog` (solo `data` inyectado, constante), `toast-container` (lee la señal `notifications` del servicio) y `header` (todo viene de stores como `signal`/`computed`; el `router-outlet` lo declara `Layout`, solo se proyecta en el `ng-content` de `Header`) → sin campos comunes mutables. **`image-field`**: `previewUrl` lo lee la plantilla y cambia en eventos y en `ngOnChanges`; pasó a `signal`. `selectedFile` se queda como campo común: solo lo usa la lógica interna (`ngOnChanges`), no la plantilla ni ningún padre.
+- **Aplicado:** `changeDetection: ChangeDetectionStrategy.OnPush` en `header`, `toast-container`, `confirm-dialog` e `image-field`. `app.ts` y `layout` siguen en `Default` hasta T17b.
+- **Tests nuevos (8), de caracterización** (pasaban con `Default` y siguen pasando con `OnPush`; son la red para las próximas tareas): `toast-container.spec.ts` (3, `REQ-2.2`): muestra un éxito con `alert-success`, una por cada tipo con su clase, y desaparece al vencer su tiempo. `image-field.component.spec.ts` (5, `REQ-2.2`): estado inicial, vista previa al elegir un archivo (`blob:` y `fileSelected`), imageUrl nuevo que descarta la vista previa, «Subiendo imagen…» en modo controls y mensaje de error. No se escribió test para `header`, `app`, `layout` ni `confirm-dialog` porque no tienen estado mutable propio.
+- **Verificación:** lint código 0; build código 0 (**794,35 kB**, +0,08 kB; sigue bajo 800 kB, margen 5,65 kB); tests **107 en verde** (99 + 8).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
