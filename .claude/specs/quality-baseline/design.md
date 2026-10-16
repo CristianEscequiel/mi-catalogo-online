@@ -117,7 +117,7 @@ Cambios en `.github/workflows/ci.yml`:
 
 `docker-backend`/`docker-frontend` ya tienen `needs: [changes, backend|frontend]` y `deploy-*` dependen de ellos, así que REQ-4.4 se cumple sin cambios: no se agrega nada, solo se verifica en Actions que el job en rojo corta la cadena.
 
-**Documentación (REQ-4.3):** se actualizan `CLAUDE.md` ("Estado conocido") y `steering/tech.md` ("Estado actual de calidad") para decir que lint, tests y audit crítico **bloquean**. El nombre de `CLAUDE.md` en el repo es de un proyecto con regla de "no arreglar tests rotos fuera del alcance"; esa frase se reescribe: ya no hay tests rotos.
+**Documentación (REQ-4.3):** se actualizan `CLAUDE.md` ("Estado conocido") y `.claude/steering/tech.md` ("Estado actual de calidad") para decir que lint, tests y audit crítico **bloquean**. El nombre de `CLAUDE.md` en el repo es de un proyecto con regla de "no arreglar tests rotos fuera del alcance"; esa frase se reescribe: ya no hay tests rotos.
 
 ### D7. Dependencias (REQ-5)
 
@@ -125,7 +125,7 @@ Procedimiento, igual en cada proyecto y en este orden:
 
 1. Se anota el `npm audit --omit=dev` inicial (ya medido: backend 24, frontend 15).
 2. `npm audit fix` **sin `--force`**: actualiza dentro del rango de `package.json` y del lock. Para las directas de Angular (`@angular/*` 20.3.x y `@angular/ssr` 20.3.39) y de Nest, si el rango de `package.json` no alcanza, se sube el rango a la versión parche/minor indicada, sin cambiar de mayor.
-3. `npm audit --omit=dev` de nuevo; lo que quede alto o crítico y requiera mayor se escribe en `specs/pendientes.md` (REQ-5.4).
+3. `npm audit --omit=dev` de nuevo; lo que quede alto o crítico y requiera mayor se escribe en `.claude/specs/pendientes.md` (REQ-5.4).
 4. Se corre la lista de verificación: build, tests, lint, imagen Docker (REQ-5.5).
 5. Los paquetes `@angular/*` deben quedar en la **misma versión** entre sí (se comprueba con `npm ls @angular/core @angular/common @angular/compiler @angular/router @angular/forms @angular/platform-browser`).
 

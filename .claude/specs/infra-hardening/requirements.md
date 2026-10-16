@@ -123,7 +123,7 @@
 **Historia de usuario:** Como operador, quiero un checklist de despliegue explícito, para aplicar los cambios de `web-stack` y del volumen en el orden correcto.
 
 ### Criterios de aceptación
-1. CUANDO termina la implementación EL SISTEMA DEBERÁ incluir en `specs/infra-hardening/tasks.md` un checklist manual con: cambio del upstream del frontend a `:8080` en `web-stack`, retiro de `ports` en db y backend, y `chown` del volumen `uploads_data`.
+1. CUANDO termina la implementación EL SISTEMA DEBERÁ incluir en `.claude/specs/infra-hardening/tasks.md` un checklist manual con: cambio del upstream del frontend a `:8080` en `web-stack`, retiro de `ports` en db y backend, y `chown` del volumen `uploads_data`.
 2. CUANDO se actualizan `README.md` y `backend/.env-example` EL SISTEMA DEBERÁ listar `CORS_ORIGIN` como obligatoria en producción, `NODE_ENV` y la mención de que Swagger está apagado en producción.
 
 ---

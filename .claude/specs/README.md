@@ -2,9 +2,9 @@
 
 Planificación previa a escribir código, con la skill `/sdd-flow`. El código no se adelanta a la spec: si algo no contemplado aparece al implementar, se actualiza el documento y recién después se sigue.
 
-Contexto de proyecto que lee el flujo: `steering/product.md`, `steering/tech.md`, `steering/structure.md`.
+Contexto de proyecto que lee el flujo: `.claude/steering/product.md`, `.claude/steering/tech.md`, `.claude/steering/structure.md`.
 
-## Flujo completo — `specs/<nombre-feature>/`
+## Flujo completo — `.claude/specs/<nombre-feature>/`
 
 Para features nuevas, cambios que tocan datos/permisos/integraciones o más de ~3 archivos. Se versiona.
 
@@ -14,7 +14,7 @@ Para features nuevas, cambios que tocan datos/permisos/integraciones o más de ~
 
 Al terminar todas las tareas se recorre cada criterio de aceptación y se marca sí/no con evidencia. Una feature = una carpeta: los cambios posteriores son enmiendas de la misma spec.
 
-## Flujo rápido (SDD-Lite) — `specs/rapidas/<nombre-cambio>/`
+## Flujo rápido (SDD-Lite) — `.claude/specs/rapidas/<nombre-cambio>/`
 
 Para bugs simples y ajustes de 1-2 archivos. **No se versiona** (está en `.gitignore`).
 
@@ -23,4 +23,4 @@ Para bugs simples y ajustes de 1-2 archivos. **No se versiona** (está en `.giti
 - `notes.md` — log de resultados (solo se agregan entradas).
 
 ## Nombres
-Carpetas en kebab-case y en castellano o inglés según el repo, por ejemplo `specs/checkout-mercadopago/` o `specs/rapidas/fix-stock-negativo/`.
+Carpetas en kebab-case y en castellano o inglés según el repo, por ejemplo `.claude/specs/checkout-mercadopago/` o `.claude/specs/rapidas/fix-stock-negativo/`.

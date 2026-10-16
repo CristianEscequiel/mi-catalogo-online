@@ -80,8 +80,8 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 ## Grupo E: documentación y cierre
 
 - [x] **T9. Documentación** — REQ-5.1, 5.2, 5.3
-  - `steering/structure.md`: sección "Puertos y adaptadores" y línea de `@CurrentUser()`.
-  - `specs/pendientes.md`: corregir la nota que dice que `UsersService` devuelve el hash (y la de `quality-baseline` que la repite); anotar lo abierto de la Fase 3 backend (DTOs de respuesta, repositorios por contexto, reglas de dominio, `MailController` vacío).
+  - `.claude/steering/structure.md`: sección "Puertos y adaptadores" y línea de `@CurrentUser()`.
+  - `.claude/specs/pendientes.md`: corregir la nota que dice que `UsersService` devuelve el hash (y la de `quality-baseline` que la repite); anotar lo abierto de la Fase 3 backend (DTOs de respuesta, repositorios por contexto, reglas de dominio, `MailController` vacío).
   - Depende de: T7
   - Verificación: lectura de ambos archivos; `grep -rn "hash de la contraseña" specs` no deja la afirmación incorrecta.
 

@@ -65,7 +65,7 @@ Primera de tres specs de la Fase 3 (arquitectura y calidad). Las otras dos, `bac
 
 - **REQ-4.1** CUANDO el CI corra el job `backend`, EL SISTEMA DEBERÁ fallar si falla `eslint` o `npm test` (sin `continue-on-error` en esos pasos).
 - **REQ-4.2** CUANDO el CI corra el job `frontend`, EL SISTEMA DEBERÁ fallar si falla `ng test` (sin `continue-on-error` en ese paso).
-- **REQ-4.3** CUANDO se sacen los `continue-on-error`, EL SISTEMA DEBERÁ eliminar también los comentarios `TODO` de `ci.yml` que los justificaban, y actualizar el apartado "Estado conocido" de `CLAUDE.md` y de `steering/tech.md`, que hoy dicen que lint y tests no bloquean.
+- **REQ-4.3** CUANDO se sacen los `continue-on-error`, EL SISTEMA DEBERÁ eliminar también los comentarios `TODO` de `ci.yml` que los justificaban, y actualizar el apartado "Estado conocido" de `CLAUDE.md` y de `.claude/steering/tech.md`, que hoy dicen que lint y tests no bloquean.
 - **REQ-4.4** CUANDO un pull request rompa un test o el lint, EL SISTEMA DEBERÁ impedir que los jobs `docker-*` y `deploy-*` se ejecuten, verificable porque dependen de los jobs `backend` y `frontend` mediante `needs`.
 - **REQ-4.5** CUANDO el CI corra `npm audit --omit=dev --audit-level=critical` (backend y frontend), EL SISTEMA DEBERÁ fallar si hay al menos una vulnerabilidad crítica en dependencias de producción.
 - **REQ-4.6** CUANDO el CI corra `npm audit --omit=dev` completo, EL SISTEMA DEBERÁ mostrar las vulnerabilidades altas y menores sin bloquear.
@@ -75,7 +75,7 @@ Primera de tres specs de la Fase 3 (arquitectura y calidad). Las otras dos, `bac
 - **REQ-5.1** CUANDO se ejecute `npm audit --omit=dev` en `backend/`, EL SISTEMA DEBERÁ informar 0 vulnerabilidades críticas y 0 altas, salvo las que solo se resuelvan con un salto de versión mayor.
 - **REQ-5.2** CUANDO se ejecute `npm audit --omit=dev` en `frontend/`, EL SISTEMA DEBERÁ informar 0 vulnerabilidades críticas y 0 altas, salvo las que solo se resuelvan con un salto de versión mayor.
 - **REQ-5.3** CUANDO se actualicen dependencias, EL SISTEMA DEBERÁ mantener las versiones mayores actuales (NestJS 11, Angular 20, TypeORM 0.3, etc.) y no usar `npm audit fix --force`.
-- **REQ-5.4** CUANDO una vulnerabilidad alta o crítica no pueda resolverse sin salto de versión mayor, EL SISTEMA DEBERÁ registrarla en `specs/pendientes.md` con el paquete, la severidad y la versión que la corrige.
+- **REQ-5.4** CUANDO una vulnerabilidad alta o crítica no pueda resolverse sin salto de versión mayor, EL SISTEMA DEBERÁ registrarla en `.claude/specs/pendientes.md` con el paquete, la severidad y la versión que la corrige.
 - **REQ-5.5** CUANDO se actualicen las dependencias, EL SISTEMA DEBERÁ conservar en verde `npm run build` de backend y frontend, `npm test` y `ng test`, y la imagen del backend debe seguir construyéndose y corriendo como usuario no root.
 - **REQ-5.6** CUANDO se actualicen dependencias, EL SISTEMA DEBERÁ modificar solo `package.json` y `package-lock.json` de cada proyecto, sin tocar código de la aplicación salvo que una actualización compatible lo exija y quede anotado en la spec.
 

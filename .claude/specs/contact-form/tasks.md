@@ -15,7 +15,7 @@ Prefijos por repo: **B** = `mi-catalogo-online/backend`, **F** = `portfolio-web/
 ## Backend (`mi-catalogo-online/backend`)
 
 - [x] B-0. Línea base de tests y lint
-  - Detalle: antes de cambiar nada, correr `npm test` y `npx eslint "{src,apps,libs,test}/**/*.ts"` y guardar en `specs/contact-form/baseline-backend.txt` qué suites fallan y cuántos errores de lint hay. Sirve para demostrar al final que no se rompió nada más.
+  - Detalle: antes de cambiar nada, correr `npm test` y `npx eslint "{src,apps,libs,test}/**/*.ts"` y guardar en `.claude/specs/contact-form/baseline-backend.txt` qué suites fallan y cuántos errores de lint hay. Sirve para demostrar al final que no se rompió nada más.
   - Depende de: —
   - Verificación: el archivo existe con la lista de suites fallidas (el CI menciona 6 de 8; se confirma el número real).
   - _Requisitos: REQ-11.1, REQ-12.4_
@@ -74,7 +74,7 @@ Prefijos por repo: **B** = `mi-catalogo-online/backend`, **F** = `portfolio-web/
 ## Portfolio (`portfolio-web/portfolio`)
 
 - [x] F-0. Línea base de tests
-  - Detalle: correr `npx ng test --no-watch --browsers=ChromeHeadless` y `npm run build -- --configuration production`; anotar el resultado y el tamaño del bundle inicial en `specs/contact-form/baseline-portfolio.txt`. El CI de este repo bloquea si los tests fallan.
+  - Detalle: correr `npx ng test --no-watch --browsers=ChromeHeadless` y `npm run build -- --configuration production`; anotar el resultado y el tamaño del bundle inicial en `.claude/specs/contact-form/baseline-portfolio.txt`. El CI de este repo bloquea si los tests fallan.
   - Depende de: —
   - Verificación: archivo creado; se sabe si la línea base pasa y cuánto pesa el bundle (presupuesto: aviso a 500 kB, error a 1 MB).
   - _Requisitos: REQ-11.5, REQ-12.6_

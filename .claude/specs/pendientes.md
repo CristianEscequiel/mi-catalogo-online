@@ -1,6 +1,8 @@
 # Pendientes y próximos pasos
 
-Última actualización: 2026-10-13, al cerrar el código de `infra-hardening`. Rama de trabajo: `fix/infra-hardening` (sin commitear todavía).
+Última actualización: 2026-10-16. Rama de trabajo: `refactor/backend-architecture` (commiteada y subida al remoto; falta cerrar la spec, PR y despliegue).
+
+> **2026-10-16:** `specs/` y `steering/` se movieron a `.claude/specs/` y `.claude/steering/`. Las rutas `specs/...` del texto histórico de abajo ahora son `.claude/specs/...`. Las secciones 1, 2, 3 y 5 son registro de lo que pasó en su momento; el estado vigente es la sección 3b.
 
 ## 1. Estado de las ramas (revisar primero)
 
@@ -22,21 +24,21 @@
   - `SELECT count(*) FROM products WHERE stock < 0;` (si es mayor que 0, confirmar que normalizar a 0 es aceptable)
   - `SELECT count(*) FROM products WHERE price >= 1e10 OR price < 0;` (debe dar 0)
   - `SELECT count(*) FROM order_items WHERE unit_price >= 1e10;` (debe dar 0)
-  - Confirmar que hay un backup reciente antes de aplicar la migración. Anotar los resultados en `specs/orders-integrity/tasks.md`.
+  - Confirmar que hay un backup reciente antes de aplicar la migración. Anotar los resultados en `.claude/specs/orders-integrity/tasks.md`.
 - [ ] **UI del panel de órdenes en el navegador:** pasar un pedido `PENDING_PAYMENT` → `PAID` → cancelar, comprobar que no queda ningún botón y provocar un 409 cambiando el estado desde otra pestaña.
 
 ### `catalog-access`
-- [ ] **Tarea 19, chequeo previo al despliegue.** En producción: `SELECT status, count(*) FROM products GROUP BY status;` y **publicar a mano** (`status = 'PUBLISHED'`) los `DRAFT`/`ARCHIVED` que deban seguir visibles. Después del despliegue el catálogo público solo muestra `PUBLISHED`. Anotar el resultado en `specs/catalog-access/tasks.md`.
+- [ ] **Tarea 19, chequeo previo al despliegue.** En producción: `SELECT status, count(*) FROM products GROUP BY status;` y **publicar a mano** (`status = 'PUBLISHED'`) los `DRAFT`/`ARCHIVED` que deban seguir visibles. Después del despliegue el catálogo público solo muestra `PUBLISHED`. Anotar el resultado en `.claude/specs/catalog-access/tasks.md`.
 - [ ] **UI del home en el navegador** (con el backend local y más de 12 productos publicados): "Cargar más", una búsqueda y su combinación con una categoría.
 - [ ] Avisar que `GET /products` cambió de arreglo a `{items,total,page,limit,totalPages}`: cualquier cliente que no sea este frontend tiene que adaptarse.
 
 ## 3. `infra-hardening` (tercera spec de la Fase 2): desplegada en producción, falta 1 comprobación
 
-Spec en `specs/infra-hardening/` (requisitos, diseño y tareas aprobados; las 14 tareas obligatorias hechas y el cierre escrito). Cambios sin commitear en la rama local `fix/infra-hardening`, que sale de `fix/catalog-access`. Cuando se pida el commit: código y docs de la spec en commits separados.
+Spec en `.claude/specs/infra-hardening/` (requisitos, diseño y tareas aprobados; las 14 tareas obligatorias hechas y el cierre escrito). Cambios sin commitear en la rama local `fix/infra-hardening`, que sale de `fix/catalog-access`. Cuando se pida el commit: código y docs de la spec en commits separados.
 
 **Qué quedó hecho:** `validateEnv` al arrancar (sale con código 1 y lista todo lo que falta o está mal), CORS sin comodín en producción, Swagger apagado en producción, backend `USER node`, frontend `nginx-unprivileged` en el 8080, compose sin puertos publicados más `docker-compose.dev.yml` en loopback, `uploads/` fuera de git y de la imagen, `aide` eliminada.
 
-**Estado en producción (2026-10-13):** backend y frontend corren `sha-c72c55b`, `healthy`; `/`, el SPA y `/api/health` dan 200 y `/api/docs` da 404. El primer intento del CI falló y volvió solo atrás porque `JWT_SECRET` tenía 14 caracteres (se rotó). Detalle en `specs/infra-hardening/tasks.md`, sección "Despliegue en producción".
+**Estado en producción (2026-10-13):** backend y frontend corren `sha-c72c55b`, `healthy`; `/`, el SPA y `/api/health` dan 200 y `/api/docs` da 404. El primer intento del CI falló y volvió solo atrás porque `JWT_SECRET` tenía 14 caracteres (se rotó). Detalle en `.claude/specs/infra-hardening/tasks.md`, sección "Despliegue en producción".
 
 **Todavía sin comprobar (lo hace una persona):**
 - [ ] Que el puerto 5433 del servidor no responda desde fuera.
@@ -53,13 +55,13 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 | Fase | Contenido | Estado |
 |---|---|---|
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
-| 2 | Integridad del negocio | `orders-integrity` hecha, `catalog-access` hecha, `infra-hardening` código hecho, falta el despliegue (sección 3) |
-| 3 | Arquitectura y calidad | Pendiente (abajo) |
+| 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
+| 3 | Arquitectura y calidad | En curso: `quality-baseline` cerrada, `backend-architecture` implementada (falta T10, PR y despliegue), `frontend-cleanup` sin empezar |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
 
-Spec en `specs/quality-baseline/`, desplegada y comprobada en producción (según informó el usuario). Hecho: tests unitarios del backend y de Karma en verde, lint del backend en 0, CI bloqueante (lint, tests, audit crítico), vulnerabilidades de producción resueltas (backend: 0 altas ni críticas; frontend: 0). Cierre de criterios en `tasks.md`. **Siguientes de la Fase 3:** `backend-architecture` y `frontend-cleanup`.
+Spec en `.claude/specs/quality-baseline/`, desplegada y comprobada en producción (según informó el usuario). Hecho: tests unitarios del backend y de Karma en verde, lint del backend en 0, CI bloqueante (lint, tests, audit crítico), vulnerabilidades de producción resueltas (backend: 0 altas ni críticas; frontend: 0). Cierre de criterios en `tasks.md`. **Siguientes de la Fase 3:** `backend-architecture` y `frontend-cleanup`.
 
 **Abierto tras esta spec (anotado):**
 - **`npm audit` solo de desarrollo o con salto mayor.** Backend: 21 moderadas (cadena de `jest` / `@istanbuljs`; 2 de producción: `@nestjs/swagger` → `js-yaml` 5.x, sin arreglo compatible hoy). Frontend (solo `devDependencies`): 6 altas: `karma`, `karma-jasmine`, `karma-jasmine-html-reporter`, `braces`, `chokidar` (`npm audit` propone bajar a `karma@4`, que es un salto mayor hacia atrás: no sirve) y `@angular/build` (propone 19.x, también hacia atrás). Revisar cuando salgan versiones nuevas de esos paquetes.
@@ -69,9 +71,9 @@ Spec en `specs/quality-baseline/`, desplegada y comprobada en producción (segú
 - **Las 11 suites e2e no corren en el CI** (hoy corren a mano con Postgres descartable): candidato a spec propia.
 - **Bundle inicial del frontend**: 882 kB, sobre el presupuesto de 800 kB (`frontend-cleanup`).
 
-### Fase 3, spec 2: `backend-architecture` (implementada, falta PR y despliegue)
+### Fase 3, spec 2: `backend-architecture` (implementada y commiteada, falta T10, PR y despliegue)
 
-Spec en `specs/backend-architecture/`. Rama local `refactor/backend-architecture`, sin commitear. Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
+Spec en `.claude/specs/backend-architecture/`. Rama `refactor/backend-architecture`, commiteada y subida a `origin` (4 commits por delante de `main`: `42b1b00`, `0c11115`, `f206ce6`, `9af1032`). Pendiente: T10 (cierre de criterios), PR, CI y despliegue manual (health, login, alta con imagen, pedido y envío de contacto). Opcionales sin hacer: T11 (borrar `MailController`) y T12 (regla de lint contra imports de adaptadores). Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
 
 **Abierto del backend (sin spec todavía):**
 - **DTOs/presenters de respuesta:** los controllers devuelven entidades de TypeORM y dependen de `@Exclude()` + `ClassSerializerInterceptor` para no filtrar campos.
@@ -81,9 +83,9 @@ Spec en `specs/backend-architecture/`. Rama local `refactor/backend-architecture
 - **`login`** sigue con `@Request() req: { user: User }` (usuario de la estrategia `local`, no el `Payload`).
 
 ### Fase 3: arquitectura y calidad (resto, pendiente)
-- Decorador `@CurrentUser()` y presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)
-- Puertos `MailSender`, `ImageStorage`, `AiContentGenerator` y repositorios por contexto; mover las reglas (límite demo, transiciones de orden) al dominio. Empezar por `ordering` e `identity`.
-- Arreglar los tests y el lint y **sacar `continue-on-error` del CI** (hoy los tests no protegen nada).
+- ~~Decorador `@CurrentUser()`~~ (hecho en `backend-architecture`). Quedan los presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)
+- ~~Puertos `MailSender`, `ImageStorage`, `AiContentGenerator`~~ (hechos en `backend-architecture`). Quedan los repositorios por contexto y mover las reglas (límite demo, transiciones de orden) al dominio. Empezar por `ordering` e `identity`.
+- ~~Arreglar los tests y el lint y sacar `continue-on-error` del CI~~ (hecho en `quality-baseline`). El CI es bloqueante; solo quedan con `continue-on-error` los dos `npm audit --omit=dev` informativos, a propósito.
 - Frontend:
   - Servicios de catálogo de lectura pública a `core/data-access` (hoy `home` importa de `catalog-admin`).
   - Una sola fuente de verdad para la sesión (`AuthStore`; hoy `localStorage` se escribe en tres lugares).
@@ -137,6 +139,8 @@ Spec en `specs/backend-architecture/`. Rama local `refactor/backend-architecture
 - Ver el `401` real (no el `403` del arnés) de "sin sesión" en las suites: el guard JWT está reemplazado en los tests.
 
 ## 5. Deuda de tests y lint (preexistente, no la introdujeron estas specs)
+
+> **2026-10-16:** resuelta por `quality-baseline` (tests y lint en verde, CI bloqueante), salvo `test/app.e2e-spec.ts`, el bundle sobre 800 kB y las suites e2e fuera del CI (ver sección 3b). Se deja como registro.
 
 - **Backend, suites unitarias que fallan:** `openai.service`, `mail.service`, `auth.service`, `auth.controller`, `users.service`, `users.controller` (5 tests). Más `test/app.e2e-spec.ts`.
 - **Frontend, tests que fallan (5):** `App` ×2, `AuthFacade`, `LoginForm`, `Profile`. Causas visibles: falta `provideHttpClient` / Zone.js en la configuración de esos specs.

@@ -14,9 +14,10 @@ Monorepo con frontend y backend en el mismo workspace.
 ├─ backend/             NestJS 11 (src)
 ├─ docker-compose.yml   stack completo (frontend, backend, PostgreSQL)
 ├─ .github/workflows/   CI/CD (ci.yml)
-├─ .claude/skills/      skills del agente
-├─ steering/            contexto del proyecto (este directorio)
-└─ specs/               specs de sdd-flow (rapidas/ no se versiona)
+├─ .claude/             configuración del agente
+│  ├─ skills/           skills del agente
+│  ├─ steering/         contexto del proyecto (este directorio)
+│  └─ specs/            specs de sdd-flow (rapidas/ no se versiona)
 ```
 
 ### Frontend (`frontend/src/app`)
