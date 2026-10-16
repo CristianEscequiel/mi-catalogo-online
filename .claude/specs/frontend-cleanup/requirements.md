@@ -21,7 +21,7 @@ Tercera y última spec de la Fase 3 (arquitectura y calidad). Viene después de 
 - Alcance: los cuatro frentes (bundle, sesión única, `OnPush` + `Profile`, código muerto + `core/data-access`).
 - **SSR queda fuera de alcance**: se decide en otra spec junto con el SEO de la Fase 4.
 
-**Decisiones de diseño de la spec (a confirmar al aprobar; se pasan a "tomadas" con el sí):**
+**Decisiones de diseño de la spec (tomadas: aprobadas el 2026-10-16):**
 - `AuthStore` es la única fuente de verdad de la sesión; `AuthService` y `AuthFacade` no tocan `localStorage`.
 - `AuthStore.rehydrate()` sigue siendo el único que lee `localStorage` (lo llama `main.ts` como `APP_INITIALIZER`); `AuthFacade.hydrate` deja de releerlo y toma la sesión del store.
 - Una sesión guardada es **válida** si `token` es un string no vacío y `userLite` es un JSON que contiene un `id` numérico.

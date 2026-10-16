@@ -91,6 +91,9 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 - `LoginResponse.user.id` está tipado con el literal `1` y sin `role`.
 - La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`, que no existe en `ProductResModel`: probablemente siempre muestra «-».
 - `AuthStore.loadingProfile` se escribe pero nadie lo lee.
+- **Login con perfil caído** (`AuthFacade.login`): si `getUserById` falla tras un login correcto, la sesión queda guardada en el store y en `localStorage`, pero la UI dice «Credenciales inválidas». Hacer `store.clear()` en ese caso y agregar test.
+- **Diálogos de producto y categoría:** `uploadImageForEntity` y `deleteImageFromEntity` relanzan errores que, llamados desde la plantilla, terminan como promesas rechazadas sin manejar (`Profile` ya lo corrigió en T17).
+- **`role` de `userLite` sin validar** en `AuthStore.rehydrate()`: un valor editado a mano habilita el menú y las rutas de admin en el cliente (el backend protege con `@Roles`, así que es solo UX). Validar contra `ADMIN | CLIENT | GUEST`; considerar a la vez la expiración del token (Fase 4).
 - Si el bundle vuelve a pasar de 800 kB: T11/T12 de la spec (carga perezosa de login/registro, carrito, checkout y perfil).
 
 ### Fase 3: arquitectura y calidad (resto, pendiente)

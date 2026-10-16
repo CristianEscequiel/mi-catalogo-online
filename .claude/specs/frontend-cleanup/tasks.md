@@ -349,8 +349,14 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **`.claude/steering/tech.md`:** ESLint 9 del frontend y la regla de `OnPush`. **`CLAUDE.md`:** `npm run lint` en «Comandos» y el lint del frontend entre lo que bloquea el CI.
 - **Verificación:** `grep -rn "core/data-access" .claude/steering/structure.md` y `grep -n "npm run lint" CLAUDE.md` con coincidencias. Solo documentación: no se corrieron tests ni build.
 
+### Auditoría con `code-auditor` (antes de T22), 2026-10-16
+- **Veredicto:** aprobable, 0 bloqueantes y 5 menores. Se audita contra `origin/main`: el `main` local está desactualizado y esta rama sale de `refactor/backend-architecture` (aún sin mergear), así que un PR a `main` antes de esa rama arrastraría también el backend.
+- **M2 (aplicado):** `@eslint/js` declarado en `devDependencies` (`^9.39.5`, la misma versión que ya resolvía); solo cambian `package.json` y el lock, sin mover otras versiones.
+- **M4 (aplicado):** estado de la spec y decisiones de `requirements.md`/`design.md` pasados a «tomadas».
+- **M1, M3 y M5 (no aplicados; anotados en `pendientes.md`):** sesión que queda guardada si falla `getUserById` tras un login correcto (`auth.facade.ts`); errores relanzados sin capturar en los diálogos de producto y categoría; `role` de `userLite` sin validar en `rehydrate()`. Los tres ya existían antes de la spec y cambiarlos exige ampliar el diseño.
+
 ### Cierre de criterios (T22)
 *(pendiente)*
 
 ---
-**Estado:** Pendiente de aprobación
+**Estado:** Aprobada el 2026-10-16. T0 a T19 y T21 ejecutadas; pendientes T20 (humo manual) y T22 (cierre).
