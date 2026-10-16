@@ -73,17 +73,19 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 Cada paso termina midiendo el build y anotando el total inicial. **Se para en cuanto el total es de 800 kB o menos** (los pasos siguientes no se hacen). Si tras T12 sigue sobre 800 kB, se para y se vuelve a la spec (plan B).
 
-- [ ] **T10. Rutas de administración perezosas, con un spec de la configuración real de rutas** — REQ-6.1, 6.3, 5.6
+> **Resultado (2026-10-16):** T10 sola llevó el total a **794,27 kB** (era 882,07). T11 y T12 quedan como **contingencia**: se hacen solo si una tarea posterior (`OnPush`, `Profile`) o el build de T22 vuelve a mostrar el total sobre 800 kB. Las tareas que dependían de T12 ahora dependen de T9 y T13 (ver diagrama).
+
+- [x] **T10. Rutas de administración perezosas, con un spec de la configuración real de rutas** — REQ-6.1, 6.3, 5.6
   - **Primero** crear `app.routes.spec.ts`, que lee el arreglo real `routes` y comprueba `canActivate` (con `authGuard`) y `data.roles` de `admin/product` (`ADMIN`, `GUEST`), `admin/category` (`ADMIN`, `GUEST`), `admin/orders` (`ADMIN`) y que `checkout`, `checkout/success` y `profile` tienen `authGuard`. El spec debe pasar **antes** del cambio. Después, en `app.routes.ts`, `admin/product`, `admin/category` y `admin/orders` pasan a `loadComponent: () => import(...)`, conservando `canActivate`, `data.roles` y `pathMatch`.
   - Depende de: T8, T9
   - Verificación: `app.routes.spec.ts` en verde antes y después del cambio (`it('REQ-5.6: ...')` por ruta); `auth-guard.spec.ts` en verde; build: total inicial anotado (esperado ≈ 65 kB menos); `npm run lint` en 0; tests ok.
 
-- [ ] **T11. Páginas de autenticación perezosas** — REQ-6.1, 6.3
+- [ ] **T11 (contingencia, no necesaria por ahora). Páginas de autenticación perezosas** — REQ-6.1, 6.3
   - `check-email`, `forgot-password`/`request-password-reset`, `reset-password` y `verify-email` con `loadComponent`. `login` y `register` quedan eager.
   - Depende de: T10
   - Verificación: build: total inicial anotado (acumulado esperado ≈ 81 kB menos); `app.routes.spec.ts` sigue en verde; `npm run lint` en 0; tests ok.
 
-- [ ] **T12. `cart`, `checkout`, `checkout/success` y `profile` perezosos** — REQ-6.1, 6.3
+- [ ] **T12 (contingencia, no necesaria por ahora). `cart`, `checkout`, `checkout/success` y `profile` perezosos** — REQ-6.1, 6.3
   - Mismo cambio, conservando `canActivate` en las rutas que lo tienen (`checkout`, `checkout/success`, `profile`).
   - Depende de: T11
   - Verificación: build: total inicial ≤ 800 kB y sin la advertencia de presupuesto (REQ-6.1); `app.routes.spec.ts` sigue en verde (guards de `checkout` y `profile` intactos); `git diff origin/main -- angular.json` sin cambios en `budgets` (REQ-6.4); `npm run lint` en 0; tests ok.
@@ -104,17 +106,17 @@ Para cada componente de un grupo: (1) inventariar los campos que cambian por eve
 
 - [ ] **T15. `OnPush` en `cart`, `checkout`, `home` y `product-detail`** — REQ-2.1, 2.2, 2.3
   - `cart-page`, `checkout-page`, `checkout-success-page`, `home-page`, `product-detail-page`.
-  - Depende de: T9, T12, T13
+  - Depende de: T9, T13
   - Verificación: tests `REQ-2.2` en los specs de esos componentes (`home-page.spec.ts` ya existe); `npm run lint` en 0; tests y build ok.
 
 - [ ] **T16a. `OnPush` en el admin de productos** — REQ-2.1, 2.2, 2.3
   - Los 5 componentes de `catalog-admin/products`: `product-admin.page`, `product-form`, `product-form-dialog`, `product-list`, `product-warn-dialog`. En el inventario previo, anotar cuáles tienen estado mutable.
-  - Depende de: T12, T13
+  - Depende de: T13
   - Verificación: un test `REQ-2.2` por cada componente del inventario con estado mutable (en los specs existentes `product-form`, `product-list` o nuevos); `npm run lint` en 0; tests y build ok.
 
 - [ ] **T16b. `OnPush` en el admin de categorías, órdenes y `shared`** — REQ-2.1, 2.2, 2.3
   - Los 9 componentes restantes de `catalog-admin`: `category-admin.page`, `category-form`, `category-form-dialog`, `category-list`, `category-warn-dialog`, `order-admin.page`, `admin-toolbar`, `category-mobile-card`, `product-mobile-card`. Inventario previo de estado mutable.
-  - Depende de: T12, T13
+  - Depende de: T13
   - Verificación: un test `REQ-2.2` por cada componente del inventario con estado mutable (`order-admin.page.spec.ts` y `product-mobile-card` ya existen); `npm run lint` en 0; tests y build ok.
 
 - [ ] **T17. `Profile` con signals y `OnPush`** — REQ-3.1 a 3.11, 2.1
@@ -145,7 +147,7 @@ Para cada componente de un grupo: (1) inventariar los campos que cambian por eve
     7. El panel admin lista, crea y edita un producto, y abre `categories` y `orders`.
     8. La consola no muestra errores en `/home` ni en las rutas del admin.
     9. Con `localStorage.userLite` roto a mano, la app arranca sin sesión y las claves quedan borradas.
-  - Depende de: T12, T18
+  - Depende de: T18
   - Verificación: cada paso del humo anotado con su resultado en el registro.
 
 - [ ] **T21. Documentación** — REQ-8.1, 8.2, 8.3, 8.4
@@ -164,14 +166,14 @@ Para cada componente de un grupo: (1) inventariar los campos que cambian por eve
 T0 → T1 → T2 ─┬→ T3 ──────────────────────────────┐
               ├→ T4 → T5 → T6                      │
               ├→ T7                                │
-              ├→ T8 → T9 → T10 → T11 → T12         │
+              ├→ T8 → T9 → T10 ┄┄► T11 → T12      │  (T11 y T12: contingencia)
               └→ T13 ─┬→ T14 (necesita T7)         │
-                      ├→ T15 (necesita T9, T12)    │
-                      ├→ T16a (necesita T12)       │
-                      ├→ T16b (necesita T12)       │
+                      ├→ T15 (necesita T9)         │
+                      ├→ T16a                      │
+                      ├→ T16b                      │
                       └→ T17                       │
 T14, T15, T16a, T16b, T17 → T18 → T19 → T21 ───────┤
-T12, T18 → T20 ────────────────────────────────────┴→ T22
+T18 → T20 ────────────────────────────────────────┴→ T22
 ```
 
 Independientes entre sí tras T2: la cadena **T4→T6**, **T7**, la cadena **T8→T12** y **T13**. T3 puede hacerse en cualquier momento después de T2 y T22 lo espera.
@@ -264,6 +266,14 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Un tropiezo menor:** el primer intento del test de «no encontrado» falló por mi selector (`a[href="/home"]` agarraba un enlace «Inicio» anterior); se corrigió buscando el enlace por texto. El componente estaba bien.
 - **Límite que queda anotado:** el spec del guard usa listas de roles copiadas de `app.routes.ts`, así que prueba el guard pero no la configuración real de las rutas. Eso lo cubre `app.routes.spec.ts` en T10, que lee el arreglo `routes` de verdad.
 - **Verificación:** lint código 0; build código 0 (882,07 kB, sin cambios); tests **89 en verde** (75 + 14).
+
+### Rutas del admin perezosas (T10), 2026-10-16
+- **Spec nuevo** `app.routes.spec.ts` (10 tests, `REQ-5.6`): lee el arreglo real `routes` y comprueba que `admin/product` y `admin/category` tienen `canActivate: [authGuard]` y roles `['ADMIN', 'GUEST']`, que `admin/orders` tiene `authGuard` y `['ADMIN']`, que las tres conservan `pathMatch: 'full'`, que `checkout`, `checkout/success/:orderId` y `profile` tienen `authGuard`, y que `home`, `product/:slug` y `cart` no lo exigen. **Pasó antes del cambio** (99 tests en verde) y **pasa después**.
+- **Cambio** (`app.routes.ts`): `admin/product`, `admin/category` y `admin/orders` pasan de `component:` a `loadComponent: () => import(…).then(m => m.…)`, con `canActivate`, `data.roles` y `pathMatch` intactos; se quitaron los tres imports estáticos.
+- **Medición del build:** total inicial **794,27 kB** (era 882,07): `main` 229,48 kB + `styles` 99,70 kB + los chunks iniciales compartidos; **sin la advertencia de presupuesto** (REQ-6.1). Bajó 87,8 kB, más que los ~65 kB estimados, porque con las pantallas del admin se fue parte de CDK `Dialog`. Chunks perezosos nuevos: `product-admin-page` 36,82 kB, `category-admin-page` 16,97 kB, `order-admin-page` 11,70 kB y uno compartido de 27,79 kB.
+- **`git diff -- angular.json`:** vacío (REQ-6.4).
+- **Margen:** 5,73 kB bajo el presupuesto. Es poco; el build de T22 lo vuelve a medir y, si se pasara de 800 kB, se hacen T11 y T12.
+- **Verificación:** lint código 0; build código 0; tests **99 en verde** (89 + 10).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
