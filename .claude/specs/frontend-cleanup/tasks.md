@@ -18,7 +18,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 ## Grupo B: ESLint (antes de cambiar código)
 
-- [ ] **T1. Instalar ESLint y configurarlo** — REQ-9.1, 9.2, 9.6
+- [x] **T1. Instalar ESLint y configurarlo** — REQ-9.1, 9.2, 9.6
   - Con `npm view` confirmar las versiones de `eslint`, `typescript-eslint` y `angular-eslint` compatibles con Angular 20.3 y anotarlas. Instalar como `devDependencies` con `npm install -D --legacy-peer-deps ...` (o `ng add angular-eslint`). Crear `eslint.config.js` (plano) con las recomendadas de `typescript-eslint` y de `angular-eslint` para `*.ts` y `*.html`, prefijo `app` en los selectores. **No** activar todavía `prefer-on-push-component-change-detection` (se activa en T19, cuando ya no quedan componentes sin `OnPush`). Agregar el script `"lint"` en `package.json`.
   - Depende de: T0
   - Verificación: `npm run lint` se ejecuta y lista errores (aún no hace falta que dé 0); `git diff origin/main -- package.json` muestra `dependencies` sin cambios y solo `devDependencies` de ESLint y el script `lint`; `npm audit --omit=dev` da el mismo resultado que en T0; `npm run build` y los tests siguen igual que en T0.
@@ -191,6 +191,12 @@ Rama `refactor/frontend-cleanup`, creada desde `refactor/backend-architecture` (
 | `git diff origin/main -- package.json angular.json` | vacío |
 
 Los números coinciden con lo esperado (REQ-6.1 y REQ-7.1 parten de aquí).
+
+### ESLint instalado (T1), 2026-10-16
+- **Versiones** (elegidas con `npm view`): `eslint@^9.39.5`, `typescript-eslint@^8.71.2`, `angular-eslint@^20.7.0`, todas en `devDependencies`. La última `angular-eslint` es la 22.x (para Angular 22) y `eslint` 10.x; se descartaron porque `angular-eslint` 20 declara `eslint: ^8.57.0 || ^9.0.0`. Instaladas con `npm install -D --legacy-peer-deps`.
+- **Configuración:** `frontend/eslint.config.js` (plana): recomendadas de `eslint`, `typescript-eslint` y `angular-eslint` (`tsRecommended` y `templateRecommended`, con `processInlineTemplates`), prefijo `app` en selectores. Sin la regla de `OnPush` (se activa en T19). Ignora `dist`, `.angular`, `node_modules` y `public`.
+- **Script:** `"lint": "eslint \"src/**/*.{ts,html}\""` (CLI directo, sin tocar `angular.json`).
+- **Verificación:** `npm run lint` se ejecuta y reporta **47 errores en 16 de 106 archivos**: `prefer-inject` 20, `no-explicit-any` 14, `no-unused-vars` 11, `no-output-native` 2 (insumo de T2). `npm audit --omit=dev`: 0 vulnerabilidades (igual que antes). Build: 882,43 kB, código 0, igual que T0. Tests: 38 en verde. `git diff origin/main -- package.json`: `dependencies` sin cambios; solo las tres `devDependencies` y el script `lint`.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
