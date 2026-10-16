@@ -52,7 +52,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 ## Grupo D: código muerto (REQ-4)
 
-- [ ] **T7. Borrar la cadena `postItems` y renombrar el selector de `HomePage`** — REQ-4.1, 4.2, 4.3, 4.4
+- [x] **T7. Borrar la cadena `postItems` y renombrar el selector de `HomePage`** — REQ-4.1, 4.2, 4.3, 4.4
   - Borrar `LoginForm.postItems`, `AuthFacade.newPost` y `AuthService.postItems`, y los imports que queden sin uso. Cambiar `selector` de `HomePage` a `app-home-page`. No tocar `AuthStore.rehydrate` ni `main.ts`.
   - Depende de: T2 (independiente de T4–T6)
   - Verificación: `grep -rn "postItems\|newPost\|/posts" src/app` (sin specs) vacío; `grep -rn "selector: 'app-header'" src/app` solo en `shared/header/header.ts`; `grep -n "rehydrate" src/main.ts` una coincidencia; `npm run lint` en 0; tests y build ok.
@@ -241,6 +241,12 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Corrección a lo que decían el diseño y la spec:** `AuthStore._loadingProfile` es de **solo escritura**: nadie lo lee ni lo expone. El «flag atascado en `true`» no era observable. Lo que sí era observable es que `hydrate()` **rechazaba la promesa** sin que `main.ts` la atrapara (rechazo no manejado en el arranque). El cambio sigue siendo correcto, pero su beneficio real es ese rechazo; el flag se prueba por el orden de llamadas de `setLoadingProfile`. Queda anotado que `loadingProfile` es una señal sin lector (candidata a borrarse o a usarse en una spec posterior).
 - **`grep` de REQ-1.11 corregido** en el diseño y en T6: el patrón anterior (`'token'` suelto) también atrapaba `queryParamMap.get('token')`. El patrón correcto es `localStorage\.[a-zA-Z]+\(\s*'(token|userLite)'`: da 6 coincidencias, todas en `core/state/auth.store.ts`. `theme.service.ts` usa otra clave y en `auth.service.ts` solo queda un comentario.
 - **Verificación:** lint código 0; build código 0 (882,36 kB); tests **58 en verde** (54 + 4).
+
+### Código muerto (T7), 2026-10-16
+- **Borrado:** `LoginForm.postItems()`, `AuthFacade.newPost()` y `AuthService.postItems()` (el `POST /posts` con el texto de prueba). Ninguna plantilla ni spec los usaba. El selector de `HomePage` pasó de `app-header` a `app-home-page`.
+- **Verificación de los criterios:** `grep -rn "postItems\|newPost\|/posts" src/app` (sin specs) → vacío (REQ-4.1, 4.2); `grep -rn "selector: 'app-header'" src/app` → solo `shared/header/header.ts:15` (REQ-4.3); `grep -n "rehydrate" src/main.ts` → `store.rehydrate()` en la línea 15, dentro del `APP_INITIALIZER` (REQ-4.4; el `grep` da 3 líneas porque también coincide el nombre `rehydrateStore`, no solo una).
+- **Verificación:** lint código 0 (sin imports huérfanos: `firstValueFrom` y `authService` siguen en uso en el facade); build código 0 (**882,07 kB**, 0,3 kB menos); tests **58 en verde**, sin cambios.
+- **Sin test propio:** el renombre del selector no tiene test porque ninguna plantilla usa la etiqueta `<app-home-page>` (la pantalla se carga por ruta); lo cubre el `grep`.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
