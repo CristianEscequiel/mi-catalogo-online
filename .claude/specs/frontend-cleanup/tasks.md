@@ -155,7 +155,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T18
   - Verificación: cada paso del humo anotado con su resultado en el registro.
 
-- [ ] **T21. Documentación** — REQ-8.1, 8.2, 8.3, 8.4
+- [x] **T21. Documentación** — REQ-8.1, 8.2, 8.3, 8.4
   - `.claude/specs/pendientes.md` (estado de la Fase 3, lo abierto del frontend y la duplicación de providers entre `main.ts` y `app.config.ts`); `.claude/steering/structure.md` (`core/data-access`, `AuthStore` como única fuente de sesión); `.claude/steering/tech.md` y la sección «Comandos» de `CLAUDE.md` (ESLint y `npm run lint` en el frontend).
   - Depende de: T19
   - Verificación: lectura de los cuatro archivos; `grep -rn "core/data-access" .claude/steering/structure.md` y `grep -n "npm run lint" CLAUDE.md` con coincidencias.
@@ -342,6 +342,12 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **T19:** se agregó `'@angular-eslint/prefer-on-push-component-change-detection': 'error'` a `eslint.config.js`. `npm run lint` queda en 0.
 - **Prueba manual de la regla:** se quitó `changeDetection` de `app.ts`; `eslint` falló con «The component's `changeDetection` value should be set to `ChangeDetectionStrategy.OnPush`» (`@angular-eslint/prefer-on-push-component-change-detection`), además del import sin uso. Se restauró el archivo (`git status` solo muestra `eslint.config.js`) y el lint volvió a 0. REQ-2.4 y REQ-9.2 cubiertos.
 - **Verificación:** lint código 0 antes y después de la prueba; el cambio es solo de configuración, sin tocar código de la app.
+
+### Documentación (T21), 2026-10-16
+- **`.claude/specs/pendientes.md`:** fila de la Fase 3 y nueva sección «Fase 3, spec 3: `frontend-cleanup`» (qué se hizo, qué falta: T20 y T22); el bundle de 882 kB pasa a resuelto (794,70 kB); los cuatro ítems de frontend de la lista de la Fase 3 quedan tachados salvo SSR. Abierto anotado: providers duplicados `main.ts`/`app.config.ts`, `LoginResponse.user.id` literal `1` sin `role`, columna «Categorías» con `row.categoryIds` inexistente, `loadingProfile` sin lector y la contingencia T11/T12.
+- **`.claude/steering/structure.md`:** `core/data-access` en el árbol y como regla; `AuthStore` única fuente de sesión y único dueño del `localStorage` de sesión; `OnPush` + signals como convención. Se evitó afirmar que ninguna feature importa de otra: `profile` todavía importa `AuthService` de `auth`.
+- **`.claude/steering/tech.md`:** ESLint 9 del frontend y la regla de `OnPush`. **`CLAUDE.md`:** `npm run lint` en «Comandos» y el lint del frontend entre lo que bloquea el CI.
+- **Verificación:** `grep -rn "core/data-access" .claude/steering/structure.md` y `grep -n "npm run lint" CLAUDE.md` con coincidencias. Solo documentación: no se corrieron tests ni build.
 
 ### Cierre de criterios (T22)
 *(pendiente)*

@@ -62,10 +62,10 @@ Elección rápida:
 ## Comandos
 
 Backend (`cd backend`): `npm run start:dev` · `npm run build` · `npm test` · `npx eslint "{src,apps,libs,test}/**/*.ts"` · `npm run migrations:generate -- src/database/migrations/<Nombre>` · `npm run migrations:run`
-Frontend (`cd frontend`): `npm start` · `npm run build` · `npx ng test --no-watch --browsers=ChromeHeadless`
+Frontend (`cd frontend`): `npm start` · `npm run build` · `npm run lint` · `npx ng test --no-watch --browsers=ChromeHeadless`
 Stack completo: `docker compose up -d --build` (requiere `.env` a partir de `.env-example`).
 
-Estado conocido (ver `.github/workflows/ci.yml`): el CI bloquea si falla el lint del backend, los tests (jest y Karma), el build o `npm audit --omit=dev --audit-level=critical`; las vulnerabilidades altas se muestran sin bloquear. Para validar un cambio: lint + tests + build en verde. Si un cambio rompe un test existente, se corrige en el mismo cambio (no se deja en rojo ni se desactiva).
+Estado conocido (ver `.github/workflows/ci.yml`): el CI bloquea si falla el lint (backend y frontend), los tests (jest y Karma), el build o `npm audit --omit=dev --audit-level=critical`; las vulnerabilidades altas se muestran sin bloquear. Para validar un cambio: lint + tests + build en verde. Si un cambio rompe un test existente, se corrige en el mismo cambio (no se deja en rojo ni se desactiva).
 
 ## Validación
 
