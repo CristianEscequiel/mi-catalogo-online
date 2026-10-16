@@ -142,6 +142,7 @@ export class PrdListComponent implements OnInit {
     });
 
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stub: la vista de detalle del admin aún no está implementada; el parámetro lo pasa la plantilla
   onView(row: ProductResModel) {
     //Todo:
   }

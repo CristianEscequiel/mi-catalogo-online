@@ -1,5 +1,4 @@
-import { Component, Inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { Component, inject } from '@angular/core';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { ProductModel } from '../../models/product.model';
@@ -33,12 +32,11 @@ import { NotificationService } from '../../../../../core/services/notification.s
   `
 })
 export class ProductWarnDialogComponent {
-  constructor(
-    private productService: ProductService,
-    private notificationService: NotificationService,
-    private dialogRef: DialogRef<'deleted' | 'cancel'>,
-    @Inject(DIALOG_DATA) public data: { id:number ,  product: ProductModel }
-  ){}
+  private productService = inject(ProductService);
+  private notificationService = inject(NotificationService);
+  private dialogRef = inject<DialogRef<'deleted' | 'cancel'>>(DialogRef);
+  data = inject<{ id: number, product: ProductModel }>(DIALOG_DATA);
+
   onConfirmDelete() {
     this.productService.deleteProduct(this.data.id).subscribe({
       next: () => {

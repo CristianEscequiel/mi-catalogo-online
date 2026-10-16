@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, tap } from 'rxjs';
 import { UserLogin } from '../../../core/models/user.model';
@@ -120,6 +120,6 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
         categoryIds: [1 , 2 , 3  , 4],
         content:"Lorem impsum djsakdjslñadalskdjas"
     }
-    return this.http.post<any>(`${this.apiUrl}/posts`, body )
+    return this.http.post<unknown>(`${this.apiUrl}/posts`, body )
   }
 }

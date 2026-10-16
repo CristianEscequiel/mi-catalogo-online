@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { CategoryModel } from '../../models/category.model';
@@ -30,12 +30,10 @@ import { NotificationService } from '../../../../../core/services/notification.s
   `
 })
 export class CategoryWarnDialogComponent {
-  constructor(
-    private categoryService: CategoryService,
-    private notificationService: NotificationService,
-    private dialogRef: DialogRef<'deleted' | 'cancel'>,
-    @Inject(DIALOG_DATA) public data: { id: number, category: CategoryModel }
-  ) {}
+  private categoryService = inject(CategoryService);
+  private notificationService = inject(NotificationService);
+  private dialogRef = inject<DialogRef<'deleted' | 'cancel'>>(DialogRef);
+  data = inject<{ id: number, category: CategoryModel }>(DIALOG_DATA);
 
   onConfirmDelete() {
     this.categoryService.deleteCategory(this.data.id).subscribe({

@@ -24,7 +24,7 @@ export class Header implements OnInit {
   isLoggedIn = this.store.isLoggedIn;
   userName = computed(() => (this.store.userProfile()?.name ?? ''));
   userLastName = computed(() => (this.store.userProfile()?.lastName ?? ''));
-  avatar = computed(() => (this.store.userProfile() as any)?.avatar ?? null);
+  avatar = computed(() => this.store.userProfile()?.avatar ?? null);
   canAccessAdminMenu = computed(() => {
     const role = this.store.userLite()?.role;
     return role === 'ADMIN' || role === 'GUEST';
@@ -46,7 +46,7 @@ export class Header implements OnInit {
     return resolveImageUrl(imageUrl) ?? 'https://placehold.co/80x80?text=Perfil';
   }
 
-  async removeItem(productId: number, _trigger?: CdkMenuTrigger): Promise<void> {
+  async removeItem(productId: number): Promise<void> {
     try {
       await this.cartStore.remove(productId);
     } catch (error) {

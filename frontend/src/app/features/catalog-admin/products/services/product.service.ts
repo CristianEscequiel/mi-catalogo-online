@@ -30,6 +30,11 @@ export interface ProductPageRequest {
   categoryId?: number | null;
 }
 
+export interface GeneratedProductContent {
+  description: string;
+  slug: string;
+}
+
 export interface GenerateProductFromImageRequest {
   imageUrl: string;
   categories: ProductImageCategoryOption[];
@@ -59,7 +64,7 @@ export class ProductService {
   }
 
   async postProduct(body: ProductModel) {
-    const res = await firstValueFrom(this.http.post<any>(`${this.apiUrl}/products`, body))
+    const res = await firstValueFrom(this.http.post<ProductResModel>(`${this.apiUrl}/products`, body))
     return res
   }
 
@@ -79,24 +84,24 @@ export class ProductService {
     return this.http.get<ProductPage>(`${this.apiUrl}/products`, { params });
   }
 
-  getProductsByUserId(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/users/${id}/products`);
+  getProductsByUserId(id: number): Observable<ProductResModel[]> {
+    return this.http.get<ProductResModel[]>(`${this.apiUrl}/users/${id}/products`);
   }
 
-  getDescriptionByAi(name: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/products/generate-ai/${name}`);
+  getDescriptionByAi(name: string): Observable<GeneratedProductContent> {
+    return this.http.get<GeneratedProductContent>(`${this.apiUrl}/products/generate-ai/${name}`);
   }
 
   generateFromImage(body: GenerateProductFromImageRequest): Observable<GenerateProductFromImageResponse> {
     return this.http.post<GenerateProductFromImageResponse>(`${this.apiUrl}/products/generate-from-image`, body);
   }
 
-  editProduct(id:number , body:ProductModel): Observable<any>{
-    return this.http.put<any>(`${this.apiUrl}/products/${id}`, body)
+  editProduct(id:number , body:ProductModel): Observable<ProductResModel>{
+    return this.http.put<ProductResModel>(`${this.apiUrl}/products/${id}`, body)
   }
 
-  deleteProduct(id:number): Observable<any>{
-    return this.http.delete<any>(`${this.apiUrl}/products/${id}`)
+  deleteProduct(id:number): Observable<unknown>{
+    return this.http.delete<unknown>(`${this.apiUrl}/products/${id}`)
   }
 
   uploadProductImage(id: number, file: File): Observable<ImageMutationResponse> {

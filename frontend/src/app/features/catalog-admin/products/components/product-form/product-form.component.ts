@@ -27,7 +27,7 @@ export class PrdFormComponent implements OnInit {
   @Input() isDeletingImage = false;
   @Input() isSaving = false;
   @Output() submitForm = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
   @Output() imageFileSelected = new EventEmitter<File | null>();
   @Output() uploadImage = new EventEmitter<void>();
   @Output() deleteImage = new EventEmitter<void>();

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DIALOG_DATA, DialogModule, DialogRef } from '@angular/cdk/dialog';
 
 export interface ConfirmDialogData {
@@ -30,10 +30,8 @@ export interface ConfirmDialogData {
   `
 })
 export class ConfirmDialogComponent {
-  constructor(
-    private dialogRef: DialogRef<boolean>,
-    @Inject(DIALOG_DATA) public data: ConfirmDialogData
-  ) {}
+  private dialogRef = inject<DialogRef<boolean>>(DialogRef);
+  data = inject<ConfirmDialogData>(DIALOG_DATA);
 
   onConfirm() {
     this.dialogRef.close(true);

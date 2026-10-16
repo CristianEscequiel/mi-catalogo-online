@@ -17,7 +17,7 @@ export class CategoryFormComponent {
   @Input() isUploadingImage = false;
   @Input() isDeletingImage = false;
   @Output() submitForm = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
   @Output() imageFileSelected = new EventEmitter<File | null>();
   @Output() uploadImage = new EventEmitter<void>();
   @Output() deleteImage = new EventEmitter<void>();

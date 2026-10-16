@@ -1,4 +1,4 @@
-import { Component, inject, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dialog, DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
@@ -48,7 +48,7 @@ type FormMode = 'create' | 'edit';
         (uploadImage)="onUploadImage()"
         (deleteImage)="onDeleteImage()"
         (submitForm)="onSubmit()"
-        (cancel)="onCancel()">
+        (cancelled)="onCancel()">
       </app-product-form>
     </div>
   </div>
@@ -65,13 +65,14 @@ export class ProductFormDialogComponent {
   isDeletingImage = false;
   isSaving = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private productService: ProductService,
-    private notificationService: NotificationService,
-    private dialogRef: DialogRef<'updated' | 'cancel'>,
-    @Inject(DIALOG_DATA) public data: { id: number; product: ProductModel; mode: FormMode },
-  ) {
+  private fb = inject(FormBuilder);
+  private productService = inject(ProductService);
+  private notificationService = inject(NotificationService);
+  private dialogRef = inject<DialogRef<'updated' | 'cancel'>>(DialogRef);
+  data = inject<{ id: number; product: ProductModel; mode: FormMode }>(DIALOG_DATA);
+
+  constructor() {
+    const data = this.data;
     this.imageUrl = data.product?.thumbnailUrl ?? null;
 
     if (data.mode === 'edit') {

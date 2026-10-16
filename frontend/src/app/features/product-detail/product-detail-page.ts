@@ -1,6 +1,7 @@
 import { CommonModule, DecimalPipe, Location } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ProductService } from '../catalog-admin/products/services/product.service';
 import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
@@ -147,10 +148,10 @@ export class ProductDetailPage implements OnInit {
       this.product.set(product);
       this.quantity.set(1);
       this.titleService.setTitle(`${product.name} | Catálogo`);
-    } catch (error: any) {
+    } catch (error) {
       this.product.set(null);
 
-      if (error?.status === 404) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
         this.notFound.set(true);
         this.titleService.setTitle('Producto no encontrado | Catálogo');
       } else {

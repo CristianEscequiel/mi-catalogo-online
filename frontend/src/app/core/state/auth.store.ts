@@ -1,5 +1,5 @@
 // core/state/auth.store.ts
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 
 export type UserRole = 'ADMIN' | 'CLIENT' | 'GUEST';
 export interface UserLite {

@@ -1,8 +1,7 @@
-import { AfterViewInit, Component, inject, OnInit } from '@angular/core';
+import { AfterViewInit, Component, inject } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { AuthStore } from '../../core/state/auth.store';
-import { Form, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UserFormLogin } from '../../core/models/user-form.model';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
