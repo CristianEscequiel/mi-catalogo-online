@@ -104,7 +104,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T7, T13
   - Verificación: tests `REQ-2.2` en `login-form.spec.ts` y `register-form`; `npm run lint` en 0; tests y build ok.
 
-- [ ] **T15. `OnPush` en `cart`, `checkout`, `home` y `product-detail`** — REQ-2.1, 2.2, 2.3
+- [x] **T15. `OnPush` en `cart`, `checkout`, `home` y `product-detail`** — REQ-2.1, 2.2, 2.3
   - `cart-page`, `checkout-page`, `checkout-success-page`, `home-page`, `product-detail-page`.
   - Depende de: T9, T13
   - Verificación: tests `REQ-2.2` en los specs de esos componentes (`home-page.spec.ts` ya existe); `npm run lint` en 0; tests y build ok.
@@ -294,6 +294,12 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Rojo antes de implementar:** 3 de los 8 fallaban con `NG0100` (el login fallido y el registro fallido volviendo a habilitar el botón, y `showPassword`), justo los que cambian un campo común fuera de un evento. Con signals pasan.
 - **Hallazgo sobre el entorno de pruebas:** todos los specs usan `provideZonelessChangeDetection`, y en modo zoneless un campo común cambiado fuera de un evento no se renderiza **ni siquiera con `Default`** (de ahí el rojo previo). La app del navegador corre con `zone.js`, así que en producción esos campos sí se veían; con `OnPush` + signals el comportamiento es el mismo en los dos modos. Los tests de esta spec son, por eso, una verificación más estricta que el navegador actual.
 - **Verificación:** lint código 0; build código 0 (**794,42 kB**, margen 5,58 kB); tests **115 en verde** (107 + 8).
+
+### `OnPush` en `cart`, `checkout`, `home` y `product-detail` (T15), 2026-10-16
+- **Inventario de estado mutable:** los 5 componentes (`CartPage`, `CheckoutPage`, `CheckoutSuccessPage`, `HomePage`, `ProductDetailPage`) ya guardaban todo su estado en `signal`/`computed`. Los únicos campos comunes son `requestSeq` y `appliedSearch` de `HomePage`, privados y que la plantilla no lee. La plantilla también lee estado de las tiendas (`favoritesStore.isFavorite()`, `cartStore.items()`), y se comprobó que ambas lo guardan en señales, así que `OnPush` los ve. El estado de `checkoutForm` (errores de campo) cambia solo con eventos del propio formulario o dentro de `placeOrder()` (un evento de envío). Los cinco son hojas respecto de componentes propios (solo usan `RouterLink`), así que cumplen la regla de subárbol seguro. **No hubo que convertir ningún campo**: el cambio de código es solo `ChangeDetectionStrategy.OnPush`.
+- **Tests nuevos (14, de caracterización):** `cart-page.spec.ts` (nuevo, 5): esqueleto mientras carga, estado vacío, ítems tras cargar, error con «Reintentar» que vuelve a pedir, y quitar un ítem (spinner y botón deshabilitado mientras espera, desaparece al terminar). `checkout-success-page.spec.ts` (nuevo, 3): «Cargando detalle…», pedido cargado (número y «Esperando transferencia») y error («No pudimos cargar este pedido.»). `checkout-page.spec.ts` (nuevo, 6): esqueleto, error de carga, formulario con «Finalizar pedido» deshabilitado hasta completarlo, «Procesando pedido…» al enviar, mensaje del backend al rechazar con el botón habilitado de nuevo, y recarga del carrito más navegación a `/checkout/success/12` al confirmarse. `home-page.spec.ts` y `product-detail-page.spec.ts` ya cubrían sus estados (T9 y la spec de `catalog-access`).
+- **Dos tropiezos en los tests:** (1) un doble de `Router` rompió el `routerLink` de la plantilla; se usó el router real con `navigate` espiado. (2) El lint cazó una variable `navigate` sin usar; en vez de borrarla se agregó el test de navegación al confirmar el pedido, que faltaba.
+- **Verificación:** lint código 0; build código 0 (**794,51 kB**, margen 5,49 kB); tests **129 en verde** (115 + 14).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
