@@ -99,7 +99,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T2
   - Verificación: tests `REQ-2.2` para los que tienen estado mutable; `npm run lint` en 0; tests y build ok.
 
-- [ ] **T14. `OnPush` en `auth`** — REQ-2.1, 2.2, 2.3
+- [x] **T14. `OnPush` en `auth`** — REQ-2.1, 2.2, 2.3
   - `login-form` (incluye `isLoading`, que hoy es un campo común) y `register-form`.
   - Depende de: T7, T13
   - Verificación: tests `REQ-2.2` en `login-form.spec.ts` y `register-form`; `npm run lint` en 0; tests y build ok.
@@ -286,6 +286,14 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Aplicado:** `changeDetection: ChangeDetectionStrategy.OnPush` en `header`, `toast-container`, `confirm-dialog` e `image-field`. `app.ts` y `layout` siguen en `Default` hasta T17b.
 - **Tests nuevos (8), de caracterización** (pasaban con `Default` y siguen pasando con `OnPush`; son la red para las próximas tareas): `toast-container.spec.ts` (3, `REQ-2.2`): muestra un éxito con `alert-success`, una por cada tipo con su clase, y desaparece al vencer su tiempo. `image-field.component.spec.ts` (5, `REQ-2.2`): estado inicial, vista previa al elegir un archivo (`blob:` y `fileSelected`), imageUrl nuevo que descarta la vista previa, «Subiendo imagen…» en modo controls y mensaje de error. No se escribió test para `header`, `app`, `layout` ni `confirm-dialog` porque no tienen estado mutable propio.
 - **Verificación:** lint código 0; build código 0 (**794,35 kB**, +0,08 kB; sigue bajo 800 kB, margen 5,65 kB); tests **107 en verde** (99 + 8).
+
+### `OnPush` en `auth` (T14), 2026-10-16
+- **Inventario de estado mutable:** `LoginForm`: `isLoading` (cambia en el `finally` de una operación asíncrona) y `showPassword` (lo cambia `togglePassword()`); `RegisterForm`: `isLoading`. Los dos formularios son hojas (no tienen componentes hijos propios, solo `RouterLink`), así que cumplen la regla de subárbol seguro. `returnUrl` y `authRequired` son constantes leídas una vez del snapshot de la ruta.
+- **Cambios:** `isLoading` y `showPassword` pasaron a `signal` (`showPassword.update(...)`, `isLoading.set(...)`), las plantillas leen `isLoading()` y `showPassword()`, y los dos componentes declaran `ChangeDetectionStrategy.OnPush`.
+- **Tests nuevos (8):** `login-form.spec.ts` (+4, `REQ-2.2`) y `register-form.spec.ts` (nuevo, +4: `should create` y 3 de `REQ-2.2`): botón deshabilitado con el formulario vacío; mientras se envía muestra «Ingresando…» / «Creando cuenta…» con el botón deshabilitado y al terminar vuelve al texto normal; si falla vuelve al texto normal, habilita el botón y conserva lo escrito; y, solo en `LoginForm`, alternar `showPassword` cambia el tipo del campo de contraseña. Se escribe como lo haría el usuario (evento `input` del DOM), no con `setValue`, que no marca sucio a un componente `OnPush`.
+- **Rojo antes de implementar:** 3 de los 8 fallaban con `NG0100` (el login fallido y el registro fallido volviendo a habilitar el botón, y `showPassword`), justo los que cambian un campo común fuera de un evento. Con signals pasan.
+- **Hallazgo sobre el entorno de pruebas:** todos los specs usan `provideZonelessChangeDetection`, y en modo zoneless un campo común cambiado fuera de un evento no se renderiza **ni siquiera con `Default`** (de ahí el rojo previo). La app del navegador corre con `zone.js`, así que en producción esos campos sí se veían; con `OnPush` + signals el comportamiento es el mismo en los dos modos. Los tests de esta spec son, por eso, una verificación más estricta que el navegador actual.
+- **Verificación:** lint código 0; build código 0 (**794,42 kB**, margen 5,58 kB); tests **115 en verde** (107 + 8).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
