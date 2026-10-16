@@ -22,11 +22,14 @@ Monorepo con frontend y backend en el mismo workspace.
 
 ### Frontend (`frontend/src/app`)
 ```
-core/        config, guards, interceptors, layouts, models, services (cart, favorites, orders, theme, notification), state (auth/cart/favorites store)
+core/        config, data-access (products, categories: servicios y modelos de catálogo), guards, interceptors, layouts, models, services (cart, favorites, orders, theme, notification), state (auth/cart/favorites store)
 features/    auth, cart, catalog-admin (products, categories, orders), checkout, home, product-detail, profile
 shared/      components (confirm-dialog, image-field), header, notifications, utils
 ```
 - `core/` es lo transversal y singleton; cada pantalla de negocio vive en `features/<dominio>`.
+- `core/data-access/` contiene los servicios y modelos de catálogo que consumen varias features (por ejemplo `home` y `catalog-admin`); los servicios de catálogo de lectura pública no se importan desde `catalog-admin`.
+- `AuthStore` (`core/state/auth.store.ts`) es la única fuente de la sesión y el único lugar que lee o escribe el `localStorage` de sesión (`token`, `userLite`); `AuthService` y `AuthFacade` no lo tocan.
+- Todo componente usa `ChangeDetectionStrategy.OnPush` (lo exige ESLint) y el estado que se muestra va en signals.
 - Lo reutilizable entre features va en `shared/`.
 
 ### Backend (`backend/src`)

@@ -1,14 +1,15 @@
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
-import { CategoryModel } from '../../models/category.model';
-import { CategoryService } from '../../services/category.service';
+import { CategoryModel } from '../../../../../core/data-access/categories/category.model';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   standalone: true,
   selector: 'app-category-warn-dialog',
   imports: [CommonModule, DialogModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-base-200 rounded-2xl shadow-xl p-4">
       <h2 class="text-lg font-semibold mb-4">¿Desea eliminar esta categoría?</h2>
@@ -30,12 +31,10 @@ import { NotificationService } from '../../../../../core/services/notification.s
   `
 })
 export class CategoryWarnDialogComponent {
-  constructor(
-    private categoryService: CategoryService,
-    private notificationService: NotificationService,
-    private dialogRef: DialogRef<'deleted' | 'cancel'>,
-    @Inject(DIALOG_DATA) public data: { id: number, category: CategoryModel }
-  ) {}
+  private categoryService = inject(CategoryService);
+  private notificationService = inject(NotificationService);
+  private dialogRef = inject<DialogRef<'deleted' | 'cancel'>>(DialogRef);
+  data = inject<{ id: number, category: CategoryModel }>(DIALOG_DATA);
 
   onConfirmDelete() {
     this.categoryService.deleteCategory(this.data.id).subscribe({

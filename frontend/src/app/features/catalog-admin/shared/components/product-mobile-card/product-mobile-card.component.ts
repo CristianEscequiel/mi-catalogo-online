@@ -1,13 +1,14 @@
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
-import { ProductResModel } from '../../../products/models/prd-res.model';
+import { ProductResModel } from '../../../../../core/data-access/products/prd-res.model';
 
 @Component({
   selector: 'app-product-mobile-card',
   standalone: true,
   imports: [CurrencyPipe, NgClass],
   templateUrl: './product-mobile-card.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductMobileCardComponent {
   @Input({ required: true }) product!: ProductResModel;

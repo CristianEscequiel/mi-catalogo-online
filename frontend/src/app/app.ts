@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Layout } from './core/layouts/layout/layout';
 import { ThemeService } from './core/services/theme.service';
 
@@ -6,6 +6,7 @@ import { ThemeService } from './core/services/theme.service';
   selector: 'app-root',
   imports: [Layout],
   templateUrl: './app.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   private readonly themeService = inject(ThemeService);

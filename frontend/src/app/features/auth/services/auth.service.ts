@@ -1,6 +1,6 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, Observable, tap } from 'rxjs';
+import { catchError, Observable } from 'rxjs';
 import { UserLogin } from '../../../core/models/user.model';
 import { LoginResponse } from '../models/login-res.model';
 import { ProfileResponse } from '../models/profile-res.model';
@@ -35,10 +35,8 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
       email,
       password,
     };
+    // La sesión la guarda AuthStore.setAuth (AuthFacade); este servicio no toca localStorage.
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, body).pipe(
-      tap(res => {
-        localStorage.setItem('token', res.access_token);
-      }),
       catchError(err => {
         console.error('Error en login', err);
         throw err;
@@ -112,14 +110,5 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
 
   deleteProfileImage(id: number) {
     return this.http.delete<{ userId: number; imageUrl: string | null }>(`${this.apiUrl}/users/${id}/profile/image`);
-  }
-
-  postItems(){
-    const body = {
-        title: "Los gatos: compañeros misteriosos y encantadores",
-        categoryIds: [1 , 2 , 3  , 4],
-        content:"Lorem impsum djsakdjslñadalskdjas"
-    }
-    return this.http.post<any>(`${this.apiUrl}/posts`, body )
   }
 }

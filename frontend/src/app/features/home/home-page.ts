@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,19 +11,20 @@ import { NotificationService } from '../../core/services/notification.service';
 import { AuthStore } from '../../core/state/auth.store';
 import { CartStore } from '../../core/state/cart.store';
 import { FavoritesStore } from '../../core/state/favorites.store';
-import { CategoryResModel } from '../catalog-admin/categories/models/category.model';
-import { CategoryService } from '../catalog-admin/categories/services/category.service';
-import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
-import { ProductPage, ProductService } from '../catalog-admin/products/services/product.service';
+import { CategoryResModel } from '../../core/data-access/categories/category.model';
+import { CategoryService } from '../../core/data-access/categories/category.service';
+import { ProductResModel } from '../../core/data-access/products/prd-res.model';
+import { ProductPage, ProductService } from '../../core/data-access/products/product.service';
 
 const PAGE_SIZE = 12;
 const SEARCH_DEBOUNCE_MS = 300;
 
 @Component({
   standalone: true,
-  selector: 'app-header',
+  selector: 'app-home-page',
   imports: [FontAwesomeModule, ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './home-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements OnInit {
   readonly faFilter = faSliders;

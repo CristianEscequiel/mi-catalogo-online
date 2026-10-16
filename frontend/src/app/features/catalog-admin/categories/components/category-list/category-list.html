@@ -7,7 +7,7 @@
   />
 
   <div class="space-y-3 md:hidden">
-    @for (row of filteredCategories; track row.id) {
+    @for (row of filteredCategories(); track row.id) {
       <app-category-mobile-card
         [category]="row"
         (edit)="onEdit($event)"
@@ -22,7 +22,7 @@
 </div>
 
 <div class="hidden md:block md:px-4">
-<table cdk-table [dataSource]="filteredCategories" class="table w-full rounded-box bg-base-200">
+<table cdk-table [dataSource]="filteredCategories()" class="table w-full rounded-box bg-base-200">
   <ng-container cdkColumnDef="image">
     <th cdk-header-cell *cdkHeaderCellDef class="w-16">Img</th>
     <td cdk-cell *cdkCellDef="let row">

@@ -56,7 +56,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 |---|---|---|
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
-| 3 | Arquitectura y calidad | En curso: `quality-baseline` cerrada, `backend-architecture` implementada (falta T10, PR y despliegue), `frontend-cleanup` sin empezar |
+| 3 | Arquitectura y calidad | En curso: `quality-baseline` cerrada, `backend-architecture` implementada (falta T10, PR y despliegue), `frontend-cleanup` implementada en la rama `refactor/frontend-cleanup` (falta humo manual, cierre y PR) |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
@@ -69,7 +69,7 @@ Spec en `.claude/specs/quality-baseline/`, desplegada y comprobada en producció
 - ~~`UsersService.create` y `findOne` devuelven el hash de la contraseña~~ **(nota errónea, corregida el 2026-10-13):** el hash no sale por HTTP, porque `User.password` tiene `@Exclude()` y `app.setup.ts` aplica `ClassSerializerInterceptor` (lo prueba `auth-dto.security.spec.ts`). Sí es cierto que los controllers devuelven entidades de TypeORM y que dependen de ese mecanismo: los DTOs de respuesta explícitos siguen siendo una mejora pendiente (ver Fase 3).
 - **`backend/test/app.e2e-spec.ts`** sigue fallando (espera `GET /` → `Hello World!`): test de scaffold; borrar o reescribir al hacer la spec de e2e en el CI.
 - **Las 11 suites e2e no corren en el CI** (hoy corren a mano con Postgres descartable): candidato a spec propia.
-- **Bundle inicial del frontend**: 882 kB, sobre el presupuesto de 800 kB (`frontend-cleanup`).
+- ~~**Bundle inicial del frontend**: 882 kB, sobre el presupuesto de 800 kB~~ (resuelto en `frontend-cleanup`: 794,70 kB con el admin cargado perezosamente; margen de ~5 kB).
 
 ### Fase 3, spec 2: `backend-architecture` (implementada y commiteada, falta T10, PR y despliegue)
 
@@ -82,16 +82,27 @@ Spec en `.claude/specs/backend-architecture/`. Rama `refactor/backend-architectu
 - **El puerto no pertenece al consumidor:** viven en el módulo del adaptador. Revisar si aparece un segundo adaptador.
 - **`login`** sigue con `@Request() req: { user: User }` (usuario de la estrategia `local`, no el `Payload`).
 
+### Fase 3, spec 3: `frontend-cleanup` (implementada, falta T20 a T22)
+
+Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hecho: servicios de catálogo de lectura pública en `core/data-access`; `AuthStore` como única fuente de la sesión (único lugar con `localStorage` de sesión, con validación al rehidratar); `OnPush` en los 33 componentes y `Profile` con signals; código muerto borrado (`postItems()`, selector `app-header` de `HomePage`); admin con `loadComponent` y bundle bajo el presupuesto; ESLint 9 en el frontend (`npm run lint`, en el CI antes de los tests) con la regla que exige `OnPush`; 172 tests de Karma. SSR quedó fuera de alcance. **Pendiente:** T20 (humo manual en navegador, lo hace una persona), T22 (cierre con `spec-verifier`, PR y CI en Actions).
+
+**Abierto del frontend (anotado, fuera de la spec):**
+- **Providers duplicados** entre `src/main.ts` (con zone.js, es el que arranca el navegador) y `app.config.ts` (zoneless, usado por SSR): hay que unificarlos o decidir SSR.
+- `LoginResponse.user.id` está tipado con el literal `1` y sin `role`.
+- La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`, que no existe en `ProductResModel`: probablemente siempre muestra «-».
+- `AuthStore.loadingProfile` se escribe pero nadie lo lee.
+- **Login con perfil caído** (`AuthFacade.login`): si `getUserById` falla tras un login correcto, la sesión queda guardada en el store y en `localStorage`, pero la UI dice «Credenciales inválidas». Hacer `store.clear()` en ese caso y agregar test.
+- **Diálogos de producto y categoría:** `uploadImageForEntity` y `deleteImageFromEntity` relanzan errores que, llamados desde la plantilla, terminan como promesas rechazadas sin manejar (`Profile` ya lo corrigió en T17).
+- **`role` de `userLite` sin validar** en `AuthStore.rehydrate()`: un valor editado a mano habilita el menú y las rutas de admin en el cliente (el backend protege con `@Roles`, así que es solo UX). Validar contra `ADMIN | CLIENT | GUEST`; considerar a la vez la expiración del token (Fase 4).
+- Si el bundle vuelve a pasar de 800 kB: T11/T12 de la spec (carga perezosa de login/registro, carrito, checkout y perfil).
+
 ### Fase 3: arquitectura y calidad (resto, pendiente)
 - ~~Decorador `@CurrentUser()`~~ (hecho en `backend-architecture`). Quedan los presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)
 - ~~Puertos `MailSender`, `ImageStorage`, `AiContentGenerator`~~ (hechos en `backend-architecture`). Quedan los repositorios por contexto y mover las reglas (límite demo, transiciones de orden) al dominio. Empezar por `ordering` e `identity`.
 - ~~Arreglar los tests y el lint y sacar `continue-on-error` del CI~~ (hecho en `quality-baseline`). El CI es bloqueante; solo quedan con `continue-on-error` los dos `npm audit --omit=dev` informativos, a propósito.
 - Frontend:
-  - Servicios de catálogo de lectura pública a `core/data-access` (hoy `home` importa de `catalog-admin`).
-  - Una sola fuente de verdad para la sesión (`AuthStore`; hoy `localStorage` se escribe en tres lugares).
-  - `OnPush` en todos los componentes y `Profile` con signals.
-  - Borrar código muerto (`postItems()`, selector `app-header` en `HomePage`).
-  - Decidir SSR: activarlo en `home` y `product/:slug` para SEO, o eliminarlo.
+  - ~~Servicios de catálogo a `core/data-access`~~, ~~una sola fuente de verdad para la sesión~~, ~~`OnPush` y `Profile` con signals~~ y ~~código muerto~~ (hechos en `frontend-cleanup`; ver arriba).
+  - Decidir SSR: activarlo en `home` y `product/:slug` para SEO, o eliminarlo (sacado de `frontend-cleanup`).
 
 ### Fase 4: features del e-commerce (pendiente)
 - **Imprescindibles:**

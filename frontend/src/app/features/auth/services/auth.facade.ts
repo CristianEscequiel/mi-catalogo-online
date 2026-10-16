@@ -3,9 +3,21 @@ import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../../core/services/notification.service';
-import { AuthStore } from '../../../core/state/auth.store';
+import { AuthStore, UserProfile } from '../../../core/state/auth.store';
+import { ProfileResponse } from '../models/profile-res.model';
 import { RegisterRequest } from '../models/register-req.model';
 import { AuthService } from './auth.service';
+
+// El store espera id y email; la respuesta del backend los trae al nivel del usuario, no dentro de `profile`.
+function toUserProfile(res: ProfileResponse): UserProfile {
+  return {
+    id: res.id,
+    email: res.email,
+    name: res.profile.name,
+    lastName: res.profile.lastName,
+    avatar: res.profile.avatar,
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +35,7 @@ export class AuthFacade {
       this.store.setAuth(res.access_token, res.user);
       const profile = await firstValueFrom(this.authService.getUserById(res.user.id));
 
-      this.store.setUserProfile(profile.profile as any);
+      this.store.setUserProfile(toUserProfile(profile));
       this.notificationService.success('Inicio de sesion exitoso.');
       this.router.navigateByUrl(redirectUrl);
     } catch {
@@ -56,11 +68,6 @@ export class AuthFacade {
     }
   }
 
-  async newPost() {
-    const res = await firstValueFrom(this.authService.postItems());
-    return res;
-  }
-
   async resendVerificationEmail(email: string) {
     try {
       await firstValueFrom(this.authService.resendVerificationEmail(email));
@@ -70,19 +77,21 @@ export class AuthFacade {
     }
   }
 
+  // La sesión ya la restauró AuthStore.rehydrate() (APP_INITIALIZER de main.ts): aquí solo se carga el perfil.
+  // Si la carga falla la sesión sigue abierta y el perfil queda sin cargar; no se rechaza la promesa.
   async hydrate() {
-    const token = localStorage.getItem('token');
-    const userLiteRaw = localStorage.getItem('userLite');
-    if (!token || !userLiteRaw) return;
-
-    const userLite = JSON.parse(userLiteRaw);
-    this.store.setAuth(token, userLite);
+    const userLite = this.store.userLite();
+    if (!this.store.token() || !userLite) return;
 
     this.store.setLoadingProfile(true);
-    const profile = await firstValueFrom(this.authService.getUserById(userLite.id));
-
-    this.store.setUserProfile(profile.profile as any);
-    this.store.setLoadingProfile(false);
+    try {
+      const profile = await firstValueFrom(this.authService.getUserById(userLite.id));
+      this.store.setUserProfile(toUserProfile(profile));
+    } catch (error) {
+      console.error('No se pudo cargar el perfil', error);
+    } finally {
+      this.store.setLoadingProfile(false);
+    }
   }
 
   logout() {

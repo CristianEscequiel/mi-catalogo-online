@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CategoryResModel } from '../../../categories/models/category.model';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model';
 
 @Component({
   selector: 'app-category-mobile-card',
   standalone: true,
   templateUrl: './category-mobile-card.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryMobileCardComponent {
   @Input({ required: true }) category!: CategoryResModel;

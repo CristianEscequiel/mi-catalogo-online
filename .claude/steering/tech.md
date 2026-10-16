@@ -12,6 +12,7 @@ Versiones tomadas de `frontend/package.json`, `backend/package.json` y los Docke
 - Estado: signals en stores/servicios (`core/state`); RxJS solo para streams async y HTTP.
 - Formularios: Reactive Forms (Signal Forms requiere Angular 21, no usar).
 - Tests: Karma + Jasmine (`ng test`).
+- Lint: ESLint 9 (flat config en `frontend/eslint.config.js`, typescript-eslint + angular-eslint) con `npm run lint`; exige `OnPush` en los componentes. No se desactivan reglas para hacer pasar el lint.
 
 ## Backend
 - NestJS 11, arquitectura modular, REST con Swagger (`@nestjs/swagger`).
@@ -29,7 +30,7 @@ Versiones tomadas de `frontend/package.json`, `backend/package.json` y los Docke
 - CI/CD en `.github/workflows/ci.yml`: detección de cambios por carpeta, build y tests, imágenes a GHCR y deploy por SSH (puerto 5068) al servidor.
 
 ## Convenciones de código
-- Prettier en frontend (`printWidth: 100`, comillas simples); ESLint + Prettier en backend.
+- Prettier en frontend (`printWidth: 100`, comillas simples) y ESLint (`npm run lint`); ESLint + Prettier en backend.
 - Controllers delgados, lógica en services, validación en DTOs, acceso a datos vía repositorios TypeORM.
 - Componentes pequeños y reutilizables; estado con signals.
 - Ver skills en `.claude/skills/` y su precedencia en `CLAUDE.md`.

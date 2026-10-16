@@ -73,11 +73,11 @@
         </div>
 
         <button
-          [disabled]="isLoading || !registerForm.valid"
+          [disabled]="isLoading() || !registerForm.valid"
           class="btn btn-primary w-full transition duration-300"
           type="submit"
         >
-          @if (isLoading) {
+          @if (isLoading()) {
             <span class="inline-flex items-center gap-2">
               <span class="loading loading-spinner loading-sm"></span>
               Creando cuenta...

@@ -7,7 +7,7 @@
   />
 
   <div class="space-y-3 md:hidden">
-    @for (row of filteredProducts; track row.id) {
+    @for (row of filteredProducts(); track row.id) {
       <app-product-mobile-card
         [product]="row"
         (view)="onView($event)"
@@ -23,7 +23,7 @@
 </div>
 
 <div class="hidden md:block md:px-4">
-  <table cdk-table [dataSource]="filteredProducts" class="table w-full rounded-box bg-base-200">
+  <table cdk-table [dataSource]="filteredProducts()" class="table w-full rounded-box bg-base-200">
   <!-- Imagen / thumbnail -->
   <ng-container cdkColumnDef="thumbnail">
     <th cdk-header-cell *cdkHeaderCellDef class="w-16">
@@ -50,9 +50,9 @@
   <ng-container cdkColumnDef="name">
     <th cdk-header-cell *cdkHeaderCellDef (click)="onSort('name')" class="cursor-pointer select-none">
       Nombre
-      @if(sortField === 'name'){
+      @if(sortField() === 'name'){
       <span>
-        {{ sortDirection === 'asc' ? '▲' : '▼' }}
+        {{ sortDirection() === 'asc' ? '▲' : '▼' }}
       </span>
       }
 
@@ -85,9 +85,9 @@
   <ng-container cdkColumnDef="price">
     <th cdk-header-cell *cdkHeaderCellDef (click)="onSort('price')" class="cursor-pointer select-none">
       Precio
-      @if(sortField === 'price'){
+      @if(sortField() === 'price'){
       <span>
-        {{ sortDirection === 'asc' ? '▲' : '▼' }}
+        {{ sortDirection() === 'asc' ? '▲' : '▼' }}
       </span>
       }
 
@@ -121,9 +121,9 @@
   <ng-container cdkColumnDef="status">
     <th cdk-header-cell *cdkHeaderCellDef (click)="onSort('status')" class="cursor-pointer select-none">
       Estado
-      @if(sortField === 'status'){
+      @if(sortField() === 'status'){
       <span>
-        {{ sortDirection === 'asc' ? '▲' : '▼' }}
+        {{ sortDirection() === 'asc' ? '▲' : '▼' }}
       </span>
       }
 

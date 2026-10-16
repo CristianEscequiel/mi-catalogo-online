@@ -1,9 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Dialog } from '@angular/cdk/dialog';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { CategoryService } from '../../services/category.service';
-import { CategoryResModel } from '../../models/category.model';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model';
 import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
 import { CategoryWarnDialogComponent } from '../category-warn-dialog/category-warn-dialog.component';
 import { AuthStore } from '../../../../../core/state/auth.store';
@@ -15,7 +15,8 @@ import { CategoryMobileCardComponent } from '../../../shared/components/category
   standalone: true,
   selector: 'app-category-list',
   imports: [CdkTableModule, ReactiveFormsModule, AdminToolbarComponent, CategoryMobileCardComponent],
-  templateUrl: 'category-list.html'
+  templateUrl: 'category-list.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryListComponent implements OnInit {
   private store = inject(AuthStore);
@@ -24,7 +25,7 @@ export class CategoryListComponent implements OnInit {
 
   displayedColumns: string[] = ['image', 'name', 'description', 'actions'];
   categories: CategoryResModel[] = [];
-  filteredCategories: CategoryResModel[] = [];
+  readonly filteredCategories = signal<CategoryResModel[]>([]);
   searchControl = new FormControl('', { nonNullable: true });
 
   ngOnInit(): void {
@@ -67,7 +68,7 @@ export class CategoryListComponent implements OnInit {
       );
     }
 
-    this.filteredCategories = data;
+    this.filteredCategories.set(data);
   }
 
   onEdit(row: CategoryResModel) {

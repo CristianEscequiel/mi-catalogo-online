@@ -5,8 +5,8 @@ import { FormBuilder } from '@angular/forms';
 import { of } from 'rxjs';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { AuthStore } from '../../../../../core/state/auth.store';
-import { CategoryService } from '../../../categories/services/category.service';
-import { ProductService } from '../../services/product.service';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
+import { ProductService } from '../../../../../core/data-access/products/product.service';
 import { PrdFormComponent } from './product-form.component';
 
 const BACKEND_STATUSES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];

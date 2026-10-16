@@ -35,7 +35,7 @@
             <input
               id="password"
               formControlName="password"
-              [type]="showPassword ? 'text' : 'password'"
+              [type]="showPassword() ? 'text' : 'password'"
               class="input input-bordered w-full pr-10 transition duration-300 focus:border-primary"
               placeholder="Password"
               autocomplete="current-password"
@@ -50,11 +50,11 @@
         </div>
 
         <button
-          [disabled]="isLoading || !loginForm.valid"
+          [disabled]="isLoading() || !loginForm.valid"
           class="btn btn-primary w-full transition duration-300"
           type="submit"
         >
-          @if (isLoading) {
+          @if (isLoading()) {
             <span class="inline-flex items-center gap-2">
               <span class="loading loading-spinner loading-sm"></span>
               Ingresando...

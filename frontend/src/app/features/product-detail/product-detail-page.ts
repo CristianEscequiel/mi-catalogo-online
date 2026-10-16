@@ -1,9 +1,10 @@
 import { CommonModule, DecimalPipe, Location } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { ProductService } from '../catalog-admin/products/services/product.service';
-import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
+import { ProductService } from '../../core/data-access/products/product.service';
+import { ProductResModel } from '../../core/data-access/products/prd-res.model';
 import { resolveImageUrl } from '../../core/config/api.config';
 import { CartStore } from '../../core/state/cart.store';
 import { FavoritesStore } from '../../core/state/favorites.store';
@@ -16,6 +17,7 @@ import { Title } from '@angular/platform-browser';
   selector: 'app-product-detail-page',
   imports: [CommonModule, DecimalPipe, RouterLink],
   templateUrl: './product-detail-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -147,10 +149,10 @@ export class ProductDetailPage implements OnInit {
       this.product.set(product);
       this.quantity.set(1);
       this.titleService.setTitle(`${product.name} | Catálogo`);
-    } catch (error: any) {
+    } catch (error) {
       this.product.set(null);
 
-      if (error?.status === 404) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
         this.notFound.set(true);
         this.titleService.setTitle('Producto no encontrado | Catálogo');
       } else {

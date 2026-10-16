@@ -1,9 +1,10 @@
-import { Component, computed, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
-import { GenerateProductFromImageResponse, ProductService } from '../../services/product.service';
-import { CategoryResModel } from '../../../categories/models/category.model';
-import { CategoryService } from '../../../categories/services/category.service';
+import { GenerateProductFromImageResponse, ProductService } from '../../../../../core/data-access/products/product.service';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { ImageFieldComponent } from '../../../../../shared/components/image-field/image-field.component';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
 import { AuthStore, UserLite } from '../../../../../core/state/auth.store';
@@ -16,7 +17,8 @@ type FormMode = 'create' | 'edit';
   standalone: true,
   selector: 'app-product-form',
   imports: [ReactiveFormsModule, ImageFieldComponent],
-  templateUrl: './product-form.html'
+  templateUrl: './product-form.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PrdFormComponent implements OnInit {
   @Input() productForm!: FormGroup;
@@ -27,7 +29,7 @@ export class PrdFormComponent implements OnInit {
   @Input() isDeletingImage = false;
   @Input() isSaving = false;
   @Output() submitForm = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
   @Output() imageFileSelected = new EventEmitter<File | null>();
   @Output() uploadImage = new EventEmitter<void>();
   @Output() deleteImage = new EventEmitter<void>();
@@ -35,26 +37,31 @@ export class PrdFormComponent implements OnInit {
   private store = inject(AuthStore);
   private dialog = inject(Dialog);
   private notificationService = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
   productService = inject(ProductService);
   categoryService = inject(CategoryService);
   fb = inject(FormBuilder);
-  loadingCategories = true;
+  readonly loadingCategories = signal(true);
   statuses = ['ARCHIVED', 'DRAFT', 'PUBLISHED'];
-  categories: CategoryResModel[] = [];
+  readonly categories = signal<CategoryResModel[]>([]);
   user: UserLite | null = computed(() => this.store.userLite() ?? null)();
-  isGeneratingContent = false;
-  isAnalyzingImage = false;
-  isAiSectionOpen = false;
+  readonly isGeneratingContent = signal(false);
+  readonly isAnalyzingImage = signal(false);
+  readonly isAiSectionOpen = signal(false);
 
   ngOnInit() {
+    // El estado del FormGroup (valor, validez, touched) no es una señal: la IA lo cambia con setValue en
+    // callbacks asíncronos. Con OnPush hay que avisar a la vista cuando el formulario emite cualquier evento.
+    this.productForm.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.cdr.markForCheck());
     this.loadCategoriesByUserId(this.user?.id ?? 0);
   }
 
   loadCategoriesByUserId(id: number) {
     this.categoryService.getCategoriesByUserId(id).subscribe({
       next: (res) => {
-        this.categories = res;
-        this.loadingCategories = false;
+        this.categories.set(res);
+        this.loadingCategories.set(false);
       },
       error: (err) => console.error(err),
     });
@@ -93,7 +100,7 @@ export class PrdFormComponent implements OnInit {
 
   get selectedCategoriesNames(): string {
     const ids = this.productForm.value.categoryIds ?? [];
-    const selected = this.categories.filter((category) => ids.includes(category.id));
+    const selected = this.categories().filter((category) => ids.includes(category.id));
 
     if (selected.length === 0) return 'Ninguna';
     if (selected.length <= 2) return selected.map((item) => item.name).join(', ');
@@ -118,27 +125,27 @@ export class PrdFormComponent implements OnInit {
   }
 
   generate(name: string) {
-    this.isGeneratingContent = true;
+    this.isGeneratingContent.set(true);
     this.productService.getDescriptionByAi(name).subscribe({
       next: (res) => {
         this.productForm.get('description')?.setValue(res.description);
         this.productForm.get('slug')?.setValue(res.slug);
         this.notificationService.success('Descripción y slug sugeridos.');
-        this.isGeneratingContent = false;
+        this.isGeneratingContent.set(false);
       },
       error: () => {
         this.notificationService.error('No se pudo generar contenido desde nombre.');
-        this.isGeneratingContent = false;
+        this.isGeneratingContent.set(false);
       }
     });
   }
 
   canAnalyzeImageWithAi() {
-    return !!this.resolvedImageUrl() && !this.isAnalyzingImage;
+    return !!this.resolvedImageUrl() && !this.isAnalyzingImage();
   }
 
   toggleAiSection() {
-    this.isAiSectionOpen = !this.isAiSectionOpen;
+    this.isAiSectionOpen.update((open) => !open);
   }
 
   analyzeImageWithAi() {
@@ -148,17 +155,17 @@ export class PrdFormComponent implements OnInit {
       return;
     }
 
-    if (this.categories.length === 0) {
+    if (this.categories().length === 0) {
       this.notificationService.error('No hay categorías disponibles para sugerir una coincidencia.');
       return;
     }
 
-    this.isAnalyzingImage = true;
+    this.isAnalyzingImage.set(true);
 
     this.productService
       .generateFromImage({
         imageUrl,
-        categories: this.categories.map((category) => ({
+        categories: this.categories().map((category) => ({
           id: category.id,
           name: category.name,
         })),
@@ -174,10 +181,10 @@ export class PrdFormComponent implements OnInit {
         },
         error: () => {
           this.notificationService.error('No se pudo analizar la imagen con IA.');
-          this.isAnalyzingImage = false;
+          this.isAnalyzingImage.set(false);
         },
         complete: () => {
-          this.isAnalyzingImage = false;
+          this.isAnalyzingImage.set(false);
         },
       });
   }

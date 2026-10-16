@@ -1,8 +1,7 @@
-import { AfterViewInit, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { AuthStore } from '../../core/state/auth.store';
-import { Form, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UserFormLogin } from '../../core/models/user-form.model';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -22,8 +21,9 @@ lastName:FormControl;
   standalone:true,
   imports: [ReactiveFormsModule , CommonModule, ImageFieldComponent],
   templateUrl: './profile.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Profile implements AfterViewInit {
+export class Profile {
   profileForm = new FormGroup<ProfileForm>({
     name: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     lastName: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
@@ -34,44 +34,52 @@ private store = inject(AuthStore)
 private authService = inject(AuthService)
 private notificationService = inject(NotificationService)
 private dialog = inject(Dialog)
-profile = this.store.userProfile()
-avatar = this.profile?.avatar;
-selectedImageFile: File | null = null;
-imageError: string | null = null;
-isUploadingImage = false;
-isDeletingImage = false;
-enableEdit:boolean = false;
+profile = this.store.userProfile;
+avatar = computed(() => this.profile()?.avatar ?? null);
+selectedImageFile = signal<File | null>(null);
+imageError = signal<string | null>(null);
+isUploadingImage = signal(false);
+isDeletingImage = signal(false);
+enableEdit = signal(false);
 
-ngAfterViewInit(){
-  this.profileForm.patchValue({
-    name: this.profile?.name,
-    lastName:this.profile?.lastName,
-    // email:this.profile?.email
-  })
-  this.profileForm.disable()
+constructor() {
+  // Copia el perfil al formulario solo fuera de edición: subir o borrar la imagen
+  // durante la edición cambia el perfil del store pero no pisa lo que se está escribiendo.
+  effect(() => {
+    const profile = this.profile();
+    if (this.enableEdit()) {
+      return;
+    }
+    this.profileForm.reset({
+      name: profile?.name ?? '',
+      lastName: profile?.lastName ?? '',
+      // email: profile?.email ?? ''
+    });
+    this.profileForm.disable();
+  });
 }
+
 edit(){
   this.profileForm.enable()
-  this.enableEdit = true;
+  this.enableEdit.set(true);
 }
 
 onImageFileSelected(file: File | null) {
-  this.imageError = null;
-  this.selectedImageFile = file;
+  this.imageError.set(null);
+  this.selectedImageFile.set(file);
 }
 
 async onUploadImage() {
   const userId = this.store.userLite()?.id;
-  if (!userId || !this.selectedImageFile) {
+  const fileToUpload = this.selectedImageFile();
+  if (!userId || !fileToUpload) {
     return;
   }
 
-  const fileToUpload = this.selectedImageFile;
-
   try {
-    this.isUploadingImage = true;
+    this.isUploadingImage.set(true);
 
-    if (this.avatar) {
+    if (this.avatar()) {
       const confirmed = await confirmImageReplacementDialog(this.dialog);
       if (!confirmed) {
         return;
@@ -80,58 +88,62 @@ async onUploadImage() {
     }
 
     const response = await firstValueFrom(this.authService.uploadProfileImage(userId, fileToUpload));
-    this.avatar = response.imageUrl;
-    this.selectedImageFile = null;
-    const currentProfile = this.store.userProfile();
-    if (currentProfile) {
-      this.store.setUserProfile({ ...currentProfile, avatar: response.imageUrl });
-    }
+    this.selectedImageFile.set(null);
+    this.setAvatar(response.imageUrl);
     this.notificationService.success('Imagen de perfil subida correctamente.');
   } catch {
-    this.imageError = 'No se pudo subir la imagen.';
+    this.imageError.set('No se pudo subir la imagen.');
     this.notificationService.error('No se pudo subir la imagen de perfil.');
   } finally {
-    this.isUploadingImage = false;
+    this.isUploadingImage.set(false);
   }
 }
 
-onDeleteImage() {
-  this.deleteProfileImage(true);
+async onDeleteImage() {
+  try {
+    await this.deleteProfileImage(true);
+  } catch {
+    // deleteProfileImage ya avisó el error y dejó el mensaje en imageError
+  }
 }
 
 resolvedAvatarUrl() {
-  return resolveImageUrl(this.avatar);
+  return resolveImageUrl(this.avatar());
+}
+
+private setAvatar(imageUrl: string | null) {
+  const currentProfile = this.store.userProfile();
+  if (currentProfile) {
+    this.store.setUserProfile({ ...currentProfile, avatar: imageUrl });
+  }
 }
 
 private async deleteProfileImage(showSuccessToast: boolean, clearSelection = true) {
   const userId = this.store.userLite()?.id;
-  if (!userId || !this.avatar) {
+  if (!userId || !this.avatar()) {
     return;
   }
 
-  this.isDeletingImage = true;
+  this.isDeletingImage.set(true);
   try {
     const response = await firstValueFrom(this.authService.deleteProfileImage(userId));
-    this.avatar = response.imageUrl;
     if (clearSelection) {
-      this.selectedImageFile = null;
+      this.selectedImageFile.set(null);
     }
-    const currentProfile = this.store.userProfile();
-    if (currentProfile) {
-      this.store.setUserProfile({ ...currentProfile, avatar: response.imageUrl });
-    }
+    this.setAvatar(response.imageUrl);
     if (showSuccessToast) {
       this.notificationService.success('Imagen de perfil eliminada correctamente.');
     }
   } catch (error) {
     if (!showSuccessToast && isNotFoundHttpError(error)) {
-      this.avatar = null;
+      this.setAvatar(null);
       return;
     }
+    this.imageError.set('No se pudo eliminar la imagen de perfil.');
     this.notificationService.error('No se pudo eliminar la imagen de perfil.');
     throw new Error('PROFILE_IMAGE_DELETE_FAILED');
   } finally {
-    this.isDeletingImage = false;
+    this.isDeletingImage.set(false);
   }
 }
 }

@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { BANK_TRANSFER_DATA } from '../../core/config/bank-transfer.config';
@@ -11,6 +11,7 @@ import { NotificationService } from '../../core/services/notification.service';
   selector: 'app-checkout-success-page',
   imports: [RouterLink, DecimalPipe],
   templateUrl: './checkout-success-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutSuccessPage {
   private readonly route = inject(ActivatedRoute);

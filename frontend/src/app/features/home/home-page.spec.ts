@@ -5,9 +5,9 @@ import { Observable, of, Subject } from 'rxjs';
 import { AuthStore } from '../../core/state/auth.store';
 import { CartStore } from '../../core/state/cart.store';
 import { FavoritesStore } from '../../core/state/favorites.store';
-import { CategoryService } from '../catalog-admin/categories/services/category.service';
-import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
-import { ProductPage, ProductPageRequest, ProductService } from '../catalog-admin/products/services/product.service';
+import { CategoryService } from '../../core/data-access/categories/category.service';
+import { ProductResModel } from '../../core/data-access/products/prd-res.model';
+import { ProductPage, ProductPageRequest, ProductService } from '../../core/data-access/products/product.service';
 import { HomePage } from './home-page';
 
 const product = (id: number): ProductResModel => ({
@@ -82,6 +82,16 @@ describe('HomePage (catálogo paginado)', () => {
   });
 
   afterEach(() => jasmine.clock().uninstall());
+
+  it('REQ-5.5: mientras carga la primera página muestra el esqueleto y no productos', async () => {
+    await create();
+
+    expect(el().querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    expect(shownNames()).toEqual([]);
+
+    await respond(0, pageOf([1], { page: 1, totalPages: 1, total: 1 }));
+    expect(el().querySelectorAll('.skeleton').length).toBe(0);
+  });
 
   it('al abrir pide solo la primera página (REQ-6.1)', async () => {
     await create();

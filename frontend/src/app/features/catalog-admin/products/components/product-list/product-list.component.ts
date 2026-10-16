@@ -1,15 +1,15 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
-import { ProductService } from '../../services/product.service';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { ProductService } from '../../../../../core/data-access/products/product.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { ProductModel } from '../../models/product.model';
+import { ProductModel } from '../../../../../core/data-access/products/product.model';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProductResModel } from '../../models/prd-res.model';
+import { ProductResModel } from '../../../../../core/data-access/products/prd-res.model';
 import { Dialog } from '@angular/cdk/dialog';
 import { ProductFormDialogComponent } from '../product-form-dialog/product-form-dialog.component';
 import { ProductWarnDialogComponent } from '../product-warn-dialog/product-warn-dialog.component';
-import { CategoryResModel } from '../../../categories/models/category.model'
-import { CategoryService } from '../../../categories/services/category.service';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model'
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { AuthStore } from '../../../../../core/state/auth.store';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
 import { AdminToolbarComponent } from '../../../shared/components/admin-toolbar/admin-toolbar.component';
@@ -19,7 +19,8 @@ import { ProductMobileCardComponent } from '../../../shared/components/product-m
   standalone: true,
   selector: 'app-prd-list',
   imports: [CdkTableModule, CurrencyPipe, NgClass, ReactiveFormsModule, AdminToolbarComponent, ProductMobileCardComponent],
-  templateUrl: 'product-list.html'
+  templateUrl: 'product-list.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class PrdListComponent implements OnInit {
@@ -38,12 +39,12 @@ export class PrdListComponent implements OnInit {
     'status',
     'actions',
   ];
-  categories: CategoryResModel[] = []
-  sortField: keyof ProductResModel | null = null;
-  sortDirection: 'asc' | 'desc' = 'asc';
+  readonly categories = signal<CategoryResModel[]>([]);
+  readonly sortField = signal<keyof ProductResModel | null>(null);
+  readonly sortDirection = signal<'asc' | 'desc'>('asc');
   searchControl = new FormControl('', { nonNullable: true });
   products: ProductResModel[] = [];
-  filteredProducts: ProductResModel[] = [];
+  readonly filteredProducts = signal<ProductResModel[]>([]);
   @ViewChild('myModal') myModal!: HTMLDialogElement;
 
   productForm = this.fb.group({
@@ -60,7 +61,7 @@ export class PrdListComponent implements OnInit {
   ngOnInit(): void {
     this.getProductsByUserId(this.store.userLite()?.id ?? 0);
     this.categoryService.getCategories().subscribe({
-      next: res => { this.categories = res },
+      next: res => { this.categories.set(res) },
       error: err => console.error(err),
     });
     this.searchControl.valueChanges.subscribe(() => {
@@ -81,11 +82,11 @@ export class PrdListComponent implements OnInit {
     this.getProductsByUserId(this.store.userLite()?.id ?? 0);
   }
   onSort(field: keyof ProductResModel) {
-    if (this.sortField === field) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this.sortField() === field) {
+      this.sortDirection.update((direction) => (direction === 'asc' ? 'desc' : 'asc'));
     } else {
-      this.sortField = field;
-      this.sortDirection = 'asc';
+      this.sortField.set(field);
+      this.sortDirection.set('asc');
     }
     this.applyFilters();
   }
@@ -100,9 +101,9 @@ export class PrdListComponent implements OnInit {
       );
     }
 
-    if (this.sortField) {
-      const field = this.sortField;
-      const dir = this.sortDirection === 'asc' ? 1 : -1;
+    const field = this.sortField();
+    if (field) {
+      const dir = this.sortDirection() === 'asc' ? 1 : -1;
 
       data.sort((a, b) => {
         const va = a[field];
@@ -120,12 +121,13 @@ export class PrdListComponent implements OnInit {
       });
     }
 
-    this.filteredProducts = data;
+    this.filteredProducts.set(data);
   }
   getCategoryNames(ids: number[]): string {
-    if (!ids?.length || !this.categories?.length) return '-';
+    const categories = this.categories();
+    if (!ids?.length || !categories.length) return '-';
 
-    const names = this.categories
+    const names = categories
       .filter(cat => ids.includes(cat.id))
       .map(cat => cat.name);
 
@@ -142,6 +144,7 @@ export class PrdListComponent implements OnInit {
     });
 
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stub: la vista de detalle del admin aún no está implementada; el parámetro lo pasa la plantilla
   onView(row: ProductResModel) {
     //Todo:
   }

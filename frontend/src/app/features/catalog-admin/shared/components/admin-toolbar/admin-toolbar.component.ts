@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -6,6 +6,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './admin-toolbar.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminToolbarComponent {
   @Input({ required: true }) searchControl!: FormControl<string>;

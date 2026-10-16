@@ -33,7 +33,7 @@
     <div class="flex gap-2 mt-5">
       <button class="btn btn-primary btn-outline" type="submit" [disabled]="!categoryForm.valid">Guardar</button>
       @if (mode === 'edit') {
-        <button class="btn" type="button" (click)="cancel.emit()">Cancelar</button>
+        <button class="btn" type="button" (click)="cancelled.emit()">Cancelar</button>
       }
     </div>
   </form>

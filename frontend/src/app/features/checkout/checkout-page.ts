@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -20,6 +20,7 @@ interface CheckoutForm {
   selector: 'app-checkout-page',
   imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './checkout-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutPage implements OnInit {
   private readonly cartStore = inject(CartStore);
