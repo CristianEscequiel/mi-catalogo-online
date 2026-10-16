@@ -109,7 +109,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T9, T13
   - Verificación: tests `REQ-2.2` en los specs de esos componentes (`home-page.spec.ts` ya existe); `npm run lint` en 0; tests y build ok.
 
-- [ ] **T16a. `OnPush` en el admin de productos** — REQ-2.1, 2.2, 2.3
+- [x] **T16a. `OnPush` en el admin de productos** — REQ-2.1, 2.2, 2.3
   - Los 5 componentes de `catalog-admin/products`: `product-admin.page`, `product-form`, `product-form-dialog`, `product-list`, `product-warn-dialog`. En el inventario previo, anotar cuáles tienen estado mutable.
   - Depende de: T13
   - Verificación: un test `REQ-2.2` por cada componente del inventario con estado mutable (en los specs existentes `product-form`, `product-list` o nuevos); `npm run lint` en 0; tests y build ok.
@@ -300,6 +300,19 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Tests nuevos (14, de caracterización):** `cart-page.spec.ts` (nuevo, 5): esqueleto mientras carga, estado vacío, ítems tras cargar, error con «Reintentar» que vuelve a pedir, y quitar un ítem (spinner y botón deshabilitado mientras espera, desaparece al terminar). `checkout-success-page.spec.ts` (nuevo, 3): «Cargando detalle…», pedido cargado (número y «Esperando transferencia») y error («No pudimos cargar este pedido.»). `checkout-page.spec.ts` (nuevo, 6): esqueleto, error de carga, formulario con «Finalizar pedido» deshabilitado hasta completarlo, «Procesando pedido…» al enviar, mensaje del backend al rechazar con el botón habilitado de nuevo, y recarga del carrito más navegación a `/checkout/success/12` al confirmarse. `home-page.spec.ts` y `product-detail-page.spec.ts` ya cubrían sus estados (T9 y la spec de `catalog-access`).
 - **Dos tropiezos en los tests:** (1) un doble de `Router` rompió el `routerLink` de la plantilla; se usó el router real con `navigate` espiado. (2) El lint cazó una variable `navigate` sin usar; en vez de borrarla se agregó el test de navegación al confirmar el pedido, que faltaba.
 - **Verificación:** lint código 0; build código 0 (**794,51 kB**, margen 5,49 kB); tests **129 en verde** (115 + 14).
+
+### `OnPush` en el admin de productos (T16a), 2026-10-16
+- **Árbol y orden** (hojas primero): `ProductWarnDialog` (hoja) → `PrdFormComponent` (contiene `ImageField`, ya `OnPush`) → `ProductFormDialog` (contiene `PrdForm`) → `PrdListComponent` (contiene `AdminToolbar` y `ProductMobileCard`, aún en `Default`) → `PrdAdminComponet` (página). Los diálogos se abren con CDK `Dialog` (overlay), no son hijos de la lista. `AdminToolbar` y `ProductMobileCard` solo dependen de `@Input` y de sus propios eventos, así que son seguros bajo un padre `OnPush`; pasan a `OnPush` en T16b.
+- **Inventario y cambios:**
+  - `ProductWarnDialog`: sin estado mutable (solo `data` inyectado) → solo `OnPush`.
+  - `PrdFormComponent`: `categories`, `loadingCategories` (cambian en la respuesta HTTP), `isGeneratingContent`, `isAnalyzingImage` e `isAiSectionOpen` pasaron a `signal`; el getter `selectedCategoriesNames` y `canAnalyzeImageWithAi()` leen esas señales. **Estado del `FormGroup`** (valor, validez, touched): no es una señal y la IA lo cambia con `setValue` en callbacks asíncronos, así que `ngOnInit` se suscribe a `productForm.events` y llama a `markForCheck()` (con `takeUntilDestroyed`); es el puente estándar de formularios reactivos con `OnPush`. Los `@Input` (`isSaving`, `imageUrl`, `isUploadingImage`…) siguen siendo comunes: los actualiza el padre.
+  - `ProductFormDialog`: `imageUrl`, `imageError`, `isUploadingImage`, `isDeletingImage` e `isSaving` pasaron a `signal` (son lo que le entrega al formulario hijo); `selectedImageFile` queda común porque la plantilla no lo lee.
+  - `PrdListComponent`: `filteredProducts`, `categories`, `sortField` y `sortDirection` pasaron a `signal`; `products` queda común (solo lo lee `applyFilters`). La plantilla lee `filteredProducts()` (tarjetas y `dataSource` de la tabla CDK), `sortField()` y `sortDirection()`.
+  - `PrdAdminComponet`: sin estado → solo `OnPush`.
+- **Tests nuevos (17), todos `REQ-2.2`:** `product-list.component.spec.ts` (+4: estado vacío antes de que lleguen los productos, aparecen en tarjetas y tabla al llegar, el buscador filtra, el encabezado «Nombre» ordena con ▲/▼ y se invierte); `product-form.state.spec.ts` (nuevo, 8: «Cargando categorías», opciones al llegar, nombre mostrado cuando la IA elige categorías por código, botón Guardar que se habilita cuando el formulario pasa a válido por código, «Generando contenido…» y campos completados, falla de la generación, aria-expanded de la sección de IA, «Guardando…» con `isSaving`); `product-form-dialog.component.spec.ts` (nuevo, 5: «Guardando…» con Guardar y Cerrar deshabilitados, éxito que cierra con `updated`, falla 500, falla 403 «Límite de demo alcanzado», y el mensaje de error de imagen en create).
+- **Rojo antes de implementar:** 12 de los 17 fallaban con `NG0100` bajo `Default` (los cambios de campos comunes fuera de un evento no se renderizan en zoneless): son los que cubren el cambio real de estado. Con las señales y el puente de eventos pasan los 17.
+- **Hallazgo previo, fuera de alcance, no corregido:** la columna «Categorías» de la tabla llama a `getCategoryNames(row.categoryIds)`, pero `ProductResModel` no tiene `categoryIds` (tiene `categories`), por lo que muestra «-» siempre salvo que el backend envíe ese campo. Los tests no afirman nada sobre esa columna. Candidato a un arreglo aparte.
+- **Verificación:** lint código 0; build código 0 (**794,54 kB**, margen 5,46 kB); tests **146 en verde** (129 + 17).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
