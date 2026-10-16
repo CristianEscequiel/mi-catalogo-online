@@ -35,7 +35,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 ## Grupo C: sesión única (REQ-1)
 
-- [ ] **T4. `AuthStore.rehydrate` validado y su spec** — REQ-1.1, 1.3, 1.5, 1.6, 1.7, 1.8, 1.9
+- [x] **T4. `AuthStore.rehydrate` validado y su spec** — REQ-1.1, 1.3, 1.5, 1.6, 1.7, 1.8, 1.9
   - En `core/state/auth.store.ts`: `rehydrate()` valida (token string no vacío, `userLite` JSON con `id` numérico), usa `try/catch` alrededor de `JSON.parse` y, si la sesión es inválida, borra ambas claves y deja el store vacío sin lanzar. Crear `core/state/auth.store.spec.ts`.
   - Depende de: T2
   - Verificación: tests `REQ-1.1` (setAuth guarda), `REQ-1.8`/`REQ-1.9` (clear borra claves y vacía token, usuario y perfil), `REQ-1.3` (sesión válida), `REQ-1.5` (JSON roto), `REQ-1.6` (una sola clave, en las dos variantes) y `REQ-1.7` (las claves quedan borradas); `npm run lint` en 0; build ok.
@@ -219,6 +219,13 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Riesgo comprobado antes de tocar el CI:** ESLint se instaló con `--legacy-peer-deps`, pero el CI corre `npm ci` sin esa bandera. Se probó `npm ci --dry-run` sobre una copia de `package.json` y `package-lock.json` en un directorio aparte: sale con código 0 (785 paquetes), igual que la versión anterior sin ESLint (684 paquetes). El lock es consistente para el CI.
 - **Verificación:** `grep -n "npm run lint" .github/workflows/ci.yml` → línea 86, antes de `ng test` (línea 87); el YAML se parseó con `js-yaml` y la lista de pasos es la de arriba; el paso del lint no tiene `continue-on-error`.
 - **Sin comprobar todavía:** que el job pase en GitHub Actions. Lo confirma una persona al abrir el PR (T22).
+
+### `AuthStore.rehydrate` validado (T4), 2026-10-16
+- **Spec nuevo** `core/state/auth.store.spec.ts`, 11 tests con el id del criterio en el nombre: REQ-1.1 (setAuth guarda en store y en `localStorage`), REQ-1.3 (sesión válida), REQ-1.5 (JSON roto: no lanza y no hay sesión), REQ-1.6 (solo token, solo userLite, userLite sin `id` numérico), REQ-1.7 (JSON roto, falta una clave y sin nada guardado), REQ-1.8 y REQ-1.9 (clear).
+- **Rojo antes de implementar:** con el código anterior fallaban 4 de los 11 (JSON roto lanzaba; `userLite` sin `id` se restauraba; las claves inválidas no se borraban, en dos casos). Con la implementación pasan los 11.
+- **Implementación** (`core/state/auth.store.ts`): `rehydrate()` lee las dos claves, valida con `parseUserLite` (JSON parseable, objeto y `id` numérico) y exige token no vacío; si la sesión es inválida llama a `removeStoredSession()` y deja el store vacío sin lanzar. `clear()` reutiliza el mismo método privado. Si no hay nada guardado, no toca `localStorage`.
+- **Verificación:** `npm run lint` código 0; build código 0 (882,42 kB, igual que antes; sigue la advertencia hasta T10 a T12); tests: **49 en verde** (38 previos + 11 nuevos).
+- **Sin cubrir aquí:** que `main.ts` llame a `rehydrate()` como `APP_INITIALIZER` no tiene test; lo cubre la comprobación `grep -n "rehydrate" src/main.ts` de REQ-4.4 en T7.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
