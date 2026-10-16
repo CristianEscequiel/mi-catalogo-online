@@ -5,14 +5,14 @@ Responder y escribir documentación en castellano; el código y los identificado
 
 ## Contexto del proyecto (siempre cargado)
 
-@steering/product.md
-@steering/tech.md
-@steering/structure.md
+@.claude/steering/product.md
+@.claude/steering/tech.md
+@.claude/steering/structure.md
 
 ## Reglas de operación
 
 1. Analizar el pedido antes de tocar archivos y hacer el cambio mínimo y seguro.
-2. Seguir la arquitectura existente (`steering/structure.md`). No introducir frameworks ni dependencias nuevas sin acordarlo.
+2. Seguir la arquitectura existente (`.claude/steering/structure.md`). No introducir frameworks ni dependencias nuevas sin acordarlo.
 3. No modificar archivos ajenos a la tarea.
 
 ## Seguridad
@@ -30,15 +30,15 @@ El código no se adelanta a la spec. Elegir el flujo según el tamaño del cambi
 | Pedido | Flujo |
 |---|---|
 | Typo, un valor, ajuste de una línea ya especificado | Directo, sin spec |
-| Bug simple, ajuste de UI, 1-2 archivos | `/sdd-flow` rápido (SDD-Lite) → `specs/rapidas/<cambio>/` |
-| Feature nueva, toca datos/permisos/integraciones, más de ~3 archivos | `/sdd-flow` completo → `specs/<feature>/` (requirements → design → tasks, con aprobación en cada fase) |
+| Bug simple, ajuste de UI, 1-2 archivos | `/sdd-flow` rápido (SDD-Lite) → `.claude/specs/rapidas/<cambio>/` |
+| Feature nueva, toca datos/permisos/integraciones, más de ~3 archivos | `/sdd-flow` completo → `.claude/specs/<feature>/` (requirements → design → tasks, con aprobación en cada fase) |
 
-Si no es obvio cuál corresponde, preguntar. Más detalle en `specs/README.md`.
+Si no es obvio cuál corresponde, preguntar. Más detalle en `.claude/specs/README.md`.
 Si aparece algo no contemplado durante la implementación, parar y actualizar la spec antes de seguir.
 
 ## Skills del proyecto (`.claude/skills/`)
 
-Cargar solo las necesarias. Si dos skills chocan, gana el orden: `steering/` > skill de convención del proyecto > skill de referencia genérica.
+Cargar solo las necesarias. Si dos skills chocan, gana el orden: `.claude/steering/` > skill de convención del proyecto > skill de referencia genérica.
 
 | Skill | Tipo | Cubre | Cede ante |
 |---|---|---|---|
