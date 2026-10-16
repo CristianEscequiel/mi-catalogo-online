@@ -111,13 +111,4 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
   deleteProfileImage(id: number) {
     return this.http.delete<{ userId: number; imageUrl: string | null }>(`${this.apiUrl}/users/${id}/profile/image`);
   }
-
-  postItems(){
-    const body = {
-        title: "Los gatos: compañeros misteriosos y encantadores",
-        categoryIds: [1 , 2 , 3  , 4],
-        content:"Lorem impsum djsakdjslñadalskdjas"
-    }
-    return this.http.post<unknown>(`${this.apiUrl}/posts`, body )
-  }
 }

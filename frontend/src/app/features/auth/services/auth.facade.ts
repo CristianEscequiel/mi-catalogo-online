@@ -68,11 +68,6 @@ export class AuthFacade {
     }
   }
 
-  async newPost() {
-    const res = await firstValueFrom(this.authService.postItems());
-    return res;
-  }
-
   async resendVerificationEmail(email: string) {
     try {
       await firstValueFrom(this.authService.resendVerificationEmail(email));

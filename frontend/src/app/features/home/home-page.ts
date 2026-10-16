@@ -21,7 +21,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 @Component({
   standalone: true,
-  selector: 'app-header',
+  selector: 'app-home-page',
   imports: [FontAwesomeModule, ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './home-page.html',
 })

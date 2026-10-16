@@ -49,7 +49,4 @@ export class LoginForm {
       this.isLoading = false;
     }
   }
-  postItems(){
-    this.authFacade.newPost()
-  }
 }
