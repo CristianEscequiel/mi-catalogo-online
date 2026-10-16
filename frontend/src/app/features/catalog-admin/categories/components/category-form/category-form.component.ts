@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ImageFieldComponent } from '../../../../../shared/components/image-field/image-field.component';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
@@ -7,7 +7,8 @@ import { resolveImageUrl } from '../../../../../core/config/api.config';
   standalone: true,
   selector: 'app-category-form',
   imports: [ReactiveFormsModule, ImageFieldComponent],
-  templateUrl: './category-form.html'
+  templateUrl: './category-form.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryFormComponent {
   @Input() categoryForm!: FormGroup;

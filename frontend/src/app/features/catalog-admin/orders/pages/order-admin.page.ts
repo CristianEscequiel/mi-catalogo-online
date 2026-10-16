@@ -1,7 +1,7 @@
 import { CdkTableModule } from '@angular/cdk/table';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -12,6 +12,7 @@ import { OrderResponse, OrderStatus, OrderSummaryResponse, OrdersService } from 
   selector: 'app-order-admin-page',
   imports: [CdkTableModule, ReactiveFormsModule, DecimalPipe, DatePipe],
   templateUrl: './order-admin.page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderAdminPage implements OnInit {
   private readonly ordersService = inject(OrdersService);

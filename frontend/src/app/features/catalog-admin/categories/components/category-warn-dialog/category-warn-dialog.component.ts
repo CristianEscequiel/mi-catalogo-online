@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { CategoryModel } from '../../../../../core/data-access/categories/category.model';
@@ -9,6 +9,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
   standalone: true,
   selector: 'app-category-warn-dialog',
   imports: [CommonModule, DialogModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-base-200 rounded-2xl shadow-xl p-4">
       <h2 class="text-lg font-semibold mb-4">¿Desea eliminar esta categoría?</h2>
