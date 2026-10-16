@@ -83,6 +83,16 @@ describe('HomePage (catálogo paginado)', () => {
 
   afterEach(() => jasmine.clock().uninstall());
 
+  it('REQ-5.5: mientras carga la primera página muestra el esqueleto y no productos', async () => {
+    await create();
+
+    expect(el().querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    expect(shownNames()).toEqual([]);
+
+    await respond(0, pageOf([1], { page: 1, totalPages: 1, total: 1 }));
+    expect(el().querySelectorAll('.skeleton').length).toBe(0);
+  });
+
   it('al abrir pide solo la primera página (REQ-6.1)', async () => {
     await create();
 
