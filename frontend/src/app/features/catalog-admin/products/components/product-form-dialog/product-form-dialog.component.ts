@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dialog, DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
@@ -18,6 +18,7 @@ type FormMode = 'create' | 'edit';
   standalone: true,
   selector: 'app-product-form-dialog',
   imports: [CommonModule, ReactiveFormsModule, DialogModule, PrdFormComponent, FontAwesomeModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
   <div class="bg-base-200 border border-base-300/40 rounded-3xl shadow-xl max-w-5xl w-[96vw] mx-auto overflow-hidden">
     <div class="flex items-start gap-3 p-4 sm:p-5 border-b border-base-300/50 bg-base-100/45">
@@ -30,7 +31,7 @@ type FormMode = 'create' | 'edit';
           <p class="text-sm text-base-content/70 mt-1">Completa la información del producto y utiliza IA para acelerar la carga.</p>
         }
       </div>
-      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost mt-0.5" aria-label="Cerrar modal de producto" [disabled]="isSaving">
+      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost mt-0.5" aria-label="Cerrar modal de producto" [disabled]="isSaving()">
         <fa-icon [icon]="faTimes"></fa-icon>
       </button>
     </div>
@@ -39,11 +40,11 @@ type FormMode = 'create' | 'edit';
       <app-product-form
         [productForm]="form"
         [mode]="data.mode"
-        [imageUrl]="imageUrl"
-        [imageError]="imageError"
-        [isUploadingImage]="isUploadingImage"
-        [isDeletingImage]="isDeletingImage"
-        [isSaving]="isSaving"
+        [imageUrl]="imageUrl()"
+        [imageError]="imageError()"
+        [isUploadingImage]="isUploadingImage()"
+        [isDeletingImage]="isDeletingImage()"
+        [isSaving]="isSaving()"
         (imageFileSelected)="onImageFileSelected($event)"
         (uploadImage)="onUploadImage()"
         (deleteImage)="onDeleteImage()"
@@ -58,12 +59,12 @@ export class ProductFormDialogComponent {
   faTimes = faTimes;
   private dialog = inject(Dialog);
   form: FormGroup;
-  imageUrl: string | null = null;
-  imageError: string | null = null;
+  readonly imageUrl = signal<string | null>(null);
+  readonly imageError = signal<string | null>(null);
   selectedImageFile: File | null = null;
-  isUploadingImage = false;
-  isDeletingImage = false;
-  isSaving = false;
+  readonly isUploadingImage = signal(false);
+  readonly isDeletingImage = signal(false);
+  readonly isSaving = signal(false);
 
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
@@ -73,7 +74,7 @@ export class ProductFormDialogComponent {
 
   constructor() {
     const data = this.data;
-    this.imageUrl = data.product?.thumbnailUrl ?? null;
+    this.imageUrl.set(data.product?.thumbnailUrl ?? null);
 
     if (data.mode === 'edit') {
       this.form = this.fb.group({
@@ -103,23 +104,23 @@ export class ProductFormDialogComponent {
   }
 
   async onSubmit() {
-    this.imageError = null;
+    this.imageError.set(null);
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.isSaving = true;
+    this.isSaving.set(true);
 
     if (this.data.mode === 'edit') {
       try {
-        if (this.selectedImageFile && !this.imageUrl) {
+        if (this.selectedImageFile && !this.imageUrl()) {
           await this.uploadImageForEntity(this.data.id);
         }
 
         const body = this.form.getRawValue() as ProductModel;
-        body.thumbnailUrl = this.imageUrl || null;
+        body.thumbnailUrl = this.imageUrl() || null;
         body.categoryIds = Array.from(new Set((body.categoryIds ?? []).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
 
         this.productService.editProduct(this.data.id, body).subscribe({
@@ -129,12 +130,12 @@ export class ProductFormDialogComponent {
           },
           error: () => {
             this.notificationService.error('No se pudo actualizar el producto.');
-            this.isSaving = false;
+            this.isSaving.set(false);
           },
         });
         return;
       } catch {
-        this.isSaving = false;
+        this.isSaving.set(false);
         return;
       }
     }
@@ -156,29 +157,29 @@ export class ProductFormDialogComponent {
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 403) {
         this.notificationService.error('Límite de demo alcanzado');
-        this.isSaving = false;
+        this.isSaving.set(false);
         return;
       }
       this.notificationService.error('No se pudo crear el producto.');
-      this.isSaving = false;
+      this.isSaving.set(false);
     }
   }
 
   onCancel() {
-    if (this.isSaving) {
+    if (this.isSaving()) {
       return;
     }
     this.dialogRef.close('cancel');
   }
 
   onImageFileSelected(file: File | null) {
-    this.imageError = null;
+    this.imageError.set(null);
     this.selectedImageFile = file;
   }
 
   async onUploadImage() {
     if (this.data.mode === 'create') {
-      this.imageError = 'Primero guarda el producto para subir su imagen.';
+      this.imageError.set('Primero guarda el producto para subir su imagen.');
       return;
     }
 
@@ -187,7 +188,7 @@ export class ProductFormDialogComponent {
 
   onDeleteImage() {
     if (this.data.mode === 'create') {
-      this.imageUrl = null;
+      this.imageUrl.set(null);
       this.selectedImageFile = null;
       return;
     }
@@ -203,9 +204,9 @@ export class ProductFormDialogComponent {
     const fileToUpload = this.selectedImageFile;
 
     try {
-      this.isUploadingImage = true;
+      this.isUploadingImage.set(true);
 
-      if (this.imageUrl) {
+      if (this.imageUrl()) {
         const confirmed = await confirmImageReplacementDialog(this.dialog);
         if (!confirmed) {
           return;
@@ -214,40 +215,40 @@ export class ProductFormDialogComponent {
       }
 
       const response = await firstValueFrom(this.productService.uploadProductImage(productId, fileToUpload));
-      this.imageUrl = response.imageUrl;
+      this.imageUrl.set(response.imageUrl);
       this.selectedImageFile = null;
-      this.imageError = null;
+      this.imageError.set(null);
       this.notificationService.success('Imagen subida correctamente.');
     } catch {
-      this.imageError = 'No se pudo subir la imagen.';
+      this.imageError.set('No se pudo subir la imagen.');
       this.notificationService.error('No se pudo subir la imagen.');
       throw new Error('IMAGE_UPLOAD_FAILED');
     } finally {
-      this.isUploadingImage = false;
+      this.isUploadingImage.set(false);
     }
   }
 
   private async deleteImageFromEntity(showSuccessToast: boolean, clearSelection = true) {
-    this.isDeletingImage = true;
+    this.isDeletingImage.set(true);
     try {
       const response = await firstValueFrom(this.productService.deleteProductImage(this.data.id));
-      this.imageUrl = response.imageUrl;
+      this.imageUrl.set(response.imageUrl);
       if (clearSelection) {
         this.selectedImageFile = null;
       }
-      this.imageError = null;
+      this.imageError.set(null);
       if (showSuccessToast) {
         this.notificationService.success('Imagen eliminada correctamente.');
       }
     } catch (error) {
       if (!showSuccessToast && isNotFoundHttpError(error)) {
-        this.imageUrl = null;
+        this.imageUrl.set(null);
         return;
       }
       this.notificationService.error('No se pudo eliminar la imagen.');
       throw new Error('IMAGE_DELETE_FAILED');
     } finally {
-      this.isDeletingImage = false;
+      this.isDeletingImage.set(false);
     }
   }
 }

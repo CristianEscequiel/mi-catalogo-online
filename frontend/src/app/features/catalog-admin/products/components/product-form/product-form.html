@@ -41,12 +41,12 @@
 
     <section class="rounded-2xl border border-base-300/50 bg-base-200/30">
       <button type="button" class="w-full px-4 py-4 sm:px-5 sm:py-4 flex items-center justify-between gap-3 text-left"
-        (click)="toggleAiSection()" [attr.aria-expanded]="isAiSectionOpen" aria-label="Mostrar u ocultar asistencia con IA">
+        (click)="toggleAiSection()" [attr.aria-expanded]="isAiSectionOpen()" aria-label="Mostrar u ocultar asistencia con IA">
         <div>
           <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/80">Asistencia con IA</h4>
           <p class="text-xs text-base-content/65 mt-0.5">Analiza la imagen o genera contenido automáticamente</p>
         </div>
-        <span class="transition-transform duration-200" [class.rotate-180]="isAiSectionOpen">
+        <span class="transition-transform duration-200" [class.rotate-180]="isAiSectionOpen()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5 text-base-content/70" aria-hidden="true">
             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
           </svg>
@@ -54,18 +54,18 @@
       </button>
 
       <div class="border-t border-base-300/50 px-4 sm:px-5 overflow-hidden transition-all duration-200 ease-out"
-        [class.max-h-0]="!isAiSectionOpen"
-        [class.opacity-0]="!isAiSectionOpen"
-        [class.pb-0]="!isAiSectionOpen"
-        [class.pointer-events-none]="!isAiSectionOpen"
-        [class.max-h-72]="isAiSectionOpen"
-        [class.opacity-100]="isAiSectionOpen"
-        [class.pb-4]="isAiSectionOpen">
+        [class.max-h-0]="!isAiSectionOpen()"
+        [class.opacity-0]="!isAiSectionOpen()"
+        [class.pb-0]="!isAiSectionOpen()"
+        [class.pointer-events-none]="!isAiSectionOpen()"
+        [class.max-h-72]="isAiSectionOpen()"
+        [class.opacity-100]="isAiSectionOpen()"
+        [class.pb-4]="isAiSectionOpen()">
         <div class="grid gap-3 md:grid-cols-2">
           @let nameCtrl = productForm.get('name');
           <button class="btn btn-success justify-start w-full" type="button" (click)="analyzeImageWithAi()"
-            [disabled]="!canAnalyzeImageWithAi() || isGeneratingContent || isSaving" aria-label="Analizar imagen con IA">
-            @if (!isAnalyzingImage) {
+            [disabled]="!canAnalyzeImageWithAi() || isGeneratingContent() || isSaving" aria-label="Analizar imagen con IA">
+            @if (!isAnalyzingImage()) {
             <span>Analizar imagen con IA</span>
             } @else {
             <span class="loading loading-spinner loading-sm"></span>
@@ -74,8 +74,8 @@
           </button>
 
           <button class="btn btn-outline btn-success justify-start w-full" type="button" (click)="generate(nameCtrl?.value)"
-            [disabled]="nameCtrl?.invalid || isGeneratingContent || isAnalyzingImage || isSaving" aria-label="Generar descripción y slug con IA">
-            @if (!isGeneratingContent) {
+            [disabled]="nameCtrl?.invalid || isGeneratingContent() || isAnalyzingImage() || isSaving" aria-label="Generar descripción y slug con IA">
+            @if (!isGeneratingContent()) {
             <span>Generar descripción y slug</span>
             } @else {
             <span class="loading loading-spinner loading-sm"></span>
@@ -103,16 +103,16 @@
 
         <div>
           <label class="label"><span class="label-text">Categoría</span></label>
-          @if (loadingCategories) {
+          @if (loadingCategories()) {
           <span class="loading loading-spinner loading-xs">Cargando categorías</span>
-          } @else if (categories.length > 0) {
+          } @else if (categories().length > 0) {
           <div class="dropdown w-full">
             <div tabindex="0" role="button" class="input input-bordered bg-base-100 w-full justify-between cursor-pointer">
               <span>{{ selectedCategoriesNames }}</span>
             </div>
             <div tabindex="0" class="dropdown-content bg-base-100 rounded-box border border-base-300/70 p-4 shadow mt-2 w-full max-h-64 overflow-y-auto">
               <div class="flex flex-col gap-2">
-                @for (category of categories; track category.id) {
+                @for (category of categories(); track category.id) {
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" class="checkbox checkbox-sm" [checked]="isSelected(category.id)"
                     (change)="toggleCategory(category.id, $event)" />

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { ProductModel } from '../../../../../core/data-access/products/product.model';
@@ -9,6 +9,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
   standalone: true,
   selector: 'app-product-warn-dialog',
   imports: [CommonModule, DialogModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-base-200 rounded-2xl shadow-xl p-4">
     <h2 class="text-lg font-semibold mb-4">¿Realmente desea eliminar este producto?</h2>
