@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CategoryResModel } from '../../../categories/models/category.model';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model';
 
 @Component({
   selector: 'app-category-mobile-card',

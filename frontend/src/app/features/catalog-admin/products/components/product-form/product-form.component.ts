@@ -1,9 +1,9 @@
 import { Component, computed, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
-import { GenerateProductFromImageResponse, ProductService } from '../../services/product.service';
-import { CategoryResModel } from '../../../categories/models/category.model';
-import { CategoryService } from '../../../categories/services/category.service';
+import { GenerateProductFromImageResponse, ProductService } from '../../../../../core/data-access/products/product.service';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { ImageFieldComponent } from '../../../../../shared/components/image-field/image-field.component';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
 import { AuthStore, UserLite } from '../../../../../core/state/auth.store';

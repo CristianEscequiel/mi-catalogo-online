@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
-import { ProductModel } from '../../models/product.model';
-import { ProductService } from '../../services/product.service';
+import { ProductModel } from '../../../../../core/data-access/products/product.model';
+import { ProductService } from '../../../../../core/data-access/products/product.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({

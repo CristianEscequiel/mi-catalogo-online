@@ -1,15 +1,15 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
-import { ProductService } from '../../services/product.service';
+import { ProductService } from '../../../../../core/data-access/products/product.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { ProductModel } from '../../models/product.model';
+import { ProductModel } from '../../../../../core/data-access/products/product.model';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProductResModel } from '../../models/prd-res.model';
+import { ProductResModel } from '../../../../../core/data-access/products/prd-res.model';
 import { Dialog } from '@angular/cdk/dialog';
 import { ProductFormDialogComponent } from '../product-form-dialog/product-form-dialog.component';
 import { ProductWarnDialogComponent } from '../product-warn-dialog/product-warn-dialog.component';
-import { CategoryResModel } from '../../../categories/models/category.model'
-import { CategoryService } from '../../../categories/services/category.service';
+import { CategoryResModel } from '../../../../../core/data-access/categories/category.model'
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { AuthStore } from '../../../../../core/state/auth.store';
 import { resolveImageUrl } from '../../../../../core/config/api.config';
 import { AdminToolbarComponent } from '../../../shared/components/admin-toolbar/admin-toolbar.component';

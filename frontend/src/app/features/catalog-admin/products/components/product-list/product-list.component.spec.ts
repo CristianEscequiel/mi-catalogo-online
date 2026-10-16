@@ -3,9 +3,9 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { AuthStore } from '../../../../../core/state/auth.store';
-import { CategoryService } from '../../../categories/services/category.service';
-import { ProductResModel } from '../../models/prd-res.model';
-import { ProductService } from '../../services/product.service';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
+import { ProductResModel } from '../../../../../core/data-access/products/prd-res.model';
+import { ProductService } from '../../../../../core/data-access/products/product.service';
 import { PrdListComponent } from './product-list.component';
 
 const row = (id: number, status: ProductResModel['status']): ProductResModel => ({ id, name: `Producto ${id}`, description: '', price: 10, stock: 1, categories: [], status });

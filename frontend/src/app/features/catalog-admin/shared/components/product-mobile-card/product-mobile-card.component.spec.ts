@@ -1,6 +1,6 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ProductResModel } from '../../../products/models/prd-res.model';
+import { ProductResModel } from '../../../../../core/data-access/products/prd-res.model';
 import { ProductMobileCardComponent } from './product-mobile-card.component';
 
 const productWith = (status: ProductResModel['status']): ProductResModel => ({

@@ -5,9 +5,9 @@ import { Observable, of, Subject } from 'rxjs';
 import { AuthStore } from '../../core/state/auth.store';
 import { CartStore } from '../../core/state/cart.store';
 import { FavoritesStore } from '../../core/state/favorites.store';
-import { CategoryService } from '../catalog-admin/categories/services/category.service';
-import { ProductResModel } from '../catalog-admin/products/models/prd-res.model';
-import { ProductPage, ProductPageRequest, ProductService } from '../catalog-admin/products/services/product.service';
+import { CategoryService } from '../../core/data-access/categories/category.service';
+import { ProductResModel } from '../../core/data-access/products/prd-res.model';
+import { ProductPage, ProductPageRequest, ProductService } from '../../core/data-access/products/product.service';
 import { HomePage } from './home-page';
 
 const product = (id: number): ProductResModel => ({

@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CategoryModel, CategoryResModel } from '../models/category.model';
-import { API_BASE_URL } from '../../../../core/config/api.config';
+import { CategoryModel, CategoryResModel } from './category.model';
+import { API_BASE_URL } from '../../config/api.config';
 
 interface ImageMutationResponse {
   id: number;

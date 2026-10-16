@@ -3,8 +3,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Dialog, DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
-import { CategoryModel } from '../../models/category.model';
-import { CategoryService } from '../../services/category.service';
+import { CategoryModel } from '../../../../../core/data-access/categories/category.model';
+import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { CategoryFormComponent } from '../category-form/category-form.component';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';

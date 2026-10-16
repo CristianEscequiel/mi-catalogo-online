@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { ProductModel } from '../models/product.model';
+import { ProductModel } from './product.model';
 import { firstValueFrom, Observable } from 'rxjs';
-import { API_BASE_URL } from '../../../../core/config/api.config';
-import { ProductResModel } from '../models/prd-res.model';
+import { API_BASE_URL } from '../../config/api.config';
+import { ProductResModel } from './prd-res.model';
 
 interface ImageMutationResponse {
   id: number;
