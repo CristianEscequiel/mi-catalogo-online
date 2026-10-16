@@ -40,7 +40,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
   - Depende de: T2
   - Verificación: tests `REQ-1.1` (setAuth guarda), `REQ-1.8`/`REQ-1.9` (clear borra claves y vacía token, usuario y perfil), `REQ-1.3` (sesión válida), `REQ-1.5` (JSON roto), `REQ-1.6` (una sola clave, en las dos variantes) y `REQ-1.7` (las claves quedan borradas); `npm run lint` en 0; build ok.
 
-- [ ] **T5. `AuthService.loginUser` sin `localStorage`** — REQ-1.1, 1.2, 1.10
+- [x] **T5. `AuthService.loginUser` sin `localStorage`** — REQ-1.1, 1.2, 1.10
   - Quitar el `tap` que escribe `token`. Crear `features/auth/services/auth.service.spec.ts` y ampliar `auth.facade.spec.ts`.
   - Depende de: T4
   - Verificación: tests `REQ-1.1` en `auth.facade.spec.ts` (un login exitoso llama a `AuthStore.setAuth` con el token y el usuario de la respuesta, y es la única escritura de sesión), `REQ-1.2` (tras un login exitoso del servicio `localStorage` no tiene `token`), `REQ-1.10` (login con 401 y con error de red: ni `localStorage` ni `AuthStore` quedan con sesión); `npm run lint` en 0; tests y build ok.
@@ -226,6 +226,13 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Implementación** (`core/state/auth.store.ts`): `rehydrate()` lee las dos claves, valida con `parseUserLite` (JSON parseable, objeto y `id` numérico) y exige token no vacío; si la sesión es inválida llama a `removeStoredSession()` y deja el store vacío sin lanzar. `clear()` reutiliza el mismo método privado. Si no hay nada guardado, no toca `localStorage`.
 - **Verificación:** `npm run lint` código 0; build código 0 (882,42 kB, igual que antes; sigue la advertencia hasta T10 a T12); tests: **49 en verde** (38 previos + 11 nuevos).
 - **Sin cubrir aquí:** que `main.ts` llame a `rehydrate()` como `APP_INITIALIZER` no tiene test; lo cubre la comprobación `grep -n "rehydrate" src/main.ts` de REQ-4.4 en T7.
+
+### `AuthService.loginUser` sin `localStorage` (T5), 2026-10-16
+- **Tests nuevos (5):** `auth.service.spec.ts` (nuevo): `REQ-1.2` (login exitoso devuelve la respuesta y `localStorage` queda vacío) y `REQ-1.10` (401 propaga el error y no escribe). `auth.facade.spec.ts` (ampliado, con un `Router` falso y `HttpTestingController`): `REQ-1.1` (un login exitoso llama a `setAuth` una vez con el token y el usuario de la respuesta y las únicas escrituras en `localStorage` son `['token', 'userLite']`), y `REQ-1.10` dos veces en el facade (401 y error de red: rechaza con `LOGIN_FAILED`, `setAuth` no se llama, store y `localStorage` vacíos).
+- **Rojo antes de implementar:** fallaban 2 de los 5. `REQ-1.1` veía 3 escrituras (`token` dos veces, una del servicio y otra del store, más `userLite`) y `REQ-1.2` encontraba `'jwt-1'` en `localStorage`. Los dos casos de login fallido ya pasaban: el facade ya solo llamaba a `setAuth` tras el éxito.
+- **Implementación** (`auth.service.ts`): se quitó el `tap` que hacía `localStorage.setItem('token', ...)` y el import `tap`; queda un comentario que dice que la sesión la guarda `AuthStore.setAuth`.
+- **Verificación:** lint código 0; build código 0 (882,36 kB); tests **54 en verde** (49 + 5).
+- **Anotado, fuera de alcance:** `LoginResponse.user.id` está tipado como el literal `1` (`login-res.model.ts`) y no trae `role`, aunque el store y los guards leen `userLite.role`. No se toca aquí: el tipo no se usa de forma que cambie el comportamiento y arreglarlo pide revisar el contrato con el backend. Candidato a una spec posterior.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
