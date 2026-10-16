@@ -28,7 +28,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
   - Depende de: T1
   - Verificación: `npm run lint` con código 0; tests y build igual que en T0; `grep -rn "eslint-disable" src` listado y su cantidad anotada en el registro.
 
-- [ ] **T3. Lint bloqueante en el CI** — REQ-9.5
+- [x] **T3. Lint bloqueante en el CI** — REQ-9.5
   - En `.github/workflows/ci.yml`, job `frontend`: agregar `- run: npm run lint` después de `npm ci` y antes de `npx ng test`, con un comentario que apunte a esta spec. Sin `continue-on-error`.
   - Depende de: T2
   - Verificación: `grep -n "npm run lint" .github/workflows/ci.yml` muestra la línea dentro del job `frontend`, antes de `ng test`; el YAML sigue siendo válido (lectura del archivo). El resultado real en Actions lo confirma una persona al abrir el PR.
@@ -213,6 +213,12 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Un tropiezo útil:** el primer intento dejó el build en rojo (`Cannot find name 'data'` en `category-form-dialog`, porque el cuerpo del constructor usaba `data` como variable local) con el lint en verde. Se corrigió y se anota que el lint **no reemplaza** al build ni a los tests: en cada tarea se corren los tres.
 - **Verificación:** lint código 0; build código 0, 882,17 kB (era 882,43 kB; la advertencia de 800 kB sigue hasta T10 a T12); 38 tests en verde; `grep -rn "eslint-disable" src`: 1 coincidencia, con motivo.
 - **Pendiente para el humo (T20):** abrir los diálogos de crear/editar/borrar de productos y categorías, porque cambiaron su inyección y el nombre del output `cancelled`; no hay tests que los cubran.
+
+### Lint en el CI (T3), 2026-10-16
+- `.github/workflows/ci.yml`, job `frontend`: se agregó `- run: npm run lint` entre `npm ci` y `ng test`, con un comentario que apunta a esta spec. Sin `continue-on-error`. El job queda: `npm ci` → `lint` → `ng test` → `build` → `npm audit` (informativo) → `npm audit --audit-level=critical`.
+- **Riesgo comprobado antes de tocar el CI:** ESLint se instaló con `--legacy-peer-deps`, pero el CI corre `npm ci` sin esa bandera. Se probó `npm ci --dry-run` sobre una copia de `package.json` y `package-lock.json` en un directorio aparte: sale con código 0 (785 paquetes), igual que la versión anterior sin ESLint (684 paquetes). El lock es consistente para el CI.
+- **Verificación:** `grep -n "npm run lint" .github/workflows/ci.yml` → línea 86, antes de `ng test` (línea 87); el YAML se parseó con `js-yaml` y la lista de pasos es la de arriba; el paso del lint no tiene `continue-on-error`.
+- **Sin comprobar todavía:** que el job pase en GitHub Actions. Lo confirma una persona al abrir el PR (T22).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
