@@ -23,7 +23,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
   - Depende de: T0
   - Verificación: `npm run lint` se ejecuta y lista errores (aún no hace falta que dé 0); `git diff origin/main -- package.json` muestra `dependencies` sin cambios y solo `devDependencies` de ESLint y el script `lint`; `npm audit --omit=dev` da el mismo resultado que en T0; `npm run build` y los tests siguen igual que en T0.
 
-- [ ] **T2. Dejar el lint en 0 sobre el código actual** — REQ-9.1, 9.3, 9.4
+- [x] **T2. Dejar el lint en 0 sobre el código actual** — REQ-9.1, 9.3, 9.4
   - Correr `npm run lint`, anotar cuántos errores hay por regla y corregir **el código**, no la configuración. Las excepciones puntuales llevan `eslint-disable-next-line` con el motivo en el mismo comentario. **Parar y volver a la spec** si una sola regla produce una cantidad desproporcionada de errores (decenas de archivos) o si corregir exige cambiar comportamiento.
   - Depende de: T1
   - Verificación: `npm run lint` con código 0; tests y build igual que en T0; `grep -rn "eslint-disable" src` listado y su cantidad anotada en el registro.
@@ -197,6 +197,22 @@ Los números coinciden con lo esperado (REQ-6.1 y REQ-7.1 parten de aquí).
 - **Configuración:** `frontend/eslint.config.js` (plana): recomendadas de `eslint`, `typescript-eslint` y `angular-eslint` (`tsRecommended` y `templateRecommended`, con `processInlineTemplates`), prefijo `app` en selectores. Sin la regla de `OnPush` (se activa en T19). Ignora `dist`, `.angular`, `node_modules` y `public`.
 - **Script:** `"lint": "eslint \"src/**/*.{ts,html}\""` (CLI directo, sin tocar `angular.json`).
 - **Verificación:** `npm run lint` se ejecuta y reporta **47 errores en 16 de 106 archivos**: `prefer-inject` 20, `no-explicit-any` 14, `no-unused-vars` 11, `no-output-native` 2 (insumo de T2). `npm audit --omit=dev`: 0 vulnerabilidades (igual que antes). Build: 882,43 kB, código 0, igual que T0. Tests: 38 en verde. `git diff origin/main -- package.json`: `dependencies` sin cambios; solo las tres `devDependencies` y el script `lint`.
+
+### Lint en 0 (T2), 2026-10-16
+De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el código y sin tocar `eslint.config.js`.
+
+| Regla | Errores | Qué se hizo |
+|---|---|---|
+| `prefer-inject` | 20 | Los 5 diálogos (`category-form-dialog`, `category-warn-dialog`, `product-form-dialog`, `product-warn-dialog`, `confirm-dialog`) pasaron de inyección por constructor a `inject()`; se quitó `Inject` de los imports |
+| `no-explicit-any` | 14 | `product.service.ts` (9): `ProductResModel`, `ProductResModel[]`, `unknown` y el nuevo tipo `GeneratedProductContent` (`description`, `slug`); `auth.facade.ts` (2): función `toUserProfile`; `header.ts` (1): `userProfile()?.avatar`; `product-detail-page.ts` (1): `catch (error)` con `instanceof HttpErrorResponse`; `auth.service.ts` (1): `post<unknown>` en `postItems`, que T7 borra |
+| `no-unused-vars` | 11 | Imports sin uso en `auth.store`, `auth.service`, `profile` y `product-warn-dialog`; parámetro `state` de `loginGuard`; parámetro `_trigger` de `Header.removeItem` (la plantilla no lo pasaba); 1 excepción (ver abajo) |
+| `no-output-native` | 2 | `@Output() cancel` → `cancelled` en `category-form` y `product-form`, con sus plantillas y los dos diálogos que los usan |
+
+- **Excepciones `eslint-disable`: 1.** `product-list.component.ts:145`, `onView(row)`: stub «Todo» de la vista de detalle del admin; la plantilla le pasa `row`. Con motivo en el comentario (REQ-9.4).
+- **Cambio observable que conviene saber:** `AuthStore.userProfile` ahora trae `id` y `email`. Antes se guardaba `profile.profile` casteado con `as any`, sin esos dos campos aunque el tipo `UserProfile` los declara. Nadie leía esos campos, pero el dato ahora es el que el tipo promete.
+- **Un tropiezo útil:** el primer intento dejó el build en rojo (`Cannot find name 'data'` en `category-form-dialog`, porque el cuerpo del constructor usaba `data` como variable local) con el lint en verde. Se corrigió y se anota que el lint **no reemplaza** al build ni a los tests: en cada tarea se corren los tres.
+- **Verificación:** lint código 0; build código 0, 882,17 kB (era 882,43 kB; la advertencia de 800 kB sigue hasta T10 a T12); 38 tests en verde; `grep -rn "eslint-disable" src`: 1 coincidencia, con motivo.
+- **Pendiente para el humo (T20):** abrir los diálogos de crear/editar/borrar de productos y categorías, porque cambiaron su inyección y el nombre del output `cancelled`; no hay tests que los cubran.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
