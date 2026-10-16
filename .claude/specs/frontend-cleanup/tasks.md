@@ -356,7 +356,37 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **M1, M3 y M5 (no aplicados; anotados en `pendientes.md`):** sesión que queda guardada si falla `getUserById` tras un login correcto (`auth.facade.ts`); errores relanzados sin capturar en los diálogos de producto y categoría; `role` de `userLite` sin validar en `rehydrate()`. Los tres ya existían antes de la spec y cambiarlos exige ampliar el diseño.
 
 ### Cierre de criterios (T22)
-*(pendiente)*
+Verificación de `spec-verifier`, 2026-10-16 (sin navegador: T20 sin hacer). **Resultado: 0 criterios en NO; 3 NO VERIFICABLE (REQ-6.2, 6.3, 7.4), que dependen de T20.** La spec no se da por cerrada hasta el humo manual.
+
+**Ejecución:** `npm run lint` 0 · `ng test` **172 en verde** (0 fallados, 0 omitidos; una primera corrida dio código 127 sin salida, del entorno, y repetida pasó) · `npm run build` ok, bundle inicial **794,70 kB** (193,58 kB transferidos), margen 5,30 kB, sin aviso de presupuesto · `eslint-disable`: **1** (`product-list.component.ts:147`, con motivo) · `git diff origin/main -- angular.json` vacío · `package.json`: `dependencies` sin cambios; solo script `lint` y devDependencies `@eslint/js`, `angular-eslint`, `eslint`, `typescript-eslint`.
+
+| Criterio | ¿Cumplido? | Evidencia |
+|---|---|---|
+| REQ-1.1 a 1.10 | SÍ | `auth.store.spec.ts`, `auth.facade.spec.ts`, `auth.service.spec.ts` (un test por criterio, incluidos 401 y error de red) |
+| REQ-1.11 | SÍ | grep de `localStorage` de sesión: solo `core/state/auth.store.ts` |
+| REQ-2.1 | SÍ | `grep -rL` sobre los 33 `@Component` vacío |
+| REQ-2.2, 2.3 | SÍ | tests `REQ-2.2` en 15 specs, en zoneless; estado de plantilla en signals |
+| REQ-2.4 | SÍ | regla `prefer-on-push-component-change-detection` en `error`; prueba manual en T19 |
+| REQ-3.1 a 3.11 | SÍ | `profile.spec.ts` (3.3 se comprueba por el botón «Guardar»; 3.5 a 3.10 por las entradas de `app-image-field`) |
+| REQ-4.1 a 4.4 | SÍ | greps vacíos; `header.ts:15` único `app-header`; `main.ts:15` conserva `rehydrate` |
+| REQ-5.1 a 5.3 | SÍ | grep de `catalog-admin` en home, product-detail y core vacío |
+| REQ-5.4 | SÍ | `category.service.spec.ts` (7) y `product.service.spec.ts` (10) |
+| REQ-5.5 | SÍ | `home-page.spec.ts`, `product-detail-page.spec.ts` |
+| REQ-5.6 | SÍ | `auth-guard.spec.ts` (9) y `app.routes.spec.ts` con las rutas reales |
+| REQ-6.1 | SÍ | build 794,70 kB sin aviso |
+| REQ-6.2 | NO VERIFICABLE | falta T20: abrir `/home`, ver productos, consola sin errores |
+| REQ-6.3 | NO VERIFICABLE | falta T20: abrir `admin/product`, `admin/category` y `admin/orders` (carga perezosa real) |
+| REQ-6.4 | SÍ | `git diff origin/main -- angular.json` vacío |
+| REQ-7.1, 7.2 | SÍ | 172 en verde; build ok |
+| REQ-7.3 | SÍ | solo devDependencies de ESLint (incluye `@eslint/js`, agregado tras la auditoría) |
+| REQ-7.4 | NO VERIFICABLE | es el humo manual (T20) |
+| REQ-8.1 a 8.4 | SÍ | T21; `grep` de `core/data-access` y `npm run lint` con coincidencias |
+| REQ-9.1 a 9.4, 9.6 | SÍ | lint 0; config con recomendadas y regla de OnPush; 1 `eslint-disable` con motivo; ESLint solo en devDependencies |
+| REQ-9.5 | SÍ (estático) | `ci.yml:86` `npm run lint` antes de `ng test`; que pase en Actions lo confirma una persona en el PR |
+
+**Calidad de evidencia (bajas):** `console.log('User confirmed deletion')` previo en `image-field.component.ts:90` (no es de esta rama); los 6 `toBeTruthy()` son los `should create`; no hay `tests-baseline.txt`, así que la integridad de los tests se revisó a mano (sin `xit`, `fit` ni `.skip`). Los ids `REQ-6.x`/`7.x` de home, product-list y order-admin vienen de otra spec y no cuentan.
+
+**Para cerrar:** una persona hace T20 (9 pasos), con lo que REQ-6.2, 6.3 y 7.4 pasan a SÍ; luego PR y CI en Actions.
 
 ---
 **Estado:** Aprobada el 2026-10-16. T0 a T19 y T21 ejecutadas; pendientes T20 (humo manual) y T22 (cierre).
