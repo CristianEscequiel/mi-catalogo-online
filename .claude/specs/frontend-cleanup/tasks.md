@@ -124,7 +124,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T13
   - Verificación: en `profile.spec.ts`, un `it` por criterio (`REQ-3.1` a `REQ-3.11`), incluido «subir imagen durante la edición no pisa los campos del formulario»; `npm run lint` en 0; tests y build ok.
 
-- [ ] **T17b. `OnPush` en `layout` y `app.ts`** — REQ-2.1, 2.2
+- [x] **T17b. `OnPush` en `layout` y `app.ts`** — REQ-2.1, 2.2
   - Solo cuando todas las pantallas ya son seguras. `App` y `Layout` no tienen estado propio (solo el `signal` `title` de `App`).
   - Depende de: T14, T15, T16a, T16b, T17
   - Verificación: el humo parcial de T20 (login, perfil, admin) con `OnPush` en la raíz; `npm run lint` en 0; tests y build ok.
@@ -330,6 +330,12 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Rojo antes de implementar:** 9 de los 13 fallaban bajo `Default`; con las señales pasan los 13.
 - **Estado de REQ-2.1:** quedan sin `OnPush` solo `app.ts` y `layout.ts` (T17b).
 - **Verificación:** lint código 0; build código 0 (**794,67 kB**, margen 5,33 kB); tests **170 en verde** (158 + 12).
+
+### `OnPush` en `layout` y `app.ts` (T17b), 2026-10-16
+- **Cambios:** `changeDetection: ChangeDetectionStrategy.OnPush` en `App` y `Layout`. Ninguno tiene estado que cambie (`App.title` ya era `signal` y no se muestra), así que no hubo otros ajustes. Se hicieron al final porque son ancestros de todas las pantallas; con el resto ya en `OnPush` no queda ningún hijo `Default` que dependa de ellos.
+- **Tests:** `layout.spec.ts` nuevo (2, `REQ-2.2`): muestra `app-toast-container` y `app-header`, y al navegar a una ruta la pantalla aparece dentro del encabezado (`router-outlet`). Los de `app.spec.ts` siguen en verde.
+- **Humo manual:** el recorrido en navegador (login, perfil, admin) queda para T20, que lo hace una persona.
+- **Verificación:** lint código 0; build código 0 (**794,70 kB**, margen 5,30 kB); tests **172 en verde** (170 + 2).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
