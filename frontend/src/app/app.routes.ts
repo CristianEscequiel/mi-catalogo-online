@@ -4,14 +4,11 @@ import { HomePage } from './features/home/home-page';
 import { authGuard } from './core/guards/auth-guard';
 import { Profile } from './features/profile/profile';
 import { loginGuard } from './core/guards/login-guard';
-import { PrdAdminComponet } from './features/catalog-admin/products/pages/product-admin.page';
-import { CategoryAdminComponent } from './features/catalog-admin/categories/pages/category-admin.page';
 import { CartPage } from './features/cart/cart-page';
 import { CheckoutPage } from './features/checkout/checkout-page';
 import { CheckoutSuccessPage } from './features/checkout/checkout-success-page';
 import { ProductDetailPage } from './features/product-detail/product-detail-page';
 import { RegisterForm } from './features/auth/components/register-form/register-form';
-import { OrderAdminPage } from './features/catalog-admin/orders/pages/order-admin.page';
 import { VerifyEmailComponent } from './features/auth/pages/verify-email-screen';
 import { CheckEmailComponent } from './features/auth/pages/check-email-page';
 import { RequestPasswordResetComponent } from './features/auth/pages/forgot-password-page';
@@ -88,21 +85,24 @@ export const routes: Routes = [
   {
   path: 'admin/product',
   canActivate: [authGuard],
-  component: PrdAdminComponet,
+  loadComponent: () =>
+    import('./features/catalog-admin/products/pages/product-admin.page').then((m) => m.PrdAdminComponet),
   data: { roles: ['ADMIN', 'GUEST'] },
   pathMatch: 'full'
 },
 {
   path: 'admin/category',
   canActivate: [authGuard],
-  component: CategoryAdminComponent,
+  loadComponent: () =>
+    import('./features/catalog-admin/categories/pages/category-admin.page').then((m) => m.CategoryAdminComponent),
   data: { roles: ['ADMIN', 'GUEST'] },
   pathMatch: 'full'
 },
 {
   path: 'admin/orders',
   canActivate: [authGuard],
-  component: OrderAdminPage,
+  loadComponent: () =>
+    import('./features/catalog-admin/orders/pages/order-admin.page').then((m) => m.OrderAdminPage),
   data: { roles: ['ADMIN'] },
   pathMatch: 'full'
 }
