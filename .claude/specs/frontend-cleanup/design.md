@@ -154,7 +154,7 @@ Se actualizan al cerrar: `.claude/specs/pendientes.md`; `.claude/steering/struct
 
 | Criterios | Método |
 |---|---|
-| REQ-1.11 | `grep -rn "'token'\|'userLite'" frontend/src/app --include=*.ts` sin specs: solo `core/state/auth.store.ts` |
+| REQ-1.11 | `grep -rnE "localStorage\.[a-zA-Z]+\(\s*'(token\|userLite)'" frontend/src/app --include=*.ts` sin specs: solo `core/state/auth.store.ts` (el patrón con `localStorage.` evita coincidencias con `queryParamMap.get('token')`) |
 | REQ-2.1 | `grep -rL OnPush` sobre los `.ts` con `@Component` (sin specs): vacío |
 | REQ-4.1, 4.2 | `grep -rn "postItems\|newPost\|/posts" frontend/src/app` (sin specs): vacío |
 | REQ-4.3 | `grep -rn "selector: 'app-header'"`: solo `shared/header/header.ts` |

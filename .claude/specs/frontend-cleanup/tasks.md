@@ -45,10 +45,10 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
   - Depende de: T4
   - Verificación: tests `REQ-1.1` en `auth.facade.spec.ts` (un login exitoso llama a `AuthStore.setAuth` con el token y el usuario de la respuesta, y es la única escritura de sesión), `REQ-1.2` (tras un login exitoso del servicio `localStorage` no tiene `token`), `REQ-1.10` (login con 401 y con error de red: ni `localStorage` ni `AuthStore` quedan con sesión); `npm run lint` en 0; tests y build ok.
 
-- [ ] **T6. `AuthFacade.hydrate` sin releer `localStorage`, con manejo de error** — REQ-1.3, 1.4, 1.11
+- [x] **T6. `AuthFacade.hydrate` sin releer `localStorage`, con manejo de error** — REQ-1.3, 1.4, 1.11
   - `hydrate()` toma `store.userLite()`; si hay sesión pide `getUserById(userLite.id)` dentro de `try/catch/finally` (en la falla la sesión sigue y `loadingProfile` vuelve a `false`). `main.ts` no cambia.
   - Depende de: T5
-  - Verificación: tests `REQ-1.4` en `auth.facade.spec.ts` (con sesión pide el perfil con el `id` correcto; sin sesión no pide nada; si falla, `loadingProfile` es `false` y la sesión sigue); `grep -rn "'token'\|'userLite'" src/app --include=*.ts` sin specs: solo `core/state/auth.store.ts` (REQ-1.11); `npm run lint` en 0; tests y build ok.
+  - Verificación: tests `REQ-1.4` en `auth.facade.spec.ts` (con sesión pide el perfil con el `id` correcto; sin sesión no pide nada; si falla, `loadingProfile` es `false` y la sesión sigue); `grep -rnE "localStorage\.[a-zA-Z]+\(\s*'(token|userLite)'" src/app --include=*.ts` sin specs: solo `core/state/auth.store.ts` (REQ-1.11); `npm run lint` en 0; tests y build ok.
 
 ## Grupo D: código muerto (REQ-4)
 
@@ -233,6 +233,14 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Implementación** (`auth.service.ts`): se quitó el `tap` que hacía `localStorage.setItem('token', ...)` y el import `tap`; queda un comentario que dice que la sesión la guarda `AuthStore.setAuth`.
 - **Verificación:** lint código 0; build código 0 (882,36 kB); tests **54 en verde** (49 + 5).
 - **Anotado, fuera de alcance:** `LoginResponse.user.id` está tipado como el literal `1` (`login-res.model.ts`) y no trae `role`, aunque el store y los guards leen `userLite.role`. No se toca aquí: el tipo no se usa de forma que cambie el comportamiento y arreglarlo pide revisar el contrato con el backend. Candidato a una spec posterior.
+
+### `AuthFacade.hydrate` (T6), 2026-10-16
+- **Tests nuevos (4)** en `auth.facade.spec.ts`, bloque `hydrate`: `REQ-1.3` (no llama a `localStorage.getItem`), `REQ-1.4` con sesión (pide `GET /users/7` con el `id` de `userLite`, guarda el perfil con `id`, `email`, `name`, `lastName` y `avatar`, y `setLoadingProfile` se llama `true` y luego `false`), `REQ-1.4` sin sesión (no pide nada) y `REQ-1.4` con falla del perfil (500: `hydrate` no rechaza, la sesión sigue, el perfil queda `null` y `setLoadingProfile` termina en `false`).
+- **Rojo antes de implementar:** fallaban 2 de los 4 (`REQ-1.3` y el caso de la falla); los otros dos pasaban con el código anterior.
+- **Implementación** (`auth.facade.ts`): `hydrate()` toma `store.userLite()` y `store.token()` (que restauró `rehydrate()` en el `APP_INITIALIZER` de `main.ts`), ya no lee `localStorage` ni vuelve a llamar a `setAuth`, y envuelve la carga del perfil en `try/catch/finally`: en la falla escribe un `console.error` y la sesión sigue.
+- **Corrección a lo que decían el diseño y la spec:** `AuthStore._loadingProfile` es de **solo escritura**: nadie lo lee ni lo expone. El «flag atascado en `true`» no era observable. Lo que sí era observable es que `hydrate()` **rechazaba la promesa** sin que `main.ts` la atrapara (rechazo no manejado en el arranque). El cambio sigue siendo correcto, pero su beneficio real es ese rechazo; el flag se prueba por el orden de llamadas de `setLoadingProfile`. Queda anotado que `loadingProfile` es una señal sin lector (candidata a borrarse o a usarse en una spec posterior).
+- **`grep` de REQ-1.11 corregido** en el diseño y en T6: el patrón anterior (`'token'` suelto) también atrapaba `queryParamMap.get('token')`. El patrón correcto es `localStorage\.[a-zA-Z]+\(\s*'(token|userLite)'`: da 6 coincidencias, todas en `core/state/auth.store.ts`. `theme.service.ts` usa otra clave y en `auth.service.ts` solo queda un comentario.
+- **Verificación:** lint código 0; build código 0 (882,36 kB); tests **58 en verde** (54 + 4).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
