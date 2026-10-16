@@ -129,12 +129,12 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T14, T15, T16a, T16b, T17
   - Verificación: el humo parcial de T20 (login, perfil, admin) con `OnPush` en la raíz; `npm run lint` en 0; tests y build ok.
 
-- [ ] **T18. Verificar `OnPush` en todos los componentes** — REQ-2.1
+- [x] **T18. Verificar `OnPush` en todos los componentes** — REQ-2.1
   - Comprobar que ningún componente quedó sin `OnPush`.
   - Depende de: T17b
   - Verificación (con Bash, sintaxis POSIX): `grep -rL "changeDetection: ChangeDetectionStrategy.OnPush" $(grep -rl "@Component" src/app --include=*.ts | grep -v spec)` vacío; el patrón completo evita que un import sin uso cuente como `OnPush`.
 
-- [ ] **T19. Activar la regla de `OnPush` en ESLint** — REQ-2.4, 9.2
+- [x] **T19. Activar la regla de `OnPush` en ESLint** — REQ-2.4, 9.2
   - Agregar `@angular-eslint/prefer-on-push-component-change-detection` como `error` en `eslint.config.js`.
   - Depende de: T18
   - Verificación: `npm run lint` en 0; prueba manual: quitar `OnPush` de un componente, `npm run lint` debe fallar con esa regla, y revertir el cambio; anotar el resultado.
@@ -336,6 +336,12 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Tests:** `layout.spec.ts` nuevo (2, `REQ-2.2`): muestra `app-toast-container` y `app-header`, y al navegar a una ruta la pantalla aparece dentro del encabezado (`router-outlet`). Los de `app.spec.ts` siguen en verde.
 - **Humo manual:** el recorrido en navegador (login, perfil, admin) queda para T20, que lo hace una persona.
 - **Verificación:** lint código 0; build código 0 (**794,70 kB**, margen 5,30 kB); tests **172 en verde** (170 + 2).
+
+### Verificación de `OnPush` y regla de ESLint (T18 y T19), 2026-10-16
+- **T18:** el `grep -rL "changeDetection: ChangeDetectionStrategy.OnPush"` sobre los 33 archivos con `@Component` (sin specs) devolvió una lista vacía. REQ-2.1 cumplido.
+- **T19:** se agregó `'@angular-eslint/prefer-on-push-component-change-detection': 'error'` a `eslint.config.js`. `npm run lint` queda en 0.
+- **Prueba manual de la regla:** se quitó `changeDetection` de `app.ts`; `eslint` falló con «The component's `changeDetection` value should be set to `ChangeDetectionStrategy.OnPush`» (`@angular-eslint/prefer-on-push-component-change-detection`), además del import sin uso. Se restauró el archivo (`git status` solo muestra `eslint.config.js`) y el lint volvió a 0. REQ-2.4 y REQ-9.2 cubiertos.
+- **Verificación:** lint código 0 antes y después de la prueba; el cambio es solo de configuración, sin tocar código de la app.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
