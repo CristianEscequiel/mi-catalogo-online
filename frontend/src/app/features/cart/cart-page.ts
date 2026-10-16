@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/services/notification.service';
 import { resolveImageUrl } from '../../core/config/api.config';
@@ -10,6 +10,7 @@ import { CartItem, CartStore } from '../../core/state/cart.store';
   selector: 'app-cart-page',
   imports: [DecimalPipe, RouterLink],
   templateUrl: './cart-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartPage implements OnInit {
   private readonly cartStore = inject(CartStore);

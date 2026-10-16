@@ -1,5 +1,5 @@
 import { CommonModule, DecimalPipe, Location } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -17,6 +17,7 @@ import { Title } from '@angular/platform-browser';
   selector: 'app-product-detail-page',
   imports: [CommonModule, DecimalPipe, RouterLink],
   templateUrl: './product-detail-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);

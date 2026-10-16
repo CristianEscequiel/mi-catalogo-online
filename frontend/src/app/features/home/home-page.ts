@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -24,6 +24,7 @@ const SEARCH_DEBOUNCE_MS = 300;
   selector: 'app-home-page',
   imports: [FontAwesomeModule, ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './home-page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements OnInit {
   readonly faFilter = faSliders;
