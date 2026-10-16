@@ -147,8 +147,8 @@ exports: [MailSender],
 
 ### D4. Documentación (REQ-5)
 
-- `steering/structure.md`: sección "Puertos y adaptadores" (dónde viven, el patrón `provide/useClass`, cómo se prueba) y una línea sobre `@CurrentUser()`.
-- `specs/pendientes.md`: corregir la nota del hash (REQ-5.2) y dejar lo que sigue abierto de la Fase 3 backend (REQ-5.3).
+- `.claude/steering/structure.md`: sección "Puertos y adaptadores" (dónde viven, el patrón `provide/useClass`, cómo se prueba) y una línea sobre `@CurrentUser()`.
+- `.claude/specs/pendientes.md`: corregir la nota del hash (REQ-5.2) y dejar lo que sigue abierto de la Fase 3 backend (REQ-5.3).
 - `AuthenticatedRequest` desaparece: se anota en el registro de la spec.
 
 ## 4. Flujo principal: un request con usuario autenticado

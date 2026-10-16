@@ -17,7 +17,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 
 # No se corre como root. /app/uploads es un volumen: uno nuevo hereda este dueño;
-# uno existente creado por root se corrige una sola vez (ver specs/infra-hardening/tasks.md, T13).
+# uno existente creado por root se corrige una sola vez (ver .claude/specs/infra-hardening/tasks.md, T13).
 RUN mkdir -p /app/uploads && chown -R node:node /app
 USER node
 

@@ -101,7 +101,7 @@ Orden: primero lo que deja el repo limpio y compilando (T1, T2), después el bac
   - Verifica: el checklist figura completo y con comandos copiables en este archivo; el usuario lo revisa. Los pasos 1 a 6 se tildan **cuando se ejecutan en producción**, no al escribir el documento.
 
 - [x] **T14. [O] Cierre de la spec.**
-  - Hacer: recorrer los 8 requisitos y sus criterios uno por uno y anotar en una sección `## Cierre` al final de este archivo: cumplido sí/no y una línea de evidencia (qué prueba pasó o qué se verificó a mano). Actualizar `specs/pendientes.md` (sección 3 pasa a "hecha", agregar lo que quede abierto) y la memoria del roadmap.
+  - Hacer: recorrer los 8 requisitos y sus criterios uno por uno y anotar en una sección `## Cierre` al final de este archivo: cumplido sí/no y una línea de evidencia (qué prueba pasó o qué se verificó a mano). Actualizar `.claude/specs/pendientes.md` (sección 3 pasa a "hecha", agregar lo que quede abierto) y la memoria del roadmap.
   - Dep: T1 a T13 (los pasos 1 a 6 de T13 pueden quedar abiertos y figurar como pendientes de despliegue).
   - Cubre: todos.
   - Verifica: la sección `## Cierre` existe, cada criterio tiene sí/no con evidencia, y los criterios que dependen de Docker o de producción y no se pudieron verificar figuran explícitamente como "no verificado".

@@ -68,7 +68,7 @@ Antes de cada prueba, leer el servicio real: se afirma lo que hace hoy. Si una s
 
 - [x] **T10. Vulnerabilidades del backend** — REQ-5.1, 5.3, 5.4, 5.5, 5.6
   - `npm audit --omit=dev` inicial (24: 1 crítica, 12 altas) → `npm audit fix` **sin `--force`**; subir el rango en `package.json` solo si hace falta y sin cambiar de versión mayor → `npm audit --omit=dev` final.
-  - Lo alto o crítico que solo se arregle con salto mayor se anota en `specs/pendientes.md` (paquete, severidad, versión que lo corrige).
+  - Lo alto o crítico que solo se arregle con salto mayor se anota en `.claude/specs/pendientes.md` (paquete, severidad, versión que lo corrige).
   - Depende de: T8 (para tener la línea base verde y detectar regresiones)
   - Verificación: `npm audit --omit=dev` sin altas ni críticas (o excepciones anotadas); `npm run build`, `npm test` y `npx eslint` en verde; `git diff --stat` toca solo `package.json` y `package-lock.json` (si no, anotar por qué en esta tarea); `docker build backend` ok y `docker run --rm <imagen> id -u` ≠ 0; construir la imagen y arrancarla con la pila local (`docker compose up -d --build`) y comprobar `/api/health` = 200 antes de limpiar.
 
@@ -79,7 +79,7 @@ Antes de cada prueba, leer el servicio real: se afirma lo que hace hoy. Si una s
 
 ## Grupo E: CI y documentación
 
-- [x] **T12. Actualizar `CLAUDE.md` y `steering/tech.md`** — REQ-4.3
+- [x] **T12. Actualizar `CLAUDE.md` y `.claude/steering/tech.md`** — REQ-4.3
   - "Estado conocido" y "Estado actual de calidad": lint, tests y audit crítico **bloquean**; quitar "no arreglar los tests rotos".
   - Depende de: T8, T9
   - Verificación: leer ambos textos y confirmar que no queda ninguna mención a `continue-on-error` ni a tests rotos.
@@ -105,7 +105,7 @@ Antes de cada prueba, leer el servicio real: se afirma lo que hace hoy. Si una s
   - Verificación: capturas o salida anotadas en la sección "Despliegue" de abajo.
 
 - [x] **T16. Cierre de la spec** — todos
-  - Recorrer cada criterio de `requirements.md` (sí/no, con evidencia) y anotarlo abajo; actualizar `specs/pendientes.md` (Fase 3: marcar `quality-baseline` hecha, listar las vulnerabilidades que sigan abiertas).
+  - Recorrer cada criterio de `requirements.md` (sí/no, con evidencia) y anotarlo abajo; actualizar `.claude/specs/pendientes.md` (Fase 3: marcar `quality-baseline` hecha, listar las vulnerabilidades que sigan abiertas).
   - Depende de: T15
 
 ### Opcionales
@@ -197,7 +197,7 @@ Independientes entre sí (se pueden hacer en cualquier orden o en paralelo): **T
 | Suites e2e (en serie, Postgres descartable, `TEST_DB_*`) | 10 de 11 suites en verde, 132 de 133 tests. Falla solo `test/app.e2e-spec.ts` (espera `GET /` → `Hello World!`; test de scaffold **preexistente**, ya listado en `pendientes.md`; las e2e no corren en el CI) |
 | `src/database/migrations/` | sin cambios en el diff |
 
-Lo que sigue abierto en `npm audit` (solo desarrollo o con salto mayor): ver `specs/pendientes.md`.
+Lo que sigue abierto en `npm audit` (solo desarrollo o con salto mayor): ver `.claude/specs/pendientes.md`.
 
 ### Despliegue (T15)
 - **PR abierto (2026-10-13):** `chore/quality-baseline`. **Actions en verde**, según informó el usuario (no lo pude verificar desde acá: `gh` no está autenticado). Pendiente de anotar: que el paso "no corre como root" y los pasos de audit hayan corrido sin `continue-on-error`.
@@ -225,7 +225,7 @@ Evidencia local: sección "Verificación en limpio (T14)". Evidencia de Actions 
 | REQ-3.5 servicios sin tocar | Sí | `category.service.ts` y `product.service.ts` sin cambios (`ignoreRestSiblings`) |
 | REQ-3.6 sin cambio de comportamiento | Sí, con la salvedad de abajo | Tests y build en verde; e2e 132 de 133 (falla solo `app.e2e-spec.ts`, preexistente) |
 | REQ-4.1 / 4.2 CI bloqueante | Sí | `continue-on-error` solo queda en el audit informativo; YAML validado; PR en verde (informado) |
-| REQ-4.3 TODOs y docs | Sí | Comentarios TODO quitados; `CLAUDE.md` y `steering/tech.md` actualizados |
+| REQ-4.3 TODOs y docs | Sí | Comentarios TODO quitados; `CLAUDE.md` y `.claude/steering/tech.md` actualizados |
 | REQ-4.4 cadena de jobs | Sí | `docker-*` y `deploy-*` conservan `needs` sobre `backend`/`frontend` (leído del YAML parseado). **No se probó con un PR en rojo a propósito** |
 | REQ-4.5 / 4.6 audit en dos pasos | Sí | Informativo + `--audit-level=critical` en ambos jobs |
 | REQ-5.1 backend sin altas ni críticas | Sí | `npm audit --omit=dev`: 2 moderadas, 0 altas, 0 críticas |
@@ -243,4 +243,4 @@ Evidencia local: sección "Verificación en limpio (T14)". Evidencia de Actions 
 - REQ-4.4 se verificó por lectura del YAML, no con un PR roto a propósito.
 - REQ-6.2 y REQ-6.3 dependen de lo que informó el usuario.
 
-**Spec cerrada.** Lo que queda abierto está en `specs/pendientes.md` (audit de desarrollo, Angular fijado en versión exacta, e2e en el CI, bundle del frontend).
+**Spec cerrada.** Lo que queda abierto está en `.claude/specs/pendientes.md` (audit de desarrollo, Angular fijado en versión exacta, e2e en el CI, bundle del frontend).

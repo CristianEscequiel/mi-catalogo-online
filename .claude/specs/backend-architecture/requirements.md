@@ -77,9 +77,9 @@ Segunda de tres specs de la Fase 3 (arquitectura y calidad). Viene después de `
 
 ### REQ-5: Documentación
 
-- **REQ-5.1** CUANDO termine la spec, EL SISTEMA DEBERÁ actualizar `steering/structure.md` con la convención de puertos (dónde viven, cómo se vincula el adaptador, cómo se prueba) y con el uso de `@CurrentUser()`.
-- **REQ-5.2** CUANDO se cierre la spec, EL SISTEMA DEBERÁ corregir en `specs/pendientes.md` la nota que afirma que `UsersService` devuelve el hash de la contraseña, y la de `quality-baseline` que la repite.
-- **REQ-5.3** CUANDO se cierre la spec, EL SISTEMA DEBERÁ dejar en `specs/pendientes.md` lo que sigue abierto de la Fase 3 backend (DTOs de respuesta, repositorios por contexto, reglas de dominio).
+- **REQ-5.1** CUANDO termine la spec, EL SISTEMA DEBERÁ actualizar `.claude/steering/structure.md` con la convención de puertos (dónde viven, cómo se vincula el adaptador, cómo se prueba) y con el uso de `@CurrentUser()`.
+- **REQ-5.2** CUANDO se cierre la spec, EL SISTEMA DEBERÁ corregir en `.claude/specs/pendientes.md` la nota que afirma que `UsersService` devuelve el hash de la contraseña, y la de `quality-baseline` que la repite.
+- **REQ-5.3** CUANDO se cierre la spec, EL SISTEMA DEBERÁ dejar en `.claude/specs/pendientes.md` lo que sigue abierto de la Fase 3 backend (DTOs de respuesta, repositorios por contexto, reglas de dominio).
 
 ## 3. Auto-revisión
 

@@ -93,8 +93,8 @@ La configuración del agente se basa en:
 ```
 CLAUDE.md          instrucciones, reglas de seguridad y enrutamiento de skills
 .claude/skills/    skills especializadas
-steering/          contexto del proyecto
-specs/             specs de sdd-flow
+.claude/steering/   contexto del proyecto
+.claude/specs/      specs de sdd-flow
 ```
 
 ---
@@ -117,10 +117,10 @@ postgres-optimization   SQL, índices y migraciones
 
 ## 🧠 Contexto persistente del proyecto
 
-Contexto estructurado en `steering/`, siempre cargado en cada sesión:
+Contexto estructurado en `.claude/steering/`, siempre cargado en cada sesión:
 
 ```
-steering/
+.claude/steering/
   product.md      qué es el producto, usuarios y alcance
   tech.md         stack, versiones, infraestructura y convenciones
   structure.md    organización de carpetas y capas
@@ -134,10 +134,10 @@ Esto le permite:
 
 ## 📐 Flujo sdd-flow
 
-- **Flujo completo** (`specs/<feature>/`): requirements → design → tasks, con aprobación en cada fase.
-- **Flujo rápido** (`specs/rapidas/<cambio>/`): spec corta + plan + log de resultados. No se versiona.
+- **Flujo completo** (`.claude/specs/<feature>/`): requirements → design → tasks, con aprobación en cada fase.
+- **Flujo rápido** (`.claude/specs/rapidas/<cambio>/`): spec corta + plan + log de resultados. No se versiona.
 
-Más detalle en `specs/README.md`.
+Más detalle en `.claude/specs/README.md`.
 - seguir patrones de código existentes
 - generar código consistente con el repo
 
