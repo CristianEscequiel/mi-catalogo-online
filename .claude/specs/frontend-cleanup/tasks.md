@@ -64,7 +64,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
   - Depende de: T2
   - Verificación: `grep -rn "catalog-admin" src/app/features/home src/app/features/product-detail src/app/core` vacío (REQ-5.3); `product.service.spec.ts` movido y en verde y `category.service.spec.ts` con un `it('REQ-5.4: ...')` por método HTTP; `npm run lint` en 0; tests y build ok.
 
-- [ ] **T9. Pruebas de estados de `home`/detalle y de los roles del admin** — REQ-5.5, 5.6
+- [x] **T9. Pruebas de estados de `home`/detalle y de los roles del admin** — REQ-5.5, 5.6
   - `home-page.spec.ts`: estados loading, vacío y error. Un spec para `product-detail-page` si hoy no cubre esos tres estados. `auth-guard.spec.ts`: `ADMIN` y `GUEST` pasan en las rutas de `admin/product` y `admin/category`; `CLIENT` rebota a `/home`; `admin/orders` solo deja pasar a `ADMIN`; sin sesión va a `/login`.
   - Depende de: T8
   - Verificación: los tests nombrados con `REQ-5.5` y `REQ-5.6` en verde; `npm run lint` en 0; build ok.
@@ -255,6 +255,15 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Tests nuevos (17)**, de caracterización: no cambian nada, fijan el contrato HTTP actual para que un cambio futuro de ruta, método o cuerpo haga fallar un test. `category.service.spec.ts` (nuevo): 7 `it('REQ-5.4: …')`, uno por método. `product.service.spec.ts` (el movido): +10 `it('REQ-5.4: …')` para los métodos que no tenían test (`getProductById`, `getProductBySlug` con el slug codificado, `postProduct`, `getProductsByUserId`, `getDescriptionByAi`, `generateFromImage`, `editProduct`, `deleteProduct`, `uploadProductImage` y `deleteProductImage`). Se agregaron los de `ProductService` más allá de lo que pedía la tarea porque su spec solo cubría `getProductsPage` y REQ-5.4 quedaba sin evidencia para el resto.
 - **Verificación:** lint código 0; build código 0 (882,07 kB, igual que antes: un movimiento no cambia el tamaño); tests **75 en verde** (58 + 17).
 - **Anotado:** se movió cada servicio entero (lectura y escritura), como decidió el diseño; partirlo en uno de lectura y otro de administración queda como mejora futura.
+
+### Estados y roles (T9), 2026-10-16
+Solo tests, sin cambios de código de producción. Son de caracterización: pasan desde el principio y fijan el comportamiento actual.
+- **`home-page.spec.ts` (+1):** `REQ-5.5` estado de carga: mientras llega la primera página hay esqueletos (`.skeleton`) y ningún producto, y desaparecen al responder. Los estados **vacío** y **error con «Reintentar»** de `home` ya tenían test desde `catalog-admin` (`REQ-6.8` y `REQ-6.9` de esa spec, líneas «sin resultados muestra el estado vacío» y «si falla la carga muestra el error…»); no se duplicaron.
+- **`product-detail-page.spec.ts` (nuevo, +4):** `REQ-5.5` carga (esqueleto y sin producto), producto cargado (nombre visible y sin esqueleto), no encontrado con 404 («Producto no encontrado» y enlace «Volver al catálogo» a `/home`) y error con 500 («No se pudo cargar el producto», sin el texto de no encontrado). Para el detalle, «vacío» equivale a no encontrado.
+- **`auth-guard.spec.ts` (+9):** `REQ-5.6`: en `admin/product` y `admin/category` (roles `ADMIN`, `GUEST`) pasan `ADMIN` y `GUEST` y `CLIENT` rebota a `/home`; en `admin/orders` (`ADMIN`) pasa `ADMIN` y rebotan `GUEST` y `CLIENT`; sin sesión redirige a `/login` con `returnUrl` y `authRequired=1`; una ruta sin `data.roles` solo exige sesión; si `userLite` no trae rol se toma del payload del JWT. El spec solo tenía `should be created`.
+- **Un tropiezo menor:** el primer intento del test de «no encontrado» falló por mi selector (`a[href="/home"]` agarraba un enlace «Inicio» anterior); se corrigió buscando el enlace por texto. El componente estaba bien.
+- **Límite que queda anotado:** el spec del guard usa listas de roles copiadas de `app.routes.ts`, así que prueba el guard pero no la configuración real de las rutas. Eso lo cubre `app.routes.spec.ts` en T10, que lee el arreglo `routes` de verdad.
+- **Verificación:** lint código 0; build código 0 (882,07 kB, sin cambios); tests **89 en verde** (75 + 14).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
