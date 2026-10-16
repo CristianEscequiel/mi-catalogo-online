@@ -82,19 +82,21 @@ export class AuthFacade {
     }
   }
 
+  // La sesión ya la restauró AuthStore.rehydrate() (APP_INITIALIZER de main.ts): aquí solo se carga el perfil.
+  // Si la carga falla la sesión sigue abierta y el perfil queda sin cargar; no se rechaza la promesa.
   async hydrate() {
-    const token = localStorage.getItem('token');
-    const userLiteRaw = localStorage.getItem('userLite');
-    if (!token || !userLiteRaw) return;
-
-    const userLite = JSON.parse(userLiteRaw);
-    this.store.setAuth(token, userLite);
+    const userLite = this.store.userLite();
+    if (!this.store.token() || !userLite) return;
 
     this.store.setLoadingProfile(true);
-    const profile = await firstValueFrom(this.authService.getUserById(userLite.id));
-
-    this.store.setUserProfile(toUserProfile(profile));
-    this.store.setLoadingProfile(false);
+    try {
+      const profile = await firstValueFrom(this.authService.getUserById(userLite.id));
+      this.store.setUserProfile(toUserProfile(profile));
+    } catch (error) {
+      console.error('No se pudo cargar el perfil', error);
+    } finally {
+      this.store.setLoadingProfile(false);
+    }
   }
 
   logout() {

@@ -58,6 +58,63 @@ describe('AuthFacade', () => {
     expect(service).toBeTruthy();
   });
 
+  describe('hydrate', () => {
+    const user = { id: 7, email: 'ana@example.com', role: 'CLIENT' as const };
+    const profileUrl = `${API_BASE_URL}/users/7`;
+
+    it('REQ-1.3: no lee localStorage; toma la sesión que ya restauró el AuthStore', async () => {
+      store.setAuth('jwt-1', user);
+      const getItem = spyOn(localStorage, 'getItem').and.callThrough();
+
+      const result = service.hydrate();
+      http.expectOne(profileUrl).flush(profileResponse);
+      await result;
+
+      expect(getItem).not.toHaveBeenCalled();
+    });
+
+    it('REQ-1.4: con sesión restaurada pide el perfil con el id de userLite y lo guarda en el store', async () => {
+      store.setAuth('jwt-1', user);
+      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
+
+      const result = service.hydrate();
+      const req = http.expectOne(profileUrl);
+      expect(req.request.method).toBe('GET');
+      req.flush(profileResponse);
+      await result;
+
+      expect(store.userProfile()).toEqual({
+        id: 7,
+        email: 'ana@example.com',
+        name: 'Ana',
+        lastName: 'Gómez',
+        avatar: null,
+      });
+      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
+    });
+
+    it('REQ-1.4: sin sesión no pide nada', async () => {
+      await service.hydrate();
+
+      http.expectNone(profileUrl);
+      expect(store.userProfile()).toBeNull();
+    });
+
+    it('REQ-1.4: si falla la carga del perfil, hydrate no rechaza, la sesión sigue y loadingProfile vuelve a false', async () => {
+      store.setAuth('jwt-1', user);
+      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
+
+      const result = service.hydrate();
+      http.expectOne(profileUrl).flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+      await expectAsync(result).toBeResolved();
+      expect(store.token()).toBe('jwt-1');
+      expect(store.userLite()).toEqual(user);
+      expect(store.userProfile()).toBeNull();
+      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
+    });
+  });
+
   describe('loginUser', () => {
     it('REQ-1.1: un login exitoso llama a AuthStore.setAuth con el token y el usuario de la respuesta, y es la única escritura de la sesión', async () => {
       const setAuth = spyOn(store, 'setAuth').and.callThrough();
