@@ -119,7 +119,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
   - Depende de: T13
   - Verificación: un test `REQ-2.2` por cada componente del inventario con estado mutable (`order-admin.page.spec.ts` y `product-mobile-card` ya existen); `npm run lint` en 0; tests y build ok.
 
-- [ ] **T17. `Profile` con signals y `OnPush`** — REQ-3.1 a 3.11, 2.1
+- [x] **T17. `Profile` con signals y `OnPush`** — REQ-3.1 a 3.11, 2.1
   - Según el diseño D3: `selectedImageFile`, `imageError`, `isUploadingImage`, `isDeletingImage` y `enableEdit` como `signal`; `profile` y `avatar` como `computed`; `effect()` que copia el perfil al formulario solo si `enableEdit()` es `false`.
   - Depende de: T13
   - Verificación: en `profile.spec.ts`, un `it` por criterio (`REQ-3.1` a `REQ-3.11`), incluido «subir imagen durante la edición no pisa los campos del formulario»; `npm run lint` en 0; tests y build ok.
@@ -322,6 +322,14 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **Una nota de método:** el primer intento de escribir los specs con varios `heredoc` en un solo comando fue rechazado por el shell; se escribieron con la herramienta de archivos. Un código 127 intermedio en una corrida de tests fue del entorno (no encontró el comando), no de los tests: repetida, dio 158 en verde.
 - **Estado de REQ-2.1:** `grep -rL "changeDetection: ChangeDetectionStrategy.OnPush" …` sobre los `@Component` (sin specs) lista solo `app.ts`, `layout.ts` (T17b) y `profile.ts` (T17).
 - **Verificación:** lint código 0; build código 0 (**794,54 kB**, margen 5,46 kB); tests **158 en verde** (146 + 12).
+
+### `Profile` con signals y `OnPush` (T17), 2026-10-16
+- **Cambios en `profile.ts`:** `selectedImageFile`, `imageError`, `isUploadingImage`, `isDeletingImage` y `enableEdit` pasaron a `signal`; `profile` es el `computed` del store (`store.userProfile`) y `avatar` un `computed` derivado de él. Un `effect()` en el constructor copia el perfil al `FormGroup` (`reset` + `disable`) solo si `enableEdit()` es `false`; sustituye al `ngAfterViewInit`. Subida y borrado ya no guardan el avatar en un campo propio: actualizan el perfil del store (`setAvatar`) y `avatar` se recalcula. La plantilla lee los signals con `()`.
+- **Corrección de un fallo latente (REQ-3.10):** `onDeleteImage()` llamaba a `deleteProfileImage` sin capturar el rechazo, que terminaba como promesa no manejada; ahora lo captura y el mensaje de error queda en `imageError` («No se pudo eliminar la imagen de perfil.»), antes solo salía el toast. En la subida con imagen previa, si falla el borrado interno, el mensaje final sigue siendo el de subida (comportamiento previo).
+- **Tests (13 en `profile.spec.ts`, antes 1):** un `it` por cada criterio REQ-3.1 a 3.11, más «subir una imagen mientras se edita no pisa lo que se está escribiendo» y el `should create`. Los estados `isUploadingImage`/`isDeletingImage` se comprueban en las entradas del `app-image-field` hijo; `avatar`, en el `<img>` y en el store.
+- **Rojo antes de implementar:** 9 de los 13 fallaban bajo `Default`; con las señales pasan los 13.
+- **Estado de REQ-2.1:** quedan sin `OnPush` solo `app.ts` y `layout.ts` (T17b).
+- **Verificación:** lint código 0; build código 0 (**794,67 kB**, margen 5,33 kB); tests **170 en verde** (158 + 12).
 
 ### Cierre de criterios (T22)
 *(pendiente)*
