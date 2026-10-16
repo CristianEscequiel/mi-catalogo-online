@@ -40,20 +40,43 @@ export class AuthStore {
     this._token.set(null);
     this._userLite.set(null);
     this._userProfile.set(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('userLite');
+    this.removeStoredSession();
   }
 
+  // Única lectura de localStorage de la sesión (spec frontend-cleanup, REQ-1).
+  // Una sesión es válida si hay token (string no vacío) y userLite con un id numérico;
+  // si no, se arranca sin sesión y se borran ambas claves, sin lanzar.
   rehydrate() {
     const token = localStorage.getItem('token');
-    const userLite = localStorage.getItem('userLite');
+    const rawUserLite = localStorage.getItem('userLite');
+    const userLite = parseUserLite(rawUserLite);
 
     if (token && userLite) {
       this._token.set(token);
-      this._userLite.set(JSON.parse(userLite));
+      this._userLite.set(userLite);
+      return;
+    }
+
+    if (token !== null || rawUserLite !== null) {
+      this.removeStoredSession();
     }
   }
 
+  private removeStoredSession() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userLite');
+  }
+}
 
-
+function parseUserLite(raw: string | null): UserLite | null {
+  if (!raw) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed !== null && typeof parsed === 'object' && typeof (parsed as { id?: unknown }).id === 'number') {
+      return parsed as UserLite;
+    }
+  } catch {
+    // JSON corrupto: se trata como sesión inválida.
+  }
+  return null;
 }
