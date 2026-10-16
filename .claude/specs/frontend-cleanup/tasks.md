@@ -59,7 +59,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 ## Grupo E: `core/data-access` (REQ-5)
 
-- [ ] **T8. Mover servicios y modelos de lectura pública a `core/data-access`** — REQ-5.1, 5.2, 5.3, 5.4
+- [x] **T8. Mover servicios y modelos de lectura pública a `core/data-access`** — REQ-5.1, 5.2, 5.3, 5.4
   - Con `git mv`: `product.service.ts` (+ `.spec.ts`), `prd-res.model.ts` y `product.model.ts` → `core/data-access/products/`; `category.service.ts` y `category.model.ts` → `core/data-access/categories/`. Actualizar los imports en `home`, `product-detail`, `core/services/favorites.service.ts` y en todo `catalog-admin`. Crear `category.service.spec.ts` (mismas rutas, métodos y cuerpos que hoy). No cambiar el contenido de los servicios.
   - Depende de: T2
   - Verificación: `grep -rn "catalog-admin" src/app/features/home src/app/features/product-detail src/app/core` vacío (REQ-5.3); `product.service.spec.ts` movido y en verde y `category.service.spec.ts` con un `it('REQ-5.4: ...')` por método HTTP; `npm run lint` en 0; tests y build ok.
@@ -247,6 +247,14 @@ De 47 errores en 16 archivos a **0** (`npm run lint`, código 0), corrigiendo el
 - **Verificación de los criterios:** `grep -rn "postItems\|newPost\|/posts" src/app` (sin specs) → vacío (REQ-4.1, 4.2); `grep -rn "selector: 'app-header'" src/app` → solo `shared/header/header.ts:15` (REQ-4.3); `grep -n "rehydrate" src/main.ts` → `store.rehydrate()` en la línea 15, dentro del `APP_INITIALIZER` (REQ-4.4; el `grep` da 3 líneas porque también coincide el nombre `rehydrateStore`, no solo una).
 - **Verificación:** lint código 0 (sin imports huérfanos: `firstValueFrom` y `authService` siguen en uso en el facade); build código 0 (**882,07 kB**, 0,3 kB menos); tests **58 en verde**, sin cambios.
 - **Sin test propio:** el renombre del selector no tiene test porque ninguna plantilla usa la etiqueta `<app-home-page>` (la pantalla se carga por ruta); lo cubre el `grep`.
+
+### `core/data-access` (T8), 2026-10-16
+- **Movido con `git mv`** (git los detecta como renombres, el historial se conserva): `product.service.ts`, `product.service.spec.ts`, `prd-res.model.ts` y `product.model.ts` → `core/data-access/products/`; `category.service.ts` y `category.model.ts` → `core/data-access/categories/`. El contenido de los servicios y modelos no cambió salvo sus imports.
+- **Imports:** un script calculó todas las rutas nuevas antes de mover y reescribió **41 imports en 22 archivos** (admin, `home`, `product-detail`, `favorites.service` y specs). `home` y `product-detail` ya no dependen de `catalog-admin`.
+- **Criterios:** `grep -rn "catalog-admin" src/app/features/home src/app/features/product-detail src/app/core` → vacío (REQ-5.3); `grep -rn "features/" src/app/core/data-access` → vacío (la dependencia va de `features/` a `core/`, no al revés); `favorites.service.ts` importa el modelo desde `core/` (REQ-5.2).
+- **Tests nuevos (17)**, de caracterización: no cambian nada, fijan el contrato HTTP actual para que un cambio futuro de ruta, método o cuerpo haga fallar un test. `category.service.spec.ts` (nuevo): 7 `it('REQ-5.4: …')`, uno por método. `product.service.spec.ts` (el movido): +10 `it('REQ-5.4: …')` para los métodos que no tenían test (`getProductById`, `getProductBySlug` con el slug codificado, `postProduct`, `getProductsByUserId`, `getDescriptionByAi`, `generateFromImage`, `editProduct`, `deleteProduct`, `uploadProductImage` y `deleteProductImage`). Se agregaron los de `ProductService` más allá de lo que pedía la tarea porque su spec solo cubría `getProductsPage` y REQ-5.4 quedaba sin evidencia para el resto.
+- **Verificación:** lint código 0; build código 0 (882,07 kB, igual que antes: un movimiento no cambia el tamaño); tests **75 en verde** (58 + 17).
+- **Anotado:** se movió cada servicio entero (lectura y escritura), como decidió el diseño; partirlo en uno de lectura y otro de administración queda como mejora futura.
 
 ### Cierre de criterios (T22)
 *(pendiente)*
