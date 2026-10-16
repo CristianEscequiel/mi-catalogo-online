@@ -1,11 +1,12 @@
 import { NgClass } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   standalone: true,
   selector: 'app-toast-container',
   imports: [NgClass],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="toast toast-top toast-end z-50">
       @for (item of notifications(); track item.id) {

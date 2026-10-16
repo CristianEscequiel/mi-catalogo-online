@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DIALOG_DATA, DialogModule, DialogRef } from '@angular/cdk/dialog';
 
 export interface ConfirmDialogData {
@@ -13,6 +13,7 @@ export interface ConfirmDialogData {
   selector: 'app-confirm-dialog',
   standalone: true,
   imports: [CommonModule, DialogModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-base-200 rounded-2xl shadow-xl p-4 w-full max-w-sm">
       <h2 class="text-lg font-semibold mb-2">{{ data.title }}</h2>

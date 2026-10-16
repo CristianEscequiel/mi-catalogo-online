@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 import { CdkMenuModule, CdkMenuTrigger } from '@angular/cdk/menu';
 import { AuthStore } from '../../core/state/auth.store';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,8 @@ import { resolveImageUrl } from '../../core/config/api.config';
   standalone: true,
   selector: 'app-header',
   imports: [RouterLink, FontAwesomeModule, DecimalPipe, CdkMenuModule],
-  templateUrl: './header.html'
+  templateUrl: './header.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class Header implements OnInit {
