@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { AuthFacade } from '../../services/auth.facade';
 import { Validators } from '@angular/forms';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
@@ -13,12 +13,13 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, FontAwesomeModule, RouterLink],
   templateUrl: './login-form.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginForm {
   faEye = faEye
   faEyeSlash = faEyeSlash
-  showPassword = false;
-  isLoading = false;
+  readonly showPassword = signal(false);
+  readonly isLoading = signal(false);
   route = inject(ActivatedRoute);
   authFacade = inject(AuthFacade)
   returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
@@ -29,7 +30,7 @@ export class LoginForm {
   })
 
   togglePassword() {
-    this.showPassword = !this.showPassword;
+    this.showPassword.update((visible) => !visible);
   }
 
   async loginPost() {
@@ -38,7 +39,7 @@ export class LoginForm {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     const { email, password } = this.loginForm.getRawValue();
     try {
       await this.authFacade.loginUser(email, password, this.returnUrl);
@@ -46,7 +47,7 @@ export class LoginForm {
     } catch {
       return;
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }

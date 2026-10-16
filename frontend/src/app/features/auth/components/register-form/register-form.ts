@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UserFormRegister } from '../../../../core/models/user-form.model';
@@ -10,9 +10,10 @@ import { AuthFacade } from '../../services/auth.facade';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './register-form.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterForm {
-  isLoading = false;
+  readonly isLoading = signal(false);
   route = inject(ActivatedRoute);
   authFacade = inject(AuthFacade);
   returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
@@ -30,7 +31,7 @@ export class RegisterForm {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     const { name, lastName, email, password } = this.registerForm.getRawValue();
     try {
       await this.authFacade.registerUser({
@@ -45,7 +46,7 @@ export class RegisterForm {
     } catch {
       return;
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }
