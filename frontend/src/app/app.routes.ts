@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { LoginForm } from './features/auth/components/login-form/login-form';
 import { HomePage } from './features/home/home-page';
 import { authGuard } from './core/guards/auth-guard';
-import { Profile } from './features/profile/profile';
 import { loginGuard } from './core/guards/login-guard';
 import { CartPage } from './features/cart/cart-page';
 import { CheckoutPage } from './features/checkout/checkout-page';
@@ -66,7 +65,7 @@ export const routes: Routes = [
   {
     path: 'profile',
     canActivate:[authGuard],
-    component: Profile,
+    loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
   },
   {
     path: 'cart',

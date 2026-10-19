@@ -52,4 +52,15 @@ describe('AuthService', () => {
     expect(localStorage.getItem('token')).toBeNull();
     expect(localStorage.getItem('userLite')).toBeNull();
   });
+
+  it('REQ-1.1: updateProfile envía PUT /users/:id con el cuerpo exacto { profile: { name, lastName } }', async () => {
+    const result = firstValueFrom(service.updateProfile(7, { name: 'Ana', lastName: 'Pérez' }));
+
+    const req = http.expectOne(`${API_BASE_URL}/users/7`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ profile: { name: 'Ana', lastName: 'Pérez' } });
+    req.flush({ id: 7 });
+
+    await expectAsync(result).toBeResolved();
+  });
 });

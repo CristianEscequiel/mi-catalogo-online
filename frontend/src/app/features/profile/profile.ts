@@ -1,14 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { AuthStore } from '../../core/state/auth.store';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { ImageFieldComponent } from '../../shared/components/image-field/image-field.component';
 import { resolveImageUrl } from '../../core/config/api.config';
+import { imageUploadErrorMessage } from '../../shared/utils/image-rules';
 import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../shared/utils/image-replacement.helper';
+
+const notBlank: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
+  typeof control.value === 'string' && control.value.trim() === '' ? { required: true } : null;
 
 interface ProfileForm {
 name:FormControl;
@@ -25,8 +30,8 @@ lastName:FormControl;
 })
 export class Profile {
   profileForm = new FormGroup<ProfileForm>({
-    name: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
-    lastName: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+    name: new FormControl<string>('', { nonNullable: true, validators: [notBlank] }),
+    lastName: new FormControl<string>('', { nonNullable: true, validators: [notBlank] }),
     // email: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
   })
 
@@ -41,6 +46,27 @@ imageError = signal<string | null>(null);
 isUploadingImage = signal(false);
 isDeletingImage = signal(false);
 enableEdit = signal(false);
+isSaving = signal(false);
+private formEvents = toSignal(this.profileForm.events, { initialValue: null });
+nameError = computed(() => {
+  this.formEvents();
+  const control = this.profileForm.controls.name;
+  return control.touched && control.hasError('required') ? 'El nombre es obligatorio.' : null;
+});
+lastNameError = computed(() => {
+  this.formEvents();
+  const control = this.profileForm.controls.lastName;
+  return control.touched && control.hasError('required') ? 'El apellido es obligatorio.' : null;
+});
+canSave = computed(() => {
+  this.formEvents();
+  const current = this.profile();
+  if (!this.enableEdit() || this.isSaving() || !this.profileForm.valid || !this.store.userLite()?.id || !current) {
+    return false;
+  }
+  const { name, lastName } = this.profileForm.getRawValue();
+  return name.trim() !== current.name || lastName.trim() !== current.lastName;
+});
 
 constructor() {
   // Copia el perfil al formulario solo fuera de edición: subir o borrar la imagen
@@ -62,6 +88,32 @@ constructor() {
 edit(){
   this.profileForm.enable()
   this.enableEdit.set(true);
+}
+
+cancel() {
+  this.enableEdit.set(false);
+}
+
+async save() {
+  const userId = this.store.userLite()?.id;
+  const current = this.store.userProfile();
+  if (this.isSaving() || !this.canSave() || !userId || !current) {
+    return;
+  }
+  const raw = this.profileForm.getRawValue();
+  const name = raw.name.trim();
+  const lastName = raw.lastName.trim();
+  this.isSaving.set(true);
+  try {
+    await firstValueFrom(this.authService.updateProfile(userId, { name, lastName }));
+    this.store.setUserProfile({ ...current, name, lastName });
+    this.notificationService.success('Perfil actualizado correctamente.');
+    this.enableEdit.set(false);
+  } catch {
+    this.notificationService.error('No se pudo guardar el perfil.');
+  } finally {
+    this.isSaving.set(false);
+  }
 }
 
 onImageFileSelected(file: File | null) {
@@ -91,9 +143,9 @@ async onUploadImage() {
     this.selectedImageFile.set(null);
     this.setAvatar(response.imageUrl);
     this.notificationService.success('Imagen de perfil subida correctamente.');
-  } catch {
-    this.imageError.set('No se pudo subir la imagen.');
-    this.notificationService.error('No se pudo subir la imagen de perfil.');
+  } catch (error) {
+    this.imageError.set(imageUploadErrorMessage(error));
+    this.notificationService.error(imageUploadErrorMessage(error, 'No se pudo subir la imagen de perfil.'));
   } finally {
     this.isUploadingImage.set(false);
   }

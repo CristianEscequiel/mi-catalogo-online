@@ -31,9 +31,9 @@
     <textarea formControlName="description" class="textarea textarea-bordered w-full" placeholder="Descripción" rows="2"></textarea>
 
     <div class="flex gap-2 mt-5">
-      <button class="btn btn-primary btn-outline" type="submit" [disabled]="!categoryForm.valid">Guardar</button>
+      <button class="btn btn-primary btn-outline" type="submit" [disabled]="!categoryForm.valid || isSaving || isUploadingImage">Guardar</button>
       @if (mode === 'edit') {
-        <button class="btn" type="button" (click)="cancelled.emit()">Cancelar</button>
+        <button class="btn" type="button" [disabled]="isSaving || isUploadingImage" (click)="cancelled.emit()">Cancelar</button>
       }
     </div>
   </form>

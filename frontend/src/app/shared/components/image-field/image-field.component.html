@@ -25,6 +25,10 @@
         <span>Eliminar</span>
       </button>
       }
+
+      @if (previewUrl() && !isUploading) {
+      <button type="button" class="btn btn-sm btn-ghost" (click)="clearSelection()">Quitar</button>
+      }
     </div>
 
     @if (isUploading || isDeleting) {
@@ -60,9 +64,11 @@
     }
   }
 
-  <p class="text-xs opacity-70 mt-1">Formatos permitidos: jpg, jpeg, png, webp</p>
+  <p class="text-xs opacity-70 mt-1">{{ rulesHint }}</p>
 
-  @if (errorMessage) {
+  @if (rejectionMessage(); as rejection) {
+  <p role="alert" class="text-error text-sm mt-2">{{ rejection }}</p>
+  } @else if (errorMessage) {
   <p class="text-error text-sm mt-2">{{ errorMessage }}</p>
   }
 </div>

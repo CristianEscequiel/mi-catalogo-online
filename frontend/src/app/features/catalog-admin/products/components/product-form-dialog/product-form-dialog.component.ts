@@ -11,6 +11,7 @@ import { ProductService } from '../../../../../core/data-access/products/product
 import { PrdFormComponent } from '../product-form/product-form.component';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../../../../shared/utils/image-replacement.helper';
+import { imageUploadErrorMessage } from '../../../../../shared/utils/image-rules';
 
 type FormMode = 'create' | 'edit';
 
@@ -23,7 +24,7 @@ type FormMode = 'create' | 'edit';
   <div class="bg-base-200 border border-base-300/40 rounded-3xl shadow-xl max-w-5xl w-[96vw] mx-auto overflow-hidden">
     <div class="flex items-start gap-3 p-4 sm:p-5 border-b border-base-300/50 bg-base-100/45">
       <div class="flex-1">
-        @if (data.mode === 'edit') {
+        @if (mode() === 'edit') {
           <h3 class="text-xl font-semibold">Editar producto</h3>
           <p class="text-sm text-base-content/70 mt-1">Completa la información del producto y utiliza IA para acelerar la carga.</p>
         } @else {
@@ -31,7 +32,7 @@ type FormMode = 'create' | 'edit';
           <p class="text-sm text-base-content/70 mt-1">Completa la información del producto y utiliza IA para acelerar la carga.</p>
         }
       </div>
-      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost mt-0.5" aria-label="Cerrar modal de producto" [disabled]="isSaving()">
+      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost mt-0.5" aria-label="Cerrar modal de producto" [disabled]="isSaving() || isUploadingImage()">
         <fa-icon [icon]="faTimes"></fa-icon>
       </button>
     </div>
@@ -39,7 +40,7 @@ type FormMode = 'create' | 'edit';
     <div class="p-4 sm:p-5 max-h-[85vh] overflow-y-auto">
       <app-product-form
         [productForm]="form"
-        [mode]="data.mode"
+        [mode]="mode()"
         [imageUrl]="imageUrl()"
         [imageError]="imageError()"
         [isUploadingImage]="isUploadingImage()"
@@ -61,16 +62,19 @@ export class ProductFormDialogComponent {
   form: FormGroup;
   readonly imageUrl = signal<string | null>(null);
   readonly imageError = signal<string | null>(null);
-  selectedImageFile: File | null = null;
+  readonly selectedImageFile = signal<File | null>(null);
   readonly isUploadingImage = signal(false);
   readonly isDeletingImage = signal(false);
   readonly isSaving = signal(false);
+  readonly created = signal(false);
 
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
   private notificationService = inject(NotificationService);
   private dialogRef = inject<DialogRef<'updated' | 'cancel'>>(DialogRef);
   data = inject<{ id: number; product: ProductModel; mode: FormMode }>(DIALOG_DATA);
+  readonly mode = signal<FormMode>(this.data.mode);
+  readonly entityId = signal<number | null>(this.data.id ?? null);
 
   constructor() {
     const data = this.data;
@@ -104,6 +108,9 @@ export class ProductFormDialogComponent {
   }
 
   async onSubmit() {
+    if (this.isUploadingImage()) {
+      return;
+    }
     this.imageError.set(null);
 
     if (this.form.invalid) {
@@ -113,17 +120,17 @@ export class ProductFormDialogComponent {
 
     this.isSaving.set(true);
 
-    if (this.data.mode === 'edit') {
+    if (this.mode() === 'edit') {
       try {
-        if (this.selectedImageFile && !this.imageUrl()) {
-          await this.uploadImageForEntity(this.data.id);
+        if (this.selectedImageFile() && !this.imageUrl()) {
+          await this.uploadImageForEntity(this.entityId() as number);
         }
 
         const body = this.form.getRawValue() as ProductModel;
         body.thumbnailUrl = this.imageUrl() || null;
         body.categoryIds = Array.from(new Set((body.categoryIds ?? []).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
 
-        this.productService.editProduct(this.data.id, body).subscribe({
+        this.productService.editProduct(this.entityId() as number, body).subscribe({
           next: () => {
             this.notificationService.success('Producto actualizado correctamente.');
             this.dialogRef.close('updated');
@@ -149,8 +156,18 @@ export class ProductFormDialogComponent {
 
     try {
       const createdProduct = await this.productService.postProduct(body);
-      if (this.selectedImageFile) {
-        await this.uploadImageForEntity(createdProduct.id as number);
+      if (this.selectedImageFile()) {
+        try {
+          await this.uploadImageForEntity(createdProduct.id as number, { notify: false });
+        } catch {
+          this.entityId.set(createdProduct.id as number);
+          this.mode.set('edit');
+          this.created.set(true);
+          this.dialogRef.disableClose = true;
+          this.notificationService.error('Producto creado, pero no se pudo subir la imagen. Puedes reintentarlo.');
+          this.isSaving.set(false);
+          return;
+        }
       }
       this.notificationService.success('Producto creado correctamente.');
       this.dialogRef.close('updated');
@@ -166,42 +183,49 @@ export class ProductFormDialogComponent {
   }
 
   onCancel() {
-    if (this.isSaving()) {
+    if (this.isSaving() || this.isUploadingImage()) {
       return;
     }
-    this.dialogRef.close('cancel');
+    this.dialogRef.close(this.created() ? 'updated' : 'cancel');
   }
 
   onImageFileSelected(file: File | null) {
     this.imageError.set(null);
-    this.selectedImageFile = file;
+    this.selectedImageFile.set(file);
   }
 
   async onUploadImage() {
-    if (this.data.mode === 'create') {
+    if (this.mode() === 'create') {
       this.imageError.set('Primero guarda el producto para subir su imagen.');
       return;
     }
 
-    await this.uploadImageForEntity(this.data.id);
+    try {
+      await this.uploadImageForEntity(this.entityId() as number);
+    } catch {
+      // El aviso ya lo dio uploadImageForEntity.
+    }
   }
 
-  onDeleteImage() {
-    if (this.data.mode === 'create') {
+  async onDeleteImage() {
+    if (this.mode() === 'create') {
       this.imageUrl.set(null);
-      this.selectedImageFile = null;
+      this.selectedImageFile.set(null);
       return;
     }
 
-    this.deleteImageFromEntity(true);
+    try {
+      await this.deleteImageFromEntity(true);
+    } catch {
+      // El aviso ya lo dio deleteImageFromEntity.
+    }
   }
 
-  private async uploadImageForEntity(productId: number) {
-    if (!this.selectedImageFile) {
+  private async uploadImageForEntity(productId: number, options?: { notify: boolean }) {
+    const fileToUpload = this.selectedImageFile();
+    if (!fileToUpload) {
       return;
     }
-
-    const fileToUpload = this.selectedImageFile;
 
     try {
       this.isUploadingImage.set(true);
@@ -216,12 +240,15 @@ export class ProductFormDialogComponent {
 
       const response = await firstValueFrom(this.productService.uploadProductImage(productId, fileToUpload));
       this.imageUrl.set(response.imageUrl);
-      this.selectedImageFile = null;
+      this.selectedImageFile.set(null);
       this.imageError.set(null);
       this.notificationService.success('Imagen subida correctamente.');
-    } catch {
-      this.imageError.set('No se pudo subir la imagen.');
-      this.notificationService.error('No se pudo subir la imagen.');
+    } catch (error) {
+      const message = imageUploadErrorMessage(error);
+      this.imageError.set(message);
+      if (options?.notify !== false) {
+        this.notificationService.error(message);
+      }
       throw new Error('IMAGE_UPLOAD_FAILED');
     } finally {
       this.isUploadingImage.set(false);
@@ -231,10 +258,10 @@ export class ProductFormDialogComponent {
   private async deleteImageFromEntity(showSuccessToast: boolean, clearSelection = true) {
     this.isDeletingImage.set(true);
     try {
-      const response = await firstValueFrom(this.productService.deleteProductImage(this.data.id));
+      const response = await firstValueFrom(this.productService.deleteProductImage(this.entityId() as number));
       this.imageUrl.set(response.imageUrl);
       if (clearSelection) {
-        this.selectedImageFile = null;
+        this.selectedImageFile.set(null);
       }
       this.imageError.set(null);
       if (showSuccessToast) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, EventEmitter, inject, Input, OnInit, OnChanges, Output, signal, SimpleChanges } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
@@ -20,7 +20,7 @@ type FormMode = 'create' | 'edit';
   templateUrl: './product-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PrdFormComponent implements OnInit {
+export class PrdFormComponent implements OnInit, OnChanges {
   @Input() productForm!: FormGroup;
   @Input() mode: FormMode = 'create';
   @Input() imageUrl: string | null = null;
@@ -50,6 +50,14 @@ export class PrdFormComponent implements OnInit {
   readonly isAnalyzingImage = signal(false);
   readonly isAiSectionOpen = signal(false);
 
+  readonly localPreviewUrl = signal<string | null>(null);
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['imageUrl']?.currentValue) {
+      this.localPreviewUrl.set(null);
+    }
+  }
+
   ngOnInit() {
     // El estado del FormGroup (valor, validez, touched) no es una señal: la IA lo cambia con setValue en
     // callbacks asíncronos. Con OnPush hay que avisar a la vista cuando el formulario emite cualquier evento.
@@ -73,9 +81,6 @@ export class PrdFormComponent implements OnInit {
       return;
     }
     this.submitForm.emit();
-    if (this.mode === 'create') {
-      this.productForm.reset();
-    }
   }
 
   isSelected(id: number): boolean {
@@ -122,6 +127,10 @@ export class PrdFormComponent implements OnInit {
 
   resolvedImageUrl() {
     return resolveImageUrl(this.imageUrl);
+  }
+
+  displayImageUrl() {
+    return this.localPreviewUrl() ?? this.resolvedImageUrl();
   }
 
   generate(name: string) {
