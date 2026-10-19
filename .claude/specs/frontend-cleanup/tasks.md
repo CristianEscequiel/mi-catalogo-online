@@ -141,7 +141,7 @@ Cada paso termina midiendo el build y anotando el total inicial. **Se para en cu
 
 ## Grupo H: cierre
 
-- [ ] **T20. Humo manual en el navegador** — REQ-7.4, 6.2, 6.3
+- [x] **T20. Humo manual en el navegador** — REQ-7.4, 6.2, 6.3
   - Lo hace una persona con el backend local y el frontend ya con todo aplicado (`OnPush`, rutas perezosas y `Profile`). Resultado esperado de cada paso:
     1. Login con credenciales válidas deja la sesión abierta, y recargar la página la mantiene.
     2. El home lista productos y filtra por búsqueda y por categoría.
@@ -355,8 +355,14 @@ Solo tests, sin cambios de código de producción. Son de caracterización: pasa
 - **M4 (aplicado):** estado de la spec y decisiones de `requirements.md`/`design.md` pasados a «tomadas».
 - **M1, M3 y M5 (no aplicados; anotados en `pendientes.md`):** sesión que queda guardada si falla `getUserById` tras un login correcto (`auth.facade.ts`); errores relanzados sin capturar en los diálogos de producto y categoría; `role` de `userLite` sin validar en `rehydrate()`. Los tres ya existían antes de la spec y cambiarlos exige ampliar el diseño.
 
+### Humo manual (T20), 2026-10-19
+Lo hizo una persona con el backend local. Los 9 pasos dieron el resultado esperado. Hallazgos **preexistentes** (ninguno es regresión de esta spec; en `main` ya estaban), fuera de alcance y anotados en `pendientes.md` para una spec nueva:
+1. **Perfil, «Guardar» no hace nada:** `profile.html` tiene el botón sin `(ngSubmit)` ni `(click)` y `Profile` no tiene método de guardado; la función nunca se implementó. Falta verificar si el backend tiene endpoint para actualizar nombre y apellido.
+2. **Imagen inválida sin feedback:** `ImageFieldComponent` (compartido por producto, categoría y perfil) no avisa del rechazo ni informa formato y tamaño permitidos.
+3. **Crear producto sin vista previa** si la imagen se agrega primero: hay que optimizar el flujo de creación de producto.
+
 ### Cierre de criterios (T22)
-Verificación de `spec-verifier`, 2026-10-16 (sin navegador: T20 sin hacer). **Resultado: 0 criterios en NO; 3 NO VERIFICABLE (REQ-6.2, 6.3, 7.4), que dependen de T20.** La spec no se da por cerrada hasta el humo manual.
+Verificación de `spec-verifier`, 2026-10-16 (sin navegador). **Resultado: 0 criterios en NO; 0 NO VERIFICABLE tras T20 (2026-10-19):** REQ-6.2, 6.3 y 7.4 pasaron a SÍ con el humo manual. Falta el PR y el CI en Actions.
 
 **Ejecución:** `npm run lint` 0 · `ng test` **172 en verde** (0 fallados, 0 omitidos; una primera corrida dio código 127 sin salida, del entorno, y repetida pasó) · `npm run build` ok, bundle inicial **794,70 kB** (193,58 kB transferidos), margen 5,30 kB, sin aviso de presupuesto · `eslint-disable`: **1** (`product-list.component.ts:147`, con motivo) · `git diff origin/main -- angular.json` vacío · `package.json`: `dependencies` sin cambios; solo script `lint` y devDependencies `@eslint/js`, `angular-eslint`, `eslint`, `typescript-eslint`.
 
@@ -374,19 +380,19 @@ Verificación de `spec-verifier`, 2026-10-16 (sin navegador: T20 sin hacer). **R
 | REQ-5.5 | SÍ | `home-page.spec.ts`, `product-detail-page.spec.ts` |
 | REQ-5.6 | SÍ | `auth-guard.spec.ts` (9) y `app.routes.spec.ts` con las rutas reales |
 | REQ-6.1 | SÍ | build 794,70 kB sin aviso |
-| REQ-6.2 | NO VERIFICABLE | falta T20: abrir `/home`, ver productos, consola sin errores |
-| REQ-6.3 | NO VERIFICABLE | falta T20: abrir `admin/product`, `admin/category` y `admin/orders` (carga perezosa real) |
+| REQ-6.2 | SÍ | T20 (2026-10-19): `/home` lista productos, consola sin errores |
+| REQ-6.3 | SÍ | T20 (2026-10-19): `admin/product`, `admin/category` y `admin/orders` abren (carga perezosa real) |
 | REQ-6.4 | SÍ | `git diff origin/main -- angular.json` vacío |
 | REQ-7.1, 7.2 | SÍ | 172 en verde; build ok |
 | REQ-7.3 | SÍ | solo devDependencies de ESLint (incluye `@eslint/js`, agregado tras la auditoría) |
-| REQ-7.4 | NO VERIFICABLE | es el humo manual (T20) |
+| REQ-7.4 | SÍ | humo manual T20 (2026-10-19), 9 pasos ok |
 | REQ-8.1 a 8.4 | SÍ | T21; `grep` de `core/data-access` y `npm run lint` con coincidencias |
 | REQ-9.1 a 9.4, 9.6 | SÍ | lint 0; config con recomendadas y regla de OnPush; 1 `eslint-disable` con motivo; ESLint solo en devDependencies |
 | REQ-9.5 | SÍ (estático) | `ci.yml:86` `npm run lint` antes de `ng test`; que pase en Actions lo confirma una persona en el PR |
 
 **Calidad de evidencia (bajas):** `console.log('User confirmed deletion')` previo en `image-field.component.ts:90` (no es de esta rama); los 6 `toBeTruthy()` son los `should create`; no hay `tests-baseline.txt`, así que la integridad de los tests se revisó a mano (sin `xit`, `fit` ni `.skip`). Los ids `REQ-6.x`/`7.x` de home, product-list y order-admin vienen de otra spec y no cuentan.
 
-**Para cerrar:** una persona hace T20 (9 pasos), con lo que REQ-6.2, 6.3 y 7.4 pasan a SÍ; luego PR y CI en Actions.
+**Para cerrar:** PR y CI en Actions (lo informa una persona).
 
 ---
-**Estado:** Aprobada el 2026-10-16. T0 a T19 y T21 ejecutadas; pendientes T20 (humo manual) y T22 (cierre).
+**Estado:** Aprobada el 2026-10-16. T0 a T19 y T21 ejecutadas; T20 hecha el 2026-10-19; pendiente T22 (PR y CI en Actions; la tabla de criterios ya está completa).
