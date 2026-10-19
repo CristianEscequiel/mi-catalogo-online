@@ -56,7 +56,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 |---|---|---|
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
-| 3 | Arquitectura y calidad | En curso (y `profile-and-images`, implementada, falta humo y cierre): `quality-baseline` cerrada, `backend-architecture` implementada (falta T10, PR y despliegue), `frontend-cleanup` implementada en la rama `refactor/frontend-cleanup` (falta humo manual, cierre y PR) |
+| 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada, falta su T10 (cierre de criterios y despliegue manual) |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
@@ -82,12 +82,12 @@ Spec en `.claude/specs/backend-architecture/`. Rama `refactor/backend-architectu
 - **El puerto no pertenece al consumidor:** viven en el módulo del adaptador. Revisar si aparece un segundo adaptador.
 - **`login`** sigue con `@Request() req: { user: User }` (usuario de la estrategia `local`, no el `Payload`).
 
-### Fase 3, spec 3: `frontend-cleanup` (implementada, falta T20 a T22)
+### Fase 3, spec 3: `frontend-cleanup` (cerrada y mergeada en `main`, PR #12)
 
-Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hecho: servicios de catálogo de lectura pública en `core/data-access`; `AuthStore` como única fuente de la sesión (único lugar con `localStorage` de sesión, con validación al rehidratar); `OnPush` en los 33 componentes y `Profile` con signals; código muerto borrado (`postItems()`, selector `app-header` de `HomePage`); admin con `loadComponent` y bundle bajo el presupuesto; ESLint 9 en el frontend (`npm run lint`, en el CI antes de los tests) con la regla que exige `OnPush`; 172 tests de Karma. SSR quedó fuera de alcance. T20 (humo manual) hecho el 2026-10-19 y tabla de cierre completa. **Pendiente:** PR y CI en Actions.
+Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hecho: servicios de catálogo de lectura pública en `core/data-access`; `AuthStore` como única fuente de la sesión (único lugar con `localStorage` de sesión, con validación al rehidratar); `OnPush` en los 33 componentes y `Profile` con signals; código muerto borrado (`postItems()`, selector `app-header` de `HomePage`); admin con `loadComponent` y bundle bajo el presupuesto; ESLint 9 en el frontend (`npm run lint`, en el CI antes de los tests) con la regla que exige `OnPush`; 172 tests de Karma. SSR quedó fuera de alcance. T20 (humo manual) hecho el 2026-10-19 y tabla de cierre completa. Mergeada con el PR #12 y su cierre de T20 con el PR #13.
 
 **Abierto del frontend (anotado, fuera de la spec):**
-- **Hallazgos del humo manual (2026-10-19), candidatos a una spec completa nueva (p. ej. `profile-and-images`):** (1) el perfil no se puede guardar: el botón «Guardar» no tiene handler ni método (nunca se implementó; verificar si existe endpoint en el backend); (2) `ImageFieldComponent` no da feedback ante una imagen inválida ni informa formato y tamaño permitidos (afecta producto, categoría y perfil); (3) al crear un producto agregando la imagen primero no hay vista previa: optimizar el flujo de creación de producto.
+- **Hallazgos del humo manual (2026-10-19):** resueltos por la spec `profile-and-images` (guardar perfil, feedback y reglas de imagen, vista previa al crear un producto).
 - **Providers duplicados** entre `src/main.ts` (con zone.js, es el que arranca el navegador) y `app.config.ts` (zoneless, usado por SSR): hay que unificarlos o decidir SSR.
 - `LoginResponse.user.id` está tipado con el literal `1` y sin `role`.
 - La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`, que no existe en `ProductResModel`: probablemente siempre muestra «-».
@@ -97,14 +97,14 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 - **`role` de `userLite` sin validar** en `AuthStore.rehydrate()`: un valor editado a mano habilita el menú y las rutas de admin en el cliente (el backend protege con `@Roles`, así que es solo UX). Validar contra `ADMIN | CLIENT | GUEST`; considerar a la vez la expiración del token (Fase 4).
 - Si el bundle vuelve a pasar de 800 kB: T11/T12 de la spec (carga perezosa de login/registro, carrito, checkout y perfil).
 
-### Fase 3, spec 4: `profile-and-images` (implementada, falta humo manual y cierre)
+### Fase 3, spec 4: `profile-and-images` (cerrada y mergeada en `main`, PR #14)
 
-Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, desde `origin/main`. Cierra los tres hallazgos del humo manual de `frontend-cleanup` (2026-10-19), todos preexistentes: (1) el perfil no se podía guardar («Guardar» no tenía handler); (2) imagen inválida sin feedback ni reglas visibles; (3) sin vista previa al crear un producto con imagen, y producto o categoría duplicados si la subida fallaba tras crear. **Hecho (solo frontend):** guardar/cancelar en `Profile` con validación sin espacios; `shared/utils/image-rules.ts` (JPG, PNG o WebP, 5 MB) con rechazo en el cliente y mensajes por 413 y 415; vista previa en el panel «Vista previa del producto»; aviso único y paso a modo edición si la imagen falla tras crear (producto y categoría), sin duplicados; 138 tests nuevos (310 en total). `Profile` se carga de forma perezosa (el bundle inicial bajó de 799,15 a 764,37 kB). **Pendiente:** T13 (humo manual), T14 (auditoría, verificador, PR y CI en Actions).
+Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, desde `origin/main`. Cierra los tres hallazgos del humo manual de `frontend-cleanup` (2026-10-19), todos preexistentes: (1) el perfil no se podía guardar («Guardar» no tenía handler); (2) imagen inválida sin feedback ni reglas visibles; (3) sin vista previa al crear un producto con imagen, y producto o categoría duplicados si la subida fallaba tras crear. **Hecho (solo frontend):** guardar/cancelar en `Profile` con validación sin espacios; `shared/utils/image-rules.ts` (JPG, PNG o WebP, 5 MB) con rechazo en el cliente y mensajes por 413 y 415; vista previa en el panel «Vista previa del producto»; aviso único y paso a modo edición si la imagen falla tras crear (producto y categoría), sin duplicados; 138 tests nuevos (310 en total). `Profile` se carga de forma perezosa (el bundle inicial bajó de 799,15 a 764,37 kB). Humo manual informado como «todo ok» por el usuario y CI en verde; cerrada el 2026-10-19.
 
 **Abierto tras esta spec (anotado):**
 - **Análisis con IA antes de guardar el producto** y **subida previa de la imagen a una carpeta temporal:** requieren backend (carpeta temporal y limpieza de huérfanos).
 - Los límites de imagen son una constante del frontend (`image-rules.ts`) que debe igualar `MAX_IMAGE_SIZE_BYTES` del backend; si ese valor cambia en un despliegue, hay que tocar las dos.
-- Escape y clic en el fondo del diálogo se bloquean (`disableClose`) solo después de crear con fallo de imagen; no tienen test automático (se cubren en el humo manual).
+- Escape y clic en el fondo del diálogo se bloquean (`disableClose`) solo después de crear con fallo de imagen; no tienen test automático.
 - `NFR-8` (ruta `profile` con `loadComponent`) no tiene test automático: lo cubren el `grep` y el build.
 - **Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19):** (M3) `disableClose` se activa recién cuando la subida falla; mientras corre la creación o la subida posterior, Escape o el clic en el fondo cierran el diálogo con `undefined` y la lista no se refresca; (M5) `ImageFieldComponent.clearSelection()` no vacía el `<input type="file">`: tras «Quitar» no se puede volver a elegir el mismo archivo.
 - Si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`: decisión del usuario.
