@@ -102,6 +102,10 @@ loginUser(email: string, password: string): Observable<LoginResponse> {
     return this.http.get<ProfileResponse>(`${this.apiUrl}/users/${id}`)
   }
 
+  updateProfile(id: number, profile: { name: string; lastName: string }): Observable<unknown> {
+    return this.http.put(`${this.apiUrl}/users/${id}`, { profile });
+  }
+
   uploadProfileImage(id: number, file: File) {
     const formData = new FormData();
     formData.append('file', file);

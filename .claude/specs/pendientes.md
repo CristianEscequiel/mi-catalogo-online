@@ -56,7 +56,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 |---|---|---|
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
-| 3 | Arquitectura y calidad | En curso: `quality-baseline` cerrada, `backend-architecture` implementada (falta T10, PR y despliegue), `frontend-cleanup` implementada en la rama `refactor/frontend-cleanup` (falta humo manual, cierre y PR) |
+| 3 | Arquitectura y calidad | En curso (y `profile-and-images`, implementada, falta humo y cierre): `quality-baseline` cerrada, `backend-architecture` implementada (falta T10, PR y despliegue), `frontend-cleanup` implementada en la rama `refactor/frontend-cleanup` (falta humo manual, cierre y PR) |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
@@ -96,6 +96,18 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 - **Diálogos de producto y categoría:** `uploadImageForEntity` y `deleteImageFromEntity` relanzan errores que, llamados desde la plantilla, terminan como promesas rechazadas sin manejar (`Profile` ya lo corrigió en T17).
 - **`role` de `userLite` sin validar** en `AuthStore.rehydrate()`: un valor editado a mano habilita el menú y las rutas de admin en el cliente (el backend protege con `@Roles`, así que es solo UX). Validar contra `ADMIN | CLIENT | GUEST`; considerar a la vez la expiración del token (Fase 4).
 - Si el bundle vuelve a pasar de 800 kB: T11/T12 de la spec (carga perezosa de login/registro, carrito, checkout y perfil).
+
+### Fase 3, spec 4: `profile-and-images` (implementada, falta humo manual y cierre)
+
+Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, desde `origin/main`. Cierra los tres hallazgos del humo manual de `frontend-cleanup` (2026-10-19), todos preexistentes: (1) el perfil no se podía guardar («Guardar» no tenía handler); (2) imagen inválida sin feedback ni reglas visibles; (3) sin vista previa al crear un producto con imagen, y producto o categoría duplicados si la subida fallaba tras crear. **Hecho (solo frontend):** guardar/cancelar en `Profile` con validación sin espacios; `shared/utils/image-rules.ts` (JPG, PNG o WebP, 5 MB) con rechazo en el cliente y mensajes por 413 y 415; vista previa en el panel «Vista previa del producto»; aviso único y paso a modo edición si la imagen falla tras crear (producto y categoría), sin duplicados; 138 tests nuevos (310 en total). `Profile` se carga de forma perezosa (el bundle inicial bajó de 799,15 a 764,37 kB). **Pendiente:** T13 (humo manual), T14 (auditoría, verificador, PR y CI en Actions).
+
+**Abierto tras esta spec (anotado):**
+- **Análisis con IA antes de guardar el producto** y **subida previa de la imagen a una carpeta temporal:** requieren backend (carpeta temporal y limpieza de huérfanos).
+- Los límites de imagen son una constante del frontend (`image-rules.ts`) que debe igualar `MAX_IMAGE_SIZE_BYTES` del backend; si ese valor cambia en un despliegue, hay que tocar las dos.
+- Escape y clic en el fondo del diálogo se bloquean (`disableClose`) solo después de crear con fallo de imagen; no tienen test automático (se cubren en el humo manual).
+- `NFR-8` (ruta `profile` con `loadComponent`) no tiene test automático: lo cubren el `grep` y el build.
+- **Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19):** (M3) `disableClose` se activa recién cuando la subida falla; mientras corre la creación o la subida posterior, Escape o el clic en el fondo cierran el diálogo con `undefined` y la lista no se refresca; (M5) `ImageFieldComponent.clearSelection()` no vacía el `<input type="file">`: tras «Quitar» no se puede volver a elegir el mismo archivo.
+- Si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`: decisión del usuario.
 
 ### Fase 3: arquitectura y calidad (resto, pendiente)
 - ~~Decorador `@CurrentUser()`~~ (hecho en `backend-architecture`). Quedan los presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)

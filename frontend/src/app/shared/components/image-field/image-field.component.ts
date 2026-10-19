@@ -4,6 +4,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { faTrash , faEdit } from "@fortawesome/free-solid-svg-icons";
+import { IMAGE_RULES_HINT, validateImageFile } from '../../utils/image-rules';
 
 @Component({
   selector: 'app-image-field',
@@ -32,13 +33,16 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
   @Output() fileSelected = new EventEmitter<File | null>();
   @Output() uploadRequested = new EventEmitter<void>();
   @Output() deleteRequested = new EventEmitter<void>();
+  @Output() previewChanged = new EventEmitter<string | null>();
 
   selectedFile: File | null = null;
   readonly previewUrl = signal<string | null>(null);
+  readonly rejectionMessage = signal<string | null>(null);
+  readonly rulesHint = IMAGE_RULES_HINT;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['imageUrl']?.currentValue && this.selectedFile) {
-      this.clearSelection();
+      this.discardSelection();
     }
   }
 
@@ -54,10 +58,20 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
       return;
     }
 
+    const rejection = validateImageFile(file);
+    if (rejection) {
+      this.rejectionMessage.set(rejection);
+      input.value = '';
+      return;
+    }
+
+    this.rejectionMessage.set(null);
     this.revokePreview();
     this.selectedFile = file;
-    this.previewUrl.set(URL.createObjectURL(file));
+    const url = URL.createObjectURL(file);
+    this.previewUrl.set(url);
     this.fileSelected.emit(this.selectedFile);
+    this.previewChanged.emit(url);
 
     if (this.autoUploadOnSelect) {
       this.uploadRequested.emit();
@@ -65,6 +79,12 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
   }
 
   clearSelection() {
+    this.discardSelection();
+    this.rejectionMessage.set(null);
+    this.previewChanged.emit(null);
+  }
+
+  private discardSelection() {
     this.revokePreview();
     this.selectedFile = null;
     this.previewUrl.set(null);
@@ -87,7 +107,6 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
 
     ref.closed.subscribe((confirmed) => {
       if (confirmed) {
-        console.log('User confirmed deletion');
         this.deleteRequested.emit();
       }
     });

@@ -17,6 +17,7 @@ export class CategoryFormComponent {
   @Input() imageError: string | null = null;
   @Input() isUploadingImage = false;
   @Input() isDeletingImage = false;
+  @Input() isSaving = false;
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
   @Output() imageFileSelected = new EventEmitter<File | null>();
@@ -29,9 +30,6 @@ export class CategoryFormComponent {
       return;
     }
     this.submitForm.emit();
-    if (this.mode === 'create') {
-      this.categoryForm.reset();
-    }
   }
 
   onImageFileSelected(file: File | null) {

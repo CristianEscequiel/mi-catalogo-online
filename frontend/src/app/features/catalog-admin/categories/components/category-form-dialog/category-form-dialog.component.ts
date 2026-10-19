@@ -11,6 +11,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { confirmImageReplacementDialog, isNotFoundHttpError } from '../../../../../shared/utils/image-replacement.helper';
 import { HttpErrorResponse } from '@angular/common/http';
+import { imageUploadErrorMessage } from '../../../../../shared/utils/image-rules';
 
 type FormMode = 'create' | 'edit';
 
@@ -22,22 +23,23 @@ type FormMode = 'create' | 'edit';
   template: `
   <div class="bg-base-200 rounded-2xl shadow-xl max-w-xl w-full mx-auto p-2">
     <div class="flex p-1">
-      @if (data.mode === 'edit') {
+      @if (mode() === 'edit') {
         <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Editar categoria</h3>
       } @else {
         <h3 class="flex-1 mx-4 pt-2 text-lg font-bold mb-2">Crear nueva categoria</h3>
       }
-      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost">
+      <button (click)="onCancel()" class="btn btn-sm btn-circle btn-ghost" aria-label="Cerrar modal de categoría" [disabled]="isSaving() || isUploadingImage()">
         <fa-icon [icon]="faTimes"></fa-icon>
       </button>
     </div>
     <app-category-form
       [categoryForm]="form"
-      [mode]="data.mode"
+      [mode]="mode()"
       [imageUrl]="imageUrl()"
       [imageError]="imageError()"
       [isUploadingImage]="isUploadingImage()"
       [isDeletingImage]="isDeletingImage()"
+      [isSaving]="isSaving()"
       (imageFileSelected)="onImageFileSelected($event)"
       (uploadImage)="onUploadImage()"
       (deleteImage)="onDeleteImage()"
@@ -53,15 +55,19 @@ export class CategoryFormDialogComponent {
   form: FormGroup;
   readonly imageUrl = signal<string | null>(null);
   readonly imageError = signal<string | null>(null);
-  selectedImageFile: File | null = null;
+  readonly selectedImageFile = signal<File | null>(null);
   readonly isUploadingImage = signal(false);
   readonly isDeletingImage = signal(false);
+  readonly isSaving = signal(false);
+  readonly created = signal(false);
 
   private fb = inject(FormBuilder);
   private categoryService = inject(CategoryService);
   private notificationService = inject(NotificationService);
   private dialogRef = inject<DialogRef<'updated' | 'cancel'>>(DialogRef);
-  data = inject<{ id?: number; category?: CategoryModel; mode: FormMode }>(DIALOG_DATA);
+  private readonly data = inject<{ id?: number; category?: CategoryModel; mode: FormMode }>(DIALOG_DATA);
+  readonly mode = signal<FormMode>(this.data.mode);
+  readonly entityId = signal<number | null>(this.data.id ?? null);
 
   constructor() {
     const data = this.data;
@@ -83,27 +89,40 @@ export class CategoryFormDialogComponent {
   }
 
   async onSubmit() {
+    if (this.isUploadingImage()) {
+      return;
+    }
+    this.imageError.set(null);
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    if (this.data.mode === 'edit' && this.data.id != null) {
-      if (this.selectedImageFile && !this.imageUrl()) {
-        await this.uploadImageForEntity(this.data.id);
-      }
+    this.isSaving.set(true);
 
-      const body = this.form.getRawValue() as CategoryModel;
-      body.imageUrl = this.imageUrl() || null;
-      this.categoryService.editCategory(this.data.id, body).subscribe({
-        next: () => {
-          this.notificationService.success('Categoría actualizada correctamente.');
-          this.dialogRef.close('updated');
-        },
-        error: () => {
-          this.notificationService.error('No se pudo actualizar la categoría.');
-        },
-      });
+    const id = this.entityId();
+    if (this.mode() === 'edit' && id != null) {
+      try {
+        if (this.selectedImageFile() && !this.imageUrl()) {
+          await this.uploadImageForEntity(id);
+        }
+
+        const body = this.form.getRawValue() as CategoryModel;
+        body.imageUrl = this.imageUrl() || null;
+        this.categoryService.editCategory(id, body).subscribe({
+          next: () => {
+            this.notificationService.success('Categoría actualizada correctamente.');
+            this.dialogRef.close('updated');
+          },
+          error: () => {
+            this.notificationService.error('No se pudo actualizar la categoría.');
+            this.isSaving.set(false);
+          },
+        });
+      } catch {
+        this.isSaving.set(false);
+      }
       return;
     }
 
@@ -111,54 +130,77 @@ export class CategoryFormDialogComponent {
     body.imageUrl = null;
     try {
       const createdCategory = await firstValueFrom(this.categoryService.createCategory(body));
-      if (this.selectedImageFile) {
-        await this.uploadImageForEntity(createdCategory.id);
+      if (this.selectedImageFile()) {
+        try {
+          await this.uploadImageForEntity(createdCategory.id, { notify: false });
+        } catch {
+          this.entityId.set(createdCategory.id);
+          this.mode.set('edit');
+          this.created.set(true);
+          this.dialogRef.disableClose = true;
+          this.notificationService.error('Categoría creada, pero no se pudo subir la imagen. Puedes reintentarlo.');
+          this.isSaving.set(false);
+          return;
+        }
       }
       this.notificationService.success('Categoría creada correctamente.');
       this.dialogRef.close('updated');
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 403) {
         this.notificationService.error('Límite de demo alcanzado');
+        this.isSaving.set(false);
         return;
       }
       this.notificationService.error('No se pudo crear la categoría.');
+      this.isSaving.set(false);
     }
   }
 
   onCancel() {
-    this.dialogRef.close('cancel');
+    if (this.isSaving() || this.isUploadingImage()) {
+      return;
+    }
+    this.dialogRef.close(this.created() ? 'updated' : 'cancel');
   }
 
   onImageFileSelected(file: File | null) {
     this.imageError.set(null);
-    this.selectedImageFile = file;
+    this.selectedImageFile.set(file);
   }
 
   async onUploadImage() {
-    if (!this.data.id) {
+    const id = this.entityId();
+    if (!id) {
       this.imageError.set('Primero guarda la categoría para subir su imagen.');
       return;
     }
 
-    await this.uploadImageForEntity(this.data.id);
+    try {
+      await this.uploadImageForEntity(id);
+    } catch {
+      // El aviso ya lo dio uploadImageForEntity.
+    }
   }
 
-  onDeleteImage() {
-    if (!this.data.id) {
+  async onDeleteImage() {
+    if (!this.entityId()) {
       this.imageUrl.set(null);
-      this.selectedImageFile = null;
+      this.selectedImageFile.set(null);
       return;
     }
 
-    this.deleteImageFromEntity(true);
+    try {
+      await this.deleteImageFromEntity(true);
+    } catch {
+      // El aviso ya lo dio deleteImageFromEntity.
+    }
   }
 
-  private async uploadImageForEntity(categoryId: number) {
-    if (!this.selectedImageFile) {
+  private async uploadImageForEntity(categoryId: number, options?: { notify: boolean }) {
+    const fileToUpload = this.selectedImageFile();
+    if (!fileToUpload) {
       return;
     }
-
-    const fileToUpload = this.selectedImageFile;
 
     try {
       this.isUploadingImage.set(true);
@@ -173,12 +215,15 @@ export class CategoryFormDialogComponent {
 
       const response = await firstValueFrom(this.categoryService.uploadCategoryImage(categoryId, fileToUpload));
       this.imageUrl.set(response.imageUrl);
-      this.selectedImageFile = null;
+      this.selectedImageFile.set(null);
       this.imageError.set(null);
       this.notificationService.success('Imagen subida correctamente.');
-    } catch {
-      this.imageError.set('No se pudo subir la imagen.');
-      this.notificationService.error('No se pudo subir la imagen.');
+    } catch (error) {
+      const message = imageUploadErrorMessage(error);
+      this.imageError.set(message);
+      if (options?.notify !== false) {
+        this.notificationService.error(message);
+      }
       throw new Error('IMAGE_UPLOAD_FAILED');
     } finally {
       this.isUploadingImage.set(false);
@@ -186,16 +231,17 @@ export class CategoryFormDialogComponent {
   }
 
   private async deleteImageFromEntity(showSuccessToast: boolean, clearSelection = true) {
-    if (!this.data.id) {
+    const id = this.entityId();
+    if (!id) {
       return;
     }
 
     this.isDeletingImage.set(true);
     try {
-      const response = await firstValueFrom(this.categoryService.deleteCategoryImage(this.data.id));
+      const response = await firstValueFrom(this.categoryService.deleteCategoryImage(id));
       this.imageUrl.set(response.imageUrl);
       if (clearSelection) {
-        this.selectedImageFile = null;
+        this.selectedImageFile.set(null);
       }
       this.imageError.set(null);
       if (showSuccessToast) {
