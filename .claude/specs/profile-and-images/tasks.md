@@ -108,7 +108,7 @@ Rama: `feat/profile-and-images`, desde `origin/main`. Commits solo cuando el usu
   - Depende de: T12b
   - Verificación: cada paso anotado con su resultado en el registro.
 
-- [ ] **T14. Cierre de la spec** — todos
+- [x] **T14. Cierre de la spec** — todos
   - `code-auditor` y después `spec-verifier` con su tabla en «Verificación final» de `requirements.md`; ningún criterio en NO. Después, PR y CI en Actions (lo informa una persona).
   - Depende de: T13
   - Verificación: tabla completa; ningún criterio en NO.
@@ -242,3 +242,6 @@ Hecha por el orquestador:
 
 ### Humo manual (T13), 2026-10-19
 Lo hizo el usuario con el backend local. Informó: **«todo ok»**, sin detalle por paso (los seis pasos de la tarea: perfil guardar/cancelar/error, imágenes inválidas en perfil, producto y categoría, vista previa al crear, fallo tras crear sin duplicar en producto y en categoría, consola sin errores). Se registra tal como se informó; no se anotaron resultados individuales.
+
+### Cierre de la spec (T14), 2026-10-19
+`spec-verifier`: CERRABLE, 0 criterios en NO. El usuario abrió el PR de `feat/profile-and-images` (commits `783926d` de código y `6e54817` de docs) e informó que **el CI pasó**. Los «NO VERIFICABLE» del verificador quedaron así: CI en Actions confirmado por el usuario; humo manual informado como «todo ok» sin detalle por paso (registrado tal cual). Deuda anotada fuera de los criterios: M3 y M5 (`pendientes.md`). Decisión del usuario pendiente: si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`.
