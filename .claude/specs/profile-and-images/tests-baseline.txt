@@ -1,0 +1,10 @@
+# Baseline de tests de profile-and-images (aprobado por el usuario el 2026-10-19). Formato: <git hash-object> <ruta>
+8d3acf5ddfc588cfe24bb086631835bfbb0af311 frontend/src/app/shared/utils/image-rules.spec.ts
+2de2d4f6622ab077d84af5aceeef365922cf24b3 frontend/src/app/shared/components/image-field/image-field.component.spec.ts
+7bbe357f138f685fe108064c23d3c32b9e8944a3 frontend/src/app/features/auth/services/auth.service.spec.ts
+2ccf5a7f460cf62069235d5dd7746b6cb8dca629 frontend/src/app/features/profile/profile.spec.ts
+e1b9f99144511de07e1b02afde83c8de19b8f1a0 frontend/src/app/features/catalog-admin/products/components/product-form/product-form.component.spec.ts
+22a0556a9e5353b9d1814f56b8554d6024f08835 frontend/src/app/features/catalog-admin/products/components/product-form-dialog/product-form-dialog.component.spec.ts
+87bd1ecf8e06261d7daf43cffa7147c8c282b18d frontend/src/app/features/catalog-admin/categories/components/category-form/category-form.component.spec.ts
+0d44d8de156f1f3fb9305aec2a68cb418fb316c3 frontend/src/app/features/catalog-admin/categories/components/category-form-dialog/category-form-dialog.component.spec.ts
+# 2026-10-19: ampliados por test-writer con REQ-3.6 y REQ-4.27 a 4.31 (hallazgos M1, M2 y M4 de la auditoría de código), aprobado por el usuario; solo se agregaron describe/it al final de los 4 archivos de producto y categoría
