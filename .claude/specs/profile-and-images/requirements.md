@@ -2,7 +2,7 @@
 
 Cierra los tres hallazgos del humo manual de `frontend-cleanup` (T20, 2026-10-19). Los tres existían en `main` antes de esa spec: no son regresiones. **Solo frontend**: el backend ya expone todo lo necesario.
 
-Estado: **aprobada el 2026-10-19** (v3; enmendada el mismo día por la parada de bundle tras T4: NFR-8, NFR-9, y ajustes de NFR-3 y NFR-7; y REQ-3.6 y REQ-4.27 a 4.31 tras la auditoría de código), con tres enmiendas surgidas al diseñar, pendientes de confirmar: REQ-2.14/2.15 (textos bajo el selector y del aviso emergente), REQ-3.1 (la vista previa va en el panel grande del formulario) y REQ-3.2 (solo en modo `controls`). La v1 y la v2 fueron revisadas por `spec-reviewer` (v1: 4 bloqueantes y 6 menores; v2: 2 bloqueantes y 5 menores; todos incorporados en esta versión).
+Estado: **cerrada el 2026-10-19** (PR abierto y CI en verde, según informó el usuario). Aprobada (v3; enmendada el mismo día por la parada de bundle tras T4: NFR-8, NFR-9, y ajustes de NFR-3 y NFR-7; y REQ-3.6 y REQ-4.27 a 4.31 tras la auditoría de código), con tres enmiendas surgidas al diseñar, pendientes de confirmar: REQ-2.14/2.15 (textos bajo el selector y del aviso emergente), REQ-3.1 (la vista previa va en el panel grande del formulario) y REQ-3.2 (solo en modo `controls`). La v1 y la v2 fueron revisadas por `spec-reviewer` (v1: 4 bloqueantes y 6 menores; v2: 2 bloqueantes y 5 menores; todos incorporados en esta versión).
 
 ## 1. Contexto y decisiones
 
@@ -149,7 +149,7 @@ Los tests no ven el navegador real. Antes de cerrar: (1) editar nombre y apellid
 
 ## 5. Verificación final
 
-Verificación de `spec-verifier`, 2026-10-19. **Veredicto: CERRABLE. 0 criterios en NO; 2 NO VERIFICABLE** (humo manual con detalle por paso y CI en Actions, que confirma una persona).
+Verificación de `spec-verifier`, 2026-10-19. **Veredicto: CERRABLE. 0 criterios en NO; 1 NO VERIFICABLE** (el humo manual, informado como «todo ok» sin detalle por paso). El CI en Actions lo confirmó el usuario tras abrir el PR.
 
 **Ejecución (desde `frontend/`):** `npm run lint` código 0 (1 `eslint-disable`, el preexistente de `product-list.component.ts:147`) · `ng test` **310 de 310 en verde**, 0 fallados, 0 omitidos · `npm run build` código 0, total inicial **764,37 kB** (límite 800 kB), sin aviso de presupuesto, `profile` como chunk perezoso de 6,34 kB.
 
@@ -180,6 +180,6 @@ Verificación de `spec-verifier`, 2026-10-19. **Veredicto: CERRABLE. 0 criterios
 | NFR-8 | SÍ | `app.routes.ts`: `loadComponent` con `canActivate: [authGuard]`; sin test automático, la evidencia es el diff |
 | NFR-9 | SÍ | build: chunk perezoso `profile` de 6,34 kB, fuera del total inicial |
 | Humo manual (§4 / T13) | **NO VERIFICABLE** | el usuario informó «todo ok» sin detalle por paso |
-| CI en Actions | **NO VERIFICABLE** | solo lo puede ver una persona |
+| CI en Actions | SÍ (informado por el usuario) | el usuario abrió el PR el 2026-10-19 y informó que el CI pasó; el verificador no lo vio directamente |
 
 **Calidad de evidencia (bajas):** REQ-1.16 sin `it()` propio; los REQ-2.10 a 2.15 de producto y categoría se prueban bajo ids REQ-4.x; NFR-8 sin test automático; los ids `REQ-n.m` se repiten con los de `frontend-cleanup` en los specs que ya existían (se distinguen por el `describe`). **Integridad de los tests:** los 8 hashes de `tests-baseline.txt` coinciden; la ampliación de 4 specs está autorizada con una nota fechada; los `it()` existentes no se debilitaron.
