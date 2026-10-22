@@ -58,7 +58,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 |---|---|---|
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
-| 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada (PR #10 y #11) con el cierre de criterios del `spec-verifier` escrito; falta que una persona confirme REQ-1.8, 3.2, 3.3 y 3.6 y haga el despliegue manual para tildar T10 |
+| 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada (PR #10 y #11) con el cierre de criterios del `spec-verifier` escrito; el 2026-10-22 se reprodujeron REQ-1.8, 3.3 y 3.6; REQ-3.2 (e2e) queda no verificado; falta el despliegue manual para tildar T10 |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
@@ -75,7 +75,7 @@ Spec en `.claude/specs/quality-baseline/`, desplegada y comprobada en producció
 
 ### Fase 3, spec 2: `backend-architecture` (mergeada en `main`, falta confirmar T10 a mano)
 
-Spec en `.claude/specs/backend-architecture/`. Mergeada con los PR #10 y #11 (commits `42b1b00`, `0c11115`, `f206ce6`, `9af1032`; `e4cd3cf` escribe el cierre de criterios con el `spec-verifier`). Pendiente (T10 sigue sin tildar en `tasks.md`): que una persona confirme REQ-1.8, REQ-3.2, REQ-3.3 y REQ-3.6 y haga el despliegue manual (health, login, alta con imagen, pedido y envío de contacto); además, los dos volúmenes `archsmoke_*` siguen sin borrar. Opcionales sin hacer (verificado en el repo: `mail.controller.ts` sigue existiendo y `tasks.md` los deja sin tildar): T11 (borrar `MailController`) y T12 (regla de lint contra imports de adaptadores). Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
+Spec en `.claude/specs/backend-architecture/`. Mergeada con los PR #10 y #11 (commits `42b1b00`, `0c11115`, `f206ce6`, `9af1032`; `e4cd3cf` escribe el cierre de criterios con el `spec-verifier`). Pendiente (T10 sigue sin tildar en `tasks.md`): el despliegue manual (health, login, alta con imagen, pedido y envío de contacto). El 2026-10-22 se reprodujeron REQ-1.8 (401 sin token), REQ-3.3 (Swagger idéntico) y REQ-3.6 (`/health` 200, `uid=1000`); **REQ-3.2 queda no verificado por decisión del usuario**: las e2e en serie se colgaron dos veces contra un Postgres descartable (causa sin investigar; quizá una suite que deja un handle abierto). Los volúmenes `archsmoke_*` ya no existen. Opcionales sin hacer (verificado en el repo: `mail.controller.ts` sigue existiendo y `tasks.md` los deja sin tildar): T11 (borrar `MailController`) y T12 (regla de lint contra imports de adaptadores). Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
 
 **Abierto del backend (sin spec todavía):**
 - **DTOs/presenters de respuesta:** los controllers devuelven entidades de TypeORM y dependen de `@Exclude()` + `ClassSerializerInterceptor` para no filtrar campos.
@@ -110,6 +110,18 @@ Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, des
 - `NFR-8` (ruta `profile` con `loadComponent`) no tiene test automático: lo cubren el `grep` y el build.
 - **Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19):** (M3) `disableClose` se activa recién cuando la subida falla; mientras corre la creación o la subida posterior, Escape o el clic en el fondo cierran el diálogo con `undefined` y la lista no se refresca; (M5) `ImageFieldComponent.clearSelection()` no vacía el `<input type="file">`: tras «Quitar» no se puede volver a elegir el mismo archivo.
 - Si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`: decisión del usuario.
+
+### Hallazgos de la prueba local (2026-10-22, informados por el usuario)
+
+Salieron probando la pila en local mientras se cierra T10 de `backend-architecture`. Sin investigar todavía; el resto de las funcionalidades probadas anda sin problema.
+
+**Errores:**
+- **Crear una categoría con imagen da error.** Actualizar la imagen de una categoría ya creada funciona. El usuario sospecha que es el mismo problema que tuvo el producto (alta + subida de imagen); falta confirmarlo. Revisar el flujo de `category-form-dialog` y la subida posterior a la creación (ver `profile-and-images`).
+- **Al crear un producto nuevo y cargarle la imagen, las opciones de autocompletado con IA no quedan habilitadas.** Relacionado con el abierto «Análisis con IA antes de guardar el producto» de `profile-and-images`: hoy depende de que el producto ya exista.
+
+**Posibles mejoras (UX, sin spec):**
+- Mejorar el filtro del catálogo para permitir **varias categorías a la vez** (hoy es una sola).
+- Que **crear y editar producto y categoría sean una página** (ruta propia) y no una ventana emergente. Tocaría `catalog-admin` y simplificaría el manejo de `disableClose` (M3 de `profile-and-images`).
 
 ### Fase 3: arquitectura y calidad (resto, pendiente)
 - ~~Decorador `@CurrentUser()`~~ (hecho en `backend-architecture`). Quedan los presenters / DTOs de respuesta, para dejar de devolver entidades por HTTP. (El mapper único de órdenes ya se hizo en `orders-integrity`.)
