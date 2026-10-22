@@ -177,19 +177,19 @@ Queda limpio: contenedores y red de la prueba de humo. **Quedan dos volúmenes D
 ### Cierre de criterios (T10)
 Verificación de `spec-verifier` (2026-10-16), corrida desde `backend/`: `npm test` 39 suites y 344 tests en verde, eslint sin salida, `npm run build` ok, `git status` limpio. Sin hallazgos de calidad de evidencia de severidad alta (sin `.skip` ni tests deshabilitados en `npm test`; `describe.skip` en `test/orders-integrity.helpers.ts:38` es el mecanismo de las e2e sin `TEST_DB_*`).
 
-**Resultado: 27 SÍ, 0 NO, 4 NO VERIFICABLE.**
+**Resultado del `spec-verifier` (2026-10-16): 27 SÍ, 0 NO, 4 NO VERIFICABLE. Tras la reproducción manual del 2026-10-22: 30 SÍ, 0 NO, 1 NO VERIFICADO (REQ-3.2).**
 
 | Criterio | ¿Cumplido? | Evidencia |
 |---|---|---|
 | REQ-1.1 a REQ-1.7 | SÍ | `current-user.decorator.spec.ts`; `grep` de `AuthenticatedRequest` y `@Request()` solo deja `auth.controller.ts:26` (login `local`); specs de `product`/`category` con GUEST, ADMIN y 403 de CLIENT; `roles.guard.ts` y `self-or-admin.guard.ts` sin `any` |
-| REQ-1.8 | NO VERIFICABLE | Las e2e y el humo en docker no se reprodujeron en la verificación. Registro de T8: 401 sin token |
+| REQ-1.8 | SÍ | Reproducido el 2026-10-22 con el backend arrancado desde `main` (`f25c399`): 401 sin token y con token inválido en `orders`, `cart`, `favorites` y `users` |
 | REQ-2.1 a REQ-2.9 | SÍ | Consumidores inyectan `MailSender`, `ImageStorage` y `AiContentGenerator`; módulos con `{ provide, useClass }` y `exports: [<Puerto>]`; `grep` de adaptadores fuera de su módulo y de `jest.mock('resend'/'openai')` sin resultados; tope de 10 s del contacto con 503 (`contact.service.spec.ts`, `contact.integration.spec.ts:144`) |
 | REQ-3.1 | SÍ | 344 tests (línea base 308), 0 fallidos |
-| REQ-3.2 | NO VERIFICABLE | E2e necesitan Postgres. Registro de T7: 10 de 11 suites y 132 de 133 tests, igual que la línea base |
-| REQ-3.3 | NO VERIFICABLE | Swagger idéntico byte a byte según T7; no reproducido |
+| REQ-3.2 | NO VERIFICADO | E2e necesitan Postgres. Registro de T7: 10 de 11 suites y 132 de 133 tests, igual que la línea base. **No reproducido el 2026-10-22:** la corrida en serie contra un Postgres descartable se colgó (la primera, 31 min sin actividad en la base; la segunda se canceló tras ver fallar solo `app.e2e-spec.ts`, como en la línea base). Decisión del usuario: dejarlo como no verificado |
+| REQ-3.3 | SÍ | Reproducido el 2026-10-22: Swagger de la línea base (`df6e3d6`, worktree temporal) y el de `main` (`f25c399`) por `/swagger/json`, idénticos byte a byte (26 233 bytes, 35 paths) |
 | REQ-3.4, REQ-3.5 | SÍ | Lint y build en 0; `git diff origin/main` de `package.json`, lock, `src/database` y `.env-example` vacío |
-| REQ-3.6 | NO VERIFICABLE | Requiere docker. Registro de T8: `/health` 200 y UID 1000 |
+| REQ-3.6 | SÍ | Reproducido el 2026-10-22: imagen del backend construida desde `backend/Dockerfile` y corrida aislada con un Postgres descartable: `/health` 200, `id` → `uid=1000(node)`, `migrations:run:prod` sin pendientes y `uploads/{categories,products,profiles}` creadas |
 | REQ-4.1 a REQ-4.3 | SÍ | Specs del decorador y de `cart` (5), `favorites` (4), `orders` (6), `product` (11) y `category` (8); dobles del puerto en los consumidores |
 | REQ-5.1 a REQ-5.3 | SÍ | `.claude/steering/structure.md` (convención de `@CurrentUser()` y puertos); `pendientes.md` con la nota del hash corregida y lo abierto de la Fase 3 |
 
-**Pendiente de confirmar por una persona antes de tildar T10:** REQ-1.8, REQ-3.2, REQ-3.3 y REQ-3.6 (se sostienen con el registro de T7/T8, que el verificador no pudo reproducir), y el despliegue manual: login, alta con imagen, pedido y envío de contacto. Los dos volúmenes `archsmoke_*` siguen sin borrar.
+**Pendiente antes de tildar T10:** el despliegue manual en producción (login, alta con imagen, pedido y envío de contacto), que hace una persona. REQ-3.2 queda como no verificado por decisión del usuario. Los volúmenes `archsmoke_*` ya no existen en Docker (comprobado el 2026-10-22).
