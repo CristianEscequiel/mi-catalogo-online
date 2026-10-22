@@ -1,12 +1,14 @@
 # Pendientes y próximos pasos
 
-Última actualización: 2026-10-16. Rama de trabajo: `refactor/backend-architecture` (commiteada y subida al remoto; falta cerrar la spec, PR y despliegue).
+Última actualización: 2026-10-22, contrastada con el repo (`origin/main` en `3bb4615`, PR #15). No hay ramas de trabajo abiertas con código sin mergear; el `main` **local** puede estar atrás: `git checkout main && git pull`.
 
 > **2026-10-16:** `specs/` y `steering/` se movieron a `.claude/specs/` y `.claude/steering/`. Las rutas `specs/...` del texto histórico de abajo ahora son `.claude/specs/...`. Las secciones 1, 2, 3 y 5 son registro de lo que pasó en su momento; el estado vigente es la sección 3b.
 
 ## 1. Estado de las ramas (revisar primero)
 
 > **2026-10-13:** el usuario confirmó que las secciones 1 (ramas y merge) y 2 (manuales de `orders-integrity` y `catalog-access`) están completas. El detalle original se deja abajo como registro.
+>
+> **2026-10-22:** `fix/orders-integrity`, `fix/catalog-access` y `fix/infra-hardening` están mergeadas en `main` (PR #4, #5, #6 y #7) y ya no existen como ramas. Las ramas locales que quedan (`refactor/*`, `feat/profile-and-images`, `docs/*`) están mergeadas y se pueden borrar con confirmación.
 
 | Rama | Estado |
 |---|---|
@@ -34,7 +36,7 @@
 
 ## 3. `infra-hardening` (tercera spec de la Fase 2): desplegada en producción, falta 1 comprobación
 
-Spec en `.claude/specs/infra-hardening/` (requisitos, diseño y tareas aprobados; las 14 tareas obligatorias hechas y el cierre escrito). Cambios sin commitear en la rama local `fix/infra-hardening`, que sale de `fix/catalog-access`. Cuando se pida el commit: código y docs de la spec en commits separados.
+Spec en `.claude/specs/infra-hardening/` (requisitos, diseño y tareas aprobados; las 14 tareas obligatorias hechas y el cierre escrito). Mergeada en `main` con el PR #5 (seguimiento de CI en los PR #6 y #7).
 
 **Qué quedó hecho:** `validateEnv` al arrancar (sale con código 1 y lista todo lo que falta o está mal), CORS sin comodín en producción, Swagger apagado en producción, backend `USER node`, frontend `nginx-unprivileged` en el 8080, compose sin puertos publicados más `docker-compose.dev.yml` en loopback, `uploads/` fuera de git y de la imagen, `aide` eliminada.
 
@@ -45,7 +47,7 @@ Spec en `.claude/specs/infra-hardening/` (requisitos, diseño y tareas aprobados
 
 > **Confirmado el 2026-10-13:** la subida de una imagen desde el panel funciona (el `chown` del volumen quedó aplicado) y el PR #4 de `web-stack` (`fix/catalog-frontend-8080`) está mergeado en `master` (el usuario confirmó que `web-stack` está actualizado).
 
-**Abierto fuera de alcance (anotado):** `CORS_ORIGIN` por defecto del compose es `http://localhost:8080`; el real lo define `web-stack`. El deploy sigue entrando por SSH como `root@`. Opcionales T15 (verificar `USER node` en el CI) y T16 (`npm audit` informativo) hechos en `ci.yml`, sin commitear y sin haber corrido todavía en Actions. `npm audit` reporta vulnerabilidades preexistentes (backend: 24, 1 crítica; frontend: 15, 2 críticas): candidato para la Fase 3.
+**Abierto fuera de alcance (anotado):** `CORS_ORIGIN` por defecto del compose es `http://localhost:8080`; el real lo define `web-stack`. El deploy sigue entrando por SSH como `root@`. Opcionales T15 (verificar `USER node` en el CI) y T16 (`npm audit` informativo) hechos en `ci.yml` y mergeados (commit `3abcf04`, PR #6); después `quality-baseline` volvió bloqueante el audit crítico. `npm audit` reporta vulnerabilidades preexistentes (backend: 24, 1 crítica; frontend: 15, 2 críticas): candidato para la Fase 3.
 
 
 ## 3b. Plan completo de la auditoría: lo que sigue después de la Fase 2
@@ -56,7 +58,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 |---|---|---|
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
-| 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada, falta su T10 (cierre de criterios y despliegue manual) |
+| 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada (PR #10 y #11) con el cierre de criterios del `spec-verifier` escrito; falta que una persona confirme REQ-1.8, 3.2, 3.3 y 3.6 y haga el despliegue manual para tildar T10 |
 | 4 | Features para el e-commerce | Pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
@@ -71,9 +73,9 @@ Spec en `.claude/specs/quality-baseline/`, desplegada y comprobada en producció
 - **Las 11 suites e2e no corren en el CI** (hoy corren a mano con Postgres descartable): candidato a spec propia.
 - ~~**Bundle inicial del frontend**: 882 kB, sobre el presupuesto de 800 kB~~ (resuelto en `frontend-cleanup`: 794,70 kB con el admin cargado perezosamente; margen de ~5 kB).
 
-### Fase 3, spec 2: `backend-architecture` (implementada y commiteada, falta T10, PR y despliegue)
+### Fase 3, spec 2: `backend-architecture` (mergeada en `main`, falta confirmar T10 a mano)
 
-Spec en `.claude/specs/backend-architecture/`. Rama `refactor/backend-architecture`, commiteada y subida a `origin` (4 commits por delante de `main`: `42b1b00`, `0c11115`, `f206ce6`, `9af1032`). Pendiente: T10 (cierre de criterios), PR, CI y despliegue manual (health, login, alta con imagen, pedido y envío de contacto). Opcionales sin hacer: T11 (borrar `MailController`) y T12 (regla de lint contra imports de adaptadores). Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
+Spec en `.claude/specs/backend-architecture/`. Mergeada con los PR #10 y #11 (commits `42b1b00`, `0c11115`, `f206ce6`, `9af1032`; `e4cd3cf` escribe el cierre de criterios con el `spec-verifier`). Pendiente (T10 sigue sin tildar en `tasks.md`): que una persona confirme REQ-1.8, REQ-3.2, REQ-3.3 y REQ-3.6 y haga el despliegue manual (health, login, alta con imagen, pedido y envío de contacto); además, los dos volúmenes `archsmoke_*` siguen sin borrar. Opcionales sin hacer (verificado en el repo: `mail.controller.ts` sigue existiendo y `tasks.md` los deja sin tildar): T11 (borrar `MailController`) y T12 (regla de lint contra imports de adaptadores). Hecho: `@CurrentUser()` en `cart`, `favorites`, `orders`, `product` y `category`; puertos `MailSender`, `ImageStorage` y `AiContentGenerator` con su adaptador; `AuthenticatedRequest` eliminado; 36 pruebas nuevas (344 en total). Swagger idéntico byte a byte antes y después.
 
 **Abierto del backend (sin spec todavía):**
 - **DTOs/presenters de respuesta:** los controllers devuelven entidades de TypeORM y dependen de `@Exclude()` + `ClassSerializerInterceptor` para no filtrar campos.
@@ -174,9 +176,8 @@ Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, des
 
 ## 6. Cómo retomar mañana
 
-1. `git checkout fix/catalog-access && git pull` y `git checkout main && git pull` (el local está atrás).
-2. Decidir el merge de las ramas (sección 1).
-3. Hacer o delegar los manuales de la sección 2.
-4. Si se sigue con código: la Fase 3 (arquitectura y calidad, sección 3b) con `sdd-flow`; antes, cerrar el despliegue de `infra-hardening` (sección 3).
-5. El plan completo de la auditoría (Fases 3 y 4) está en la sección 3b y en `C:\Users\Escequiel\.claude\plans\necesito-que-audites-toda-noble-candle.md`.
-6. Material de estudio de la sesión: `C:\Programs\wiki-claude\sesiones\2026-10-12-catalog-access.html`.
+1. `git checkout main && git pull` (el local suele quedar atrás).
+2. Cerrar lo manual que queda: T10 de `backend-architecture` y el puerto 5433 de `infra-hardening` (sección 3).
+3. Si se sigue con código: lo abierto de la Fase 3 (3b: DTOs de respuesta, repositorios por contexto, deuda del frontend, SSR) o arrancar la Fase 4, siempre con `sdd-flow`.
+4. El plan completo de la auditoría (Fases 3 y 4) está en la sección 3b y en `C:\Users\Escequiel\.claude\plans\necesito-que-audites-toda-noble-candle.md`.
+5. Material de estudio de la sesión: `C:\Programs\wiki-claude\sesiones\2026-10-12-catalog-access.html`.
