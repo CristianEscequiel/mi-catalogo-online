@@ -52,4 +52,22 @@ describe('app.routes (guards y roles)', () => {
       });
     }
   });
+
+  describe('Mis pedidos', () => {
+    it('REQ-3.1: orders está protegida por authGuard y se carga con loadComponent', () => {
+      expect(route('orders').canActivate).toEqual([authGuard]);
+      expect(route('orders').loadComponent).toEqual(jasmine.any(Function));
+      expect(route('orders').component).toBeUndefined();
+    });
+
+    it('REQ-4.1: orders/:id está protegida por authGuard y se carga con loadComponent', () => {
+      expect(route('orders/:id').canActivate).toEqual([authGuard]);
+      expect(route('orders/:id').loadComponent).toEqual(jasmine.any(Function));
+      expect(route('orders/:id').component).toBeUndefined();
+    });
+
+    it('REQ-3.1: orders no restringe por rol (cualquier sesión)', () => {
+      expect(rolesOf('orders')).toBeUndefined();
+    });
+  });
 });

@@ -1,0 +1,57 @@
+<div class="max-w-3xl mx-auto">
+  @if (loading()) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <span class="loading loading-spinner loading-md"></span>
+        <p>Cargando el pedido...</p>
+      </div>
+    </div>
+  } @else if (order(); as orderData) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-start gap-4">
+        <div class="flex w-full flex-wrap items-center justify-between gap-2">
+          <h1 class="card-title text-2xl">Pedido #{{ orderData.id }}</h1>
+          <span class="badge badge-outline">{{ statusLabel(orderData.status) }}</span>
+        </div>
+
+        <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
+          <p><span class="font-semibold">Fecha:</span> {{ orderData.createdAt | date: 'short' }}</p>
+          <p><span class="font-semibold">Cliente:</span> {{ orderData.customerName }}</p>
+          <p><span class="font-semibold">Email:</span> {{ orderData.customerEmail }}</p>
+          <p><span class="font-semibold">Dirección:</span> {{ orderData.customerAddress }}</p>
+          <p><span class="font-semibold">Total:</span> $ {{ orderData.total | number: '1.0-0' }}</p>
+        </div>
+
+        <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
+          <h2 class="font-semibold mb-2">Resumen de productos</h2>
+          <div class="flex flex-col gap-2">
+            @for (item of orderData.items; track item.productId) {
+              <div class="flex items-center justify-between gap-2 text-sm border-b border-base-300 pb-2">
+                <div>
+                  <p class="font-medium">{{ item.productName }}</p>
+                  <p class="opacity-70">Cantidad: {{ item.quantity }} x $ {{ item.unitPrice | number: '1.0-0' }}</p>
+                </div>
+                <p class="font-semibold">$ {{ item.subtotal | number: '1.0-0' }}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (orderData.status === 'PENDING_PAYMENT') {
+          <app-order-payment-info [order]="orderData" />
+        }
+
+        <div class="card-actions mt-2 w-full">
+          <a routerLink="/orders" class="btn btn-primary w-full sm:w-auto">Volver a mis pedidos</a>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <p>No pudimos cargar este pedido.</p>
+        <a routerLink="/orders" class="btn btn-primary">Volver a mis pedidos</a>
+      </div>
+    </div>
+  }
+</div>

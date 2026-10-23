@@ -1,0 +1,62 @@
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">Mis pedidos</h1>
+
+  @if (loading()) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <span class="loading loading-spinner loading-md"></span>
+        <p>Cargando tus pedidos...</p>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <p>No pudimos cargar tus pedidos.</p>
+        <button type="button" class="btn btn-primary" (click)="loadFirstPage()">Reintentar</button>
+      </div>
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="card bg-base-100 border border-base-300 shadow-sm">
+      <div class="card-body items-center gap-3">
+        <p>Todavía no hiciste pedidos</p>
+        <a routerLink="/home" class="btn btn-primary">Ir al catálogo</a>
+      </div>
+    </div>
+  } @else {
+    <ul class="flex flex-col gap-3">
+      @for (order of orders(); track order.id) {
+        <li>
+          <a
+            [routerLink]="['/orders', order.id]"
+            class="card bg-base-100 border border-base-300 shadow-sm hover:border-primary"
+          >
+            <div class="card-body gap-2 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-semibold">#{{ order.id }}</span>
+                <span class="badge badge-outline">{{ statusLabel(order.status) }}</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span class="opacity-70">{{ order.createdAt | date: 'short' }}</span>
+                <span class="opacity-70"
+                  >{{ order.itemCount }} {{ order.itemCount === 1 ? 'producto' : 'productos' }}</span
+                >
+              </div>
+              <p class="font-semibold">$ {{ order.total | number: '1.0-0' }}</p>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+
+    @if (canLoadMore()) {
+      <div class="mt-4 flex justify-center">
+        <button type="button" class="btn btn-outline" [disabled]="loadingMore()" (click)="loadMore()">
+          @if (loadingMore()) {
+            <span class="loading loading-spinner loading-sm"></span>
+          }
+          Cargar más
+        </button>
+      </div>
+    }
+  }
+</div>
