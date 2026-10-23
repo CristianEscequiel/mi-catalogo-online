@@ -6,7 +6,7 @@ import { of, Subject } from 'rxjs';
 
 import { CategoryService } from '../../../../../core/data-access/categories/category.service';
 import { ProductResModel } from '../../../../../core/data-access/products/prd-res.model';
-import { ProductService } from '../../../../../core/data-access/products/product.service';
+import { GenerateProductFromImageResponse, ProductService } from '../../../../../core/data-access/products/product.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { AuthStore } from '../../../../../core/state/auth.store';
 import { ProductFormDialogComponent } from './product-form-dialog.component';
@@ -650,5 +650,107 @@ describe('ProductFormDialogComponent (profile-and-images, auditoría M1 y M2)', 
 
     expect(unhandled).toEqual([]);
     expect(notifications.error).toHaveBeenCalledOnceWith('No se pudo eliminar la imagen.');
+  });
+});
+
+describe('ProductFormDialogComponent (ia-al-crear-producto)', () => {
+  let fixture: ComponentFixture<ProductFormDialogComponent>;
+  let component: ProductFormDialogComponent;
+  let postProduct: jasmine.Spy;
+  let uploadProductImage: jasmine.Spy;
+  let analyzeImageFile: jasmine.Spy;
+  let analysis: Subject<GenerateProductFromImageResponse>;
+  let uploads: Subject<{ id: number; imageUrl: string | null }>[];
+  let dialogRef: { close: jasmine.Spy; disableClose: boolean };
+
+  const el = () => fixture.nativeElement as HTMLElement;
+  const settle = async () => {
+    for (let i = 0; i < 6; i++) {
+      await Promise.resolve();
+    }
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+  const analyzeButton = () => el().querySelector<HTMLButtonElement>('button[aria-label="Analizar imagen con IA"]')!;
+  const image = new File(['x'], 'foto.png', { type: 'image/png' });
+  const suggestion: GenerateProductFromImageResponse = {
+    name: 'Teclado',
+    description: 'Teclado con switches rojos',
+    categoryId: 1,
+    categoryName: 'Teclados',
+    slug: 'teclado',
+  };
+  const chooseFile = async () => {
+    const input = el().querySelector<HTMLInputElement>('app-image-field input[type="file"]')!;
+    const transfer = new DataTransfer();
+    transfer.items.add(image);
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    await settle();
+  };
+
+  beforeEach(async () => {
+    dialogRef = { close: jasmine.createSpy('close'), disableClose: false };
+    uploads = [];
+    analysis = new Subject<GenerateProductFromImageResponse>();
+    analyzeImageFile = jasmine.createSpy('analyzeImageFile').and.callFake(() => analysis);
+    postProduct = jasmine.createSpy('postProduct').and.callFake(() => Promise.resolve({ id: 9 } as ProductResModel));
+    uploadProductImage = jasmine.createSpy('uploadProductImage').and.callFake(() => {
+      const subject = new Subject<{ id: number; imageUrl: string | null }>();
+      uploads.push(subject);
+      return subject;
+    });
+    spyOn(console, 'error');
+
+    await TestBed.configureTestingModule({
+      imports: [ProductFormDialogComponent],
+      providers: [
+        provideZonelessChangeDetection(),
+        { provide: DIALOG_DATA, useValue: { mode: 'create' } },
+        { provide: DialogRef, useValue: dialogRef },
+        { provide: Dialog, useValue: {} },
+        { provide: ProductService, useValue: { postProduct, uploadProductImage, analyzeImageFile } },
+        { provide: CategoryService, useValue: { getCategoriesByUserId: () => of([{ id: 1, name: 'Teclados', description: '' }]) } },
+        { provide: AuthStore, useValue: { userLite: () => ({ id: 1 }) } },
+        { provide: NotificationService, useValue: { success: jasmine.createSpy('success'), error: jasmine.createSpy('error'), info: jasmine.createSpy('info') } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ProductFormDialogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await settle();
+    component.form.patchValue({ name: 'Teclado', price: 100, stock: 3 });
+    fixture.detectChanges();
+    await chooseFile();
+  });
+
+  it('REQ-1.5: analizar la imagen en modo create no crea el producto ni sube la imagen', async () => {
+    analyzeButton().click();
+    await settle();
+    analysis.next(suggestion);
+    analysis.complete();
+    await settle();
+
+    expect(analyzeImageFile).toHaveBeenCalledOnceWith(image, [{ id: 1, name: 'Teclados' }]);
+    expect(postProduct).not.toHaveBeenCalled();
+    expect(uploadProductImage).not.toHaveBeenCalled();
+  });
+
+  it('REQ-1.16: analizar y luego guardar crea el producto y sube la imagen elegida una sola vez', async () => {
+    analyzeButton().click();
+    await settle();
+    analysis.next(suggestion);
+    analysis.complete();
+    await settle();
+    expect(analyzeImageFile).toHaveBeenCalledTimes(1);
+
+    void component.onSubmit();
+    await settle();
+    uploads[0]?.next({ id: 9, imageUrl: '/uploads/products/x.png' });
+    await settle();
+
+    expect(postProduct).toHaveBeenCalledTimes(1);
+    expect(uploadProductImage).toHaveBeenCalledOnceWith(9, image);
   });
 });

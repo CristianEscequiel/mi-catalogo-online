@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, EventEmitter, inject, Input, OnInit, OnChanges, Output, signal, SimpleChanges } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
 import { GenerateProductFromImageResponse, ProductService } from '../../../../../core/data-access/products/product.service';
@@ -51,6 +52,7 @@ export class PrdFormComponent implements OnInit, OnChanges {
   readonly isAiSectionOpen = signal(false);
 
   readonly localPreviewUrl = signal<string | null>(null);
+  readonly selectedFile = signal<File | null>(null);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['imageUrl']?.currentValue) {
@@ -71,7 +73,10 @@ export class PrdFormComponent implements OnInit, OnChanges {
         this.categories.set(res);
         this.loadingCategories.set(false);
       },
-      error: (err) => console.error(err),
+      error: (err) => {
+        console.error(err);
+        this.loadingCategories.set(false);
+      },
     });
   }
 
@@ -114,6 +119,7 @@ export class PrdFormComponent implements OnInit, OnChanges {
   }
 
   onImageFileSelected(file: File | null) {
+    this.selectedFile.set(file);
     this.imageFileSelected.emit(file);
   }
 
@@ -150,7 +156,11 @@ export class PrdFormComponent implements OnInit, OnChanges {
   }
 
   canAnalyzeImageWithAi() {
-    return !!this.resolvedImageUrl() && !this.isAnalyzingImage();
+    return (
+      (!!this.resolvedImageUrl() || !!this.selectedFile()) &&
+      !this.loadingCategories() &&
+      !this.isAnalyzingImage()
+    );
   }
 
   toggleAiSection() {
@@ -159,7 +169,8 @@ export class PrdFormComponent implements OnInit, OnChanges {
 
   analyzeImageWithAi() {
     const imageUrl = this.resolvedImageUrl();
-    if (!imageUrl) {
+    const file = this.selectedFile();
+    if (!imageUrl && !file) {
       this.notificationService.error('Debes tener una imagen principal cargada para analizar.');
       return;
     }
@@ -169,33 +180,44 @@ export class PrdFormComponent implements OnInit, OnChanges {
       return;
     }
 
+    const categories = this.categories().map((category) => ({
+      id: category.id,
+      name: category.name,
+    }));
+
+    this.runImageAnalysis(
+      imageUrl
+        ? this.productService.generateFromImage({ imageUrl, categories })
+        : this.productService.analyzeImageFile(file as File, categories),
+    );
+  }
+
+  private runImageAnalysis(request$: Observable<GenerateProductFromImageResponse>) {
     this.isAnalyzingImage.set(true);
 
-    this.productService
-      .generateFromImage({
-        imageUrl,
-        categories: this.categories().map((category) => ({
-          id: category.id,
-          name: category.name,
-        })),
-      })
-      .subscribe({
-        next: async (suggestions) => {
-          const appliedCount = await this.applyImageSuggestions(suggestions);
-          if (appliedCount > 0) {
-            this.notificationService.success('Sugerencias aplicadas desde imagen.');
-            return;
-          }
-          this.notificationService.info('Se analizó la imagen, pero no hubo cambios para aplicar.');
-        },
-        error: () => {
-          this.notificationService.error('No se pudo analizar la imagen con IA.');
-          this.isAnalyzingImage.set(false);
-        },
-        complete: () => {
-          this.isAnalyzingImage.set(false);
-        },
-      });
+    let destroyed = false;
+    this.destroyRef.onDestroy(() => (destroyed = true));
+
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: async (suggestions) => {
+        const appliedCount = await this.applyImageSuggestions(suggestions);
+        if (destroyed) {
+          return;
+        }
+        if (appliedCount > 0) {
+          this.notificationService.success('Sugerencias aplicadas desde imagen.');
+          return;
+        }
+        this.notificationService.info('Se analizó la imagen, pero no hubo cambios para aplicar.');
+      },
+      error: () => {
+        this.notificationService.error('No se pudo analizar la imagen con IA.');
+        this.isAnalyzingImage.set(false);
+      },
+      complete: () => {
+        this.isAnalyzingImage.set(false);
+      },
+    });
   }
 
   private async applyImageSuggestions(suggestions: GenerateProductFromImageResponse): Promise<number> {

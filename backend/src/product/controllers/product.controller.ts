@@ -10,7 +10,9 @@ import { Product as ProductEntity } from '../entities/product.entity';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { createImageMulterOptions } from 'src/files/multer-image-options.factory';
+import { createImageMemoryMulterOptions, createImageMulterOptions } from 'src/files/multer-image-options.factory';
+import { toImageDataUrl } from 'src/files/image-data-url';
+import { AnalyzeProductImageDto } from '../dto/analyze-product-image.dto';
 import { UPLOAD_FOLDERS } from 'src/files/file.constants';
 import { AiContentGenerator } from 'src/ai/ai-content-generator.port';
 import { GenerateProductFromImageDto } from '../dto/generate-product-from-image.dto';
@@ -80,6 +82,32 @@ export class ProductController {
   @Post('generate-from-image')
   generateFromImage(@Body() body: GenerateProductFromImageDto) {
     return this.openAiService.generateProductFromImage(body.imageUrl, body.categories);
+  }
+
+  @ApiOperation({ summary: 'Analyze a product image (not stored) and suggest product data' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file', 'categories'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        categories: { type: 'string', description: 'JSON: [{"id":1,"name":"Teclados"}]' },
+      },
+    },
+  })
+  @UseGuards(AuthGuard('jwt'), RolesGuard, AiThrottlerGuard)
+  @Roles('ADMIN', 'GUEST')
+  @Post('analyze-image')
+  @UseInterceptors(FileInterceptor('file', createImageMemoryMulterOptions()))
+  analyzeImage(@UploadedFile() file: { mimetype: string; buffer: Buffer; size: number } | undefined, @Body() body: AnalyzeProductImageDto) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    if (file.size === 0) {
+      throw new BadRequestException('File is empty');
+    }
+    return this.openAiService.generateProductFromImage(toImageDataUrl(file), body.categories);
   }
 
   @ApiOperation({ summary: 'Publish a post Product by id with AI' })

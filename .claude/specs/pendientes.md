@@ -104,20 +104,31 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, desde `origin/main`. Cierra los tres hallazgos del humo manual de `frontend-cleanup` (2026-10-19), todos preexistentes: (1) el perfil no se podía guardar («Guardar» no tenía handler); (2) imagen inválida sin feedback ni reglas visibles; (3) sin vista previa al crear un producto con imagen, y producto o categoría duplicados si la subida fallaba tras crear. **Hecho (solo frontend):** guardar/cancelar en `Profile` con validación sin espacios; `shared/utils/image-rules.ts` (JPG, PNG o WebP, 5 MB) con rechazo en el cliente y mensajes por 413 y 415; vista previa en el panel «Vista previa del producto»; aviso único y paso a modo edición si la imagen falla tras crear (producto y categoría), sin duplicados; 138 tests nuevos (310 en total). `Profile` se carga de forma perezosa (el bundle inicial bajó de 799,15 a 764,37 kB). Humo manual informado como «todo ok» por el usuario y CI en verde; cerrada el 2026-10-19.
 
 **Abierto tras esta spec (anotado):**
-- **Análisis con IA antes de guardar el producto** y **subida previa de la imagen a una carpeta temporal:** requieren backend (carpeta temporal y limpieza de huérfanos).
+- ~~**Análisis con IA antes de guardar el producto**~~ **Hecho en la spec `ia-al-crear-producto` (2026-10-22):** el análisis de imagen se hace con un endpoint nuevo `POST /products/analyze-image` que recibe el archivo por `multipart` y lo analiza en memoria, sin carpeta temporal. Queda abierta la **subida previa de la imagen a una carpeta temporal** (ya no hace falta para la IA; solo tendría sentido para otros usos).
 - Los límites de imagen son una constante del frontend (`image-rules.ts`) que debe igualar `MAX_IMAGE_SIZE_BYTES` del backend; si ese valor cambia en un despliegue, hay que tocar las dos.
 - Escape y clic en el fondo del diálogo se bloquean (`disableClose`) solo después de crear con fallo de imagen; no tienen test automático.
 - `NFR-8` (ruta `profile` con `loadComponent`) no tiene test automático: lo cubren el `grep` y el build.
 - **Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19):** (M3) `disableClose` se activa recién cuando la subida falla; mientras corre la creación o la subida posterior, Escape o el clic en el fondo cierran el diálogo con `undefined` y la lista no se refresca; (M5) `ImageFieldComponent.clearSelection()` no vacía el `<input type="file">`: tras «Quitar» no se puede volver a elegir el mismo archivo.
 - Si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`: decisión del usuario.
 
+### Mejora: `ia-al-crear-producto` (implementada, sin commitear, falta el humo manual)
+
+Spec en `.claude/specs/ia-al-crear-producto/`. Rama `feat/ia-al-crear-producto`, desde `main` `c84fc73`. **Hecho:** «Analizar imagen con IA» se habilita al crear un producto con solo elegir la imagen (antes exigía una imagen ya subida). Backend: endpoint nuevo `POST /products/analyze-image` (`multipart`, `file` + `categories` como JSON), en memoria y sin escribir en `uploads/`, con los guards y el tope de IA de `generate-from-image` y topes propios (un archivo, un campo de texto de hasta 64 KB, hasta 200 categorías); la imagen viaja a OpenAI como `data:` URL, así que también funciona en `localhost`. Frontend: `ProductService.analyzeImageFile` y `PrdFormComponent` (archivo elegido en un signal, análisis por URL o por archivo según lo disponible, guardado bloqueado mientras se analiza). Backend 421 tests y frontend 336 en verde; bundle 764,54 kB. Swagger: solo se agrega el endpoint nuevo.
+
+**Abierto tras esta spec (anotado):**
+- **Humo manual con OpenAI real (T16):** lo hace una persona con `OPENAI_API_KEY` válida (crear producto → elegir imagen → analizar → guardar; probar también un archivo de más de 5 MB y uno que no sea imagen).
+- **Edición con imagen ya subida y archivo local nuevo sin subir** (si el usuario rechaza el reemplazo): se analiza la imagen subida, no el archivo local. Estado raro y transitorio.
+- Si el componente se destruye con el diálogo de confirmación de sugerencias ya abierto, ese diálogo no se cierra (solo se evitan los avisos posteriores).
+- Los topes `files/fields/parts/fieldSize` solo se aplican al endpoint nuevo; las subidas a disco (`/:id/image`) siguen sin límites de campos de texto.
+- Los límites de imagen siguen duplicados entre `image-rules.ts` y `MAX_IMAGE_SIZE_BYTES` del backend (ya anotado en `profile-and-images`).
+
 ### Hallazgos de la prueba local (2026-10-22, informados por el usuario)
 
 Salieron probando la pila en local mientras se cierra T10 de `backend-architecture`. Sin investigar todavía; el resto de las funcionalidades probadas anda sin problema.
 
 **Errores:**
-- **Crear una categoría con imagen da error.** Actualizar la imagen de una categoría ya creada funciona. El usuario sospecha que es el mismo problema que tuvo el producto (alta + subida de imagen); falta confirmarlo. Revisar el flujo de `category-form-dialog` y la subida posterior a la creación (ver `profile-and-images`).
-- **Al crear un producto nuevo y cargarle la imagen, las opciones de autocompletado con IA no quedan habilitadas.** Relacionado con el abierto «Análisis con IA antes de guardar el producto» de `profile-and-images`: hoy depende de que el producto ya exista.
+- ~~**Crear una categoría con imagen da error.**~~ **Descartado (2026-10-22): no era un bug.** El error de la consola era `POST http://localhost:3000/categories net::ERR_CONNECTION_REFUSED`: el backend no estaba escuchando en ese momento (se había apagado el proceso de `npm run start:dev`). Con el backend arriba, el usuario confirmó que la categoría y el producto se crean con imagen de una sola vez. El backend también se probó aparte con el mismo flujo del frontend (crear con `imageUrl: null` y subir la imagen: 201 y 201).
+- ~~**Al crear un producto nuevo y cargarle la imagen, las opciones de autocompletado con IA no quedan habilitadas**~~ **Resuelto por la spec `ia-al-crear-producto`** (rama `feat/ia-al-crear-producto`, sin commitear a la fecha): «Analizar imagen con IA» se habilita al elegir la imagen en el alta. Falta el humo manual con OpenAI real (T16).
 
 **Posibles mejoras (UX, sin spec):**
 - Mejorar el filtro del catálogo para permitir **varias categorías a la vez** (hoy es una sola).

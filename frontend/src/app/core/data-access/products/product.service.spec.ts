@@ -123,6 +123,21 @@ describe('ProductService (catálogo paginado)', () => {
       req.flush({});
     });
 
+    it('REQ-1.4: analyzeImageFile hace POST /products/analyze-image con FormData (file y categories como JSON) y sin Content-Type manual', () => {
+      const file = new File(['x'], 'foto.png', { type: 'image/png' });
+      const categories = [{ id: 1, name: 'Teclados' }];
+      service.analyzeImageFile(file, categories).subscribe();
+
+      const req = url('/products/analyze-image');
+      expect(req.request.method).toBe('POST');
+      const form = req.request.body as FormData;
+      expect(form instanceof FormData).toBeTrue();
+      expect(form.get('file')).toBe(file);
+      expect(JSON.parse(form.get('categories') as string)).toEqual(categories);
+      expect(req.request.headers.has('Content-Type')).toBeFalse();
+      req.flush({});
+    });
+
     it('REQ-5.4: editProduct hace PUT /products/:id con el cuerpo recibido', () => {
       service.editProduct(4, body).subscribe();
 
