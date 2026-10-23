@@ -10,7 +10,8 @@ import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.enum';
 import { Role } from '../auth/roles/roles.enum';
 import { lineTotal, sumMoney } from '../common/money';
-import { OrderResponse, toOrderResponse, toOrderSummary } from './order.mapper';
+import { MyOrdersPage, OrderResponse, toMyOrderSummary, toOrderResponse, toOrderSummary } from './order.mapper';
+import type { ListMyOrdersQueryDto } from './dto/list-my-orders-query.dto';
 import { allowedNext, canTransition } from './order-status.machine';
 
 @Injectable()
@@ -101,6 +102,38 @@ export class OrdersService {
     }
 
     return toOrderResponse(order);
+  }
+
+  // Historial paginado del usuario. Dos consultas: las órdenes de la página (sin join, para que
+  // skip/take paginen órdenes) y un conteo agrupado de líneas. `::int` evita que pg devuelva bigint como string.
+  async getMyOrders(userId: number, query: Pick<ListMyOrdersQueryDto, 'page' | 'limit'>): Promise<MyOrdersPage> {
+    const { page, limit } = query;
+    const [orders, total] = await this.dataSource.getRepository(Order).findAndCount({
+      where: { userId },
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const counts = new Map<number, number>();
+    if (orders.length > 0) {
+      const placeholders = orders.map((_, index) => `$${index + 1}`).join(', ');
+      const rows: unknown = await this.dataSource.query(
+        `SELECT "order_id", COUNT(*)::int AS "count" FROM "order_items" WHERE "order_id" IN (${placeholders}) GROUP BY "order_id"`,
+        orders.map((order) => order.id),
+      );
+      for (const row of rows as Array<{ order_id: number; count: number | string }>) {
+        counts.set(Number(row.order_id), Number(row.count));
+      }
+    }
+
+    return {
+      items: orders.map((order) => toMyOrderSummary(order, counts.get(order.id) ?? 0)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async getAllOrders() {

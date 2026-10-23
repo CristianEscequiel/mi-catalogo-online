@@ -61,3 +61,28 @@ export const toOrderSummary = (order: Order): OrderSummaryResponse => ({
   createdAt: order.createdAt,
   allowedTransitions: [...allowedNext(order.status)],
 });
+
+// Resumen de "mis pedidos": solo datos de la orden, sin datos personales ni transiciones.
+export interface MyOrderSummaryResponse {
+  id: number;
+  status: OrderStatus;
+  total: number;
+  createdAt: Date;
+  itemCount: number;
+}
+
+export interface MyOrdersPage {
+  items: MyOrderSummaryResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const toMyOrderSummary = (order: Order, itemCount: number): MyOrderSummaryResponse => ({
+  id: order.id,
+  status: order.status,
+  total: order.total,
+  createdAt: order.createdAt,
+  itemCount,
+});
