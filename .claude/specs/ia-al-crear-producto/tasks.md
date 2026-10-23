@@ -95,10 +95,11 @@ Convención: cada tarea con código lleva sus tests, que se nombran con el id de
   - Depende de: T14
   - Verificación: tabla completa; sin `NO`. Los `NO VERIFICABLE` se confirman con el usuario.
 
-- [ ] **T16 (O, manual). Humo en local con OpenAI real**
+- [x] **T16 (O, manual). Humo con OpenAI real**
   - Lo hace una persona con `OPENAI_API_KEY` válida: `npm run start:dev` y `npm start`; crear un producto, elegir imagen, «Analizar imagen con IA», revisar campos y guardar. Probar también un archivo de más de 5 MB y uno que no es imagen.
   - Depende de: T12
   - Verificación: lo que informe el usuario, anotado abajo.
+  - **Resultado (2026-10-23):** el usuario comprobó en producción la creación de un producto y el análisis con IA: «quedó perfecto». No informó las pruebas del archivo de más de 5 MB ni del que no es imagen.
 
 ## Dependencias
 
@@ -154,7 +155,7 @@ Tras T0, son independientes entre sí T1, T2, T3, T4 y T8; el backend (T1 a T7) 
 - **Swagger (NFR-1):** contra un worktree de `main` `c84fc73`: 35 paths antes y 36 después; agregado solo `/products/analyze-image` (`multipart/form-data`, `file` y `categories` requeridos); `generate-from-image` y `generate-ai/{name}` idénticos; ningún otro path cambió.
 - **Frontend (T8 a T12):** Karma **336 de 336** tras T13b (335 antes de REQ-1.20; línea base 310); `npm run lint` 0; `npm run build` ok con bundle inicial **764,54 kB** (línea base 764,37 kB; límite 800 kB); `product-form-dialog.component.ts` e `ImageFieldComponent` sin cambios. REQ-1.5 y REQ-1.16 pasaron sin tocar el diálogo, como preveía el diseño.
 - **Auditoría (`code-auditor`, T13):** aprobable, sin hallazgos altos. 3 medios y 4 bajos. Corregidos en T13b con enmiendas de la spec: topes del multipart y `@ArrayMaxSize(200)` (REQ-2.18 a 2.21), `takeUntilDestroyed` en el análisis (REQ-1.20) y test más fuerte de REQ-2.11. Documentado como límite conocido: edición con imagen subida y archivo local sin subir (M3). Tras T13b: backend 44 suites y **421 tests**, frontend **336**, bundle **764,54 kB**.
-- **Verificación de cierre (`spec-verifier`, T15):** 0 NO; tabla en `requirements.md`, sección 5. Queda T16 (humo manual con OpenAI real) para una persona.
+- **Verificación de cierre (`spec-verifier`, T15):** 0 NO; tabla en `requirements.md`, sección 5. T16 (humo manual con OpenAI real) hecho el 2026-10-23.
 - **Desvíos del diseño:** el diseño no preveía los topes del multipart ni `takeUntilDestroyed`; se agregaron por la auditoría (ver arriba y las enmiendas de `requirements.md`/`design.md`).
 
 ---

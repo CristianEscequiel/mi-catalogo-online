@@ -119,7 +119,7 @@ La petición es `multipart/form-data` con el archivo en el campo `file` y `categ
 
 Verificación de `spec-verifier` (2026-10-22), con los comandos corridos desde `backend/` y `frontend/`: backend `npm test` 44 suites y **421 tests** en verde (línea base 344), eslint sin salida, `npm run build` ok; frontend `npm run lint` ok, Karma **336 de 336** (línea base 310), `npm run build` ok con bundle inicial **764,54 kB** (límite 800 kB). Sin `.skip`, `fit`, `xit` ni aserciones débiles de severidad alta. Los specs existentes solo perdieron 3 líneas de import.
 
-**Resultado: 55 SÍ, 0 NO, 1 NO VERIFICABLE (NFR-1, ver abajo) y el humo manual T16 pendiente de una persona.**
+**Resultado: 55 SÍ, 0 NO, 1 NO VERIFICABLE (NFR-1, ver abajo) y el humo manual T16 hecho por el usuario el 2026-10-23 (en producción, sin observaciones).**
 
 | Criterio | ¿Cumplido? | Evidencia |
 |---|---|---|
@@ -145,7 +145,7 @@ Verificación de `spec-verifier` (2026-10-22), con los comandos corridos desde `
 | NFR-5 | SÍ | el lint exige `OnPush` y pasó; `selectedFile` es un signal |
 | NFR-6 | SÍ | bundle inicial 764,54 kB (< 800 kB) |
 
-**Pendiente de una persona:** T16, el humo manual con una `OPENAI_API_KEY` válida (crear producto → elegir imagen → «Analizar imagen con IA» → revisar campos → guardar; probar también un archivo de más de 5 MB y uno que no sea imagen). Los tests usan un doble de `AiContentGenerator`, así que ningún test llega a OpenAI de verdad.
+**Hecho por una persona (2026-10-23):** T16, el humo manual con una `OPENAI_API_KEY` válida (crear producto → elegir imagen → «Analizar imagen con IA» → revisar campos → guardar; probar también un archivo de más de 5 MB y uno que no sea imagen). Los tests usan un doble de `AiContentGenerator`, así que ningún test llega a OpenAI de verdad.
 
 ---
 **Estado:** Aprobada (2026-10-22)
