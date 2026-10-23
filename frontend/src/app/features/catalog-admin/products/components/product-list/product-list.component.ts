@@ -123,7 +123,8 @@ export class PrdListComponent implements OnInit {
 
     this.filteredProducts.set(data);
   }
-  getCategoryNames(ids: number[]): string {
+  getCategoryNames(row: ProductResModel): string {
+    const ids = row.categories?.map(cat => cat.id);
     const categories = this.categories();
     if (!ids?.length || !categories.length) return '-';
 
