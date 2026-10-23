@@ -1,7 +1,8 @@
 // core/state/auth.store.ts
 import { Injectable, signal, computed } from '@angular/core';
 
-export type UserRole = 'ADMIN' | 'CLIENT' | 'GUEST';
+const USER_ROLES = ['ADMIN', 'CLIENT', 'GUEST'] as const;
+export type UserRole = (typeof USER_ROLES)[number];
 export interface UserLite {
   id: number;
   email: string;
@@ -72,8 +73,13 @@ function parseUserLite(raw: string | null): UserLite | null {
   if (!raw) return null;
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (parsed !== null && typeof parsed === 'object' && typeof (parsed as { id?: unknown }).id === 'number') {
-      return parsed as UserLite;
+    if (parsed !== null && typeof parsed === 'object') {
+      const { id, role } = parsed as { id?: unknown; role?: unknown };
+      // `role` es opcional, pero si viene tiene que ser uno conocido: el menú y las rutas de admin dependen de él.
+      const validRole = role === undefined || USER_ROLES.includes(role as UserRole);
+      if (typeof id === 'number' && validRole) {
+        return parsed as UserLite;
+      }
     }
   } catch {
     // JSON corrupto: se trata como sesión inválida.

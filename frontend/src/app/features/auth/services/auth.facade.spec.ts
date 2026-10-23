@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 
 import { API_BASE_URL } from '../../../core/config/api.config';
+import { NotificationService } from '../../../core/services/notification.service';
 import { AuthStore } from '../../../core/state/auth.store';
 import { AuthFacade } from './auth.facade';
 
@@ -144,6 +145,51 @@ describe('AuthFacade', () => {
       expect(store.userLite()).toBeNull();
       expect(localStorage.getItem('token')).toBeNull();
       expect(localStorage.getItem('userLite')).toBeNull();
+    });
+
+    it('REQ-1.1, 1.2, 1.4: si el login responde bien y falla el perfil, limpia la sesión, avisa del perfil y no navega', async () => {
+      const notifications = TestBed.inject(NotificationService);
+      const error = spyOn(notifications, 'error');
+      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
+
+      const result = service.loginUser('ana@example.com', 'secreto');
+      http.expectOne(loginUrl).flush(loginResponse);
+      await settle();
+      http.expectOne(`${API_BASE_URL}/users/7`).flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+      await expectAsync(result).toBeRejectedWithError('LOGIN_FAILED');
+      expect(store.token()).toBeNull();
+      expect(store.userLite()).toBeNull();
+      expect(store.userProfile()).toBeNull();
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('userLite')).toBeNull();
+      expect(error).toHaveBeenCalledOnceWith('No pudimos cargar tu perfil. Intenta nuevamente.');
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
+    });
+
+    it('REQ-1.4: tras un login exitoso loadingProfile vuelve a false', async () => {
+      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
+
+      const result = service.loginUser('ana@example.com', 'secreto');
+      http.expectOne(loginUrl).flush(loginResponse);
+      await settle();
+      http.expectOne(`${API_BASE_URL}/users/7`).flush(profileResponse);
+      await result;
+
+      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
+    });
+
+    it('REQ-1.3: con credenciales inválidas sigue avisando «Credenciales invalidas»', async () => {
+      const error = spyOn(TestBed.inject(NotificationService), 'error');
+      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
+
+      const result = service.loginUser('ana@example.com', 'mala');
+      http.expectOne(loginUrl).flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+
+      await expectAsync(result).toBeRejectedWithError('LOGIN_FAILED');
+      expect(error).toHaveBeenCalledOnceWith('Credenciales invalidas. Intenta nuevamente.');
+      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
     });
 
     it('REQ-1.10: un login con error de red no deja sesión en el store ni en localStorage', async () => {

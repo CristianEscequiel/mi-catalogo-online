@@ -31,16 +31,24 @@ export class AuthFacade {
   async loginUser(email: string, password: string, redirectUrl = '/home') {
     try {
       this.store.setLoadingProfile(true);
-      const res = await firstValueFrom(this.authService.loginUser(email, password));
-      this.store.setAuth(res.access_token, res.user);
-      const profile = await firstValueFrom(this.authService.getUserById(res.user.id));
+      const res = await firstValueFrom(this.authService.loginUser(email, password)).catch(() => {
+        this.notificationService.error('Credenciales invalidas. Intenta nuevamente.');
+        throw new Error('LOGIN_FAILED');
+      });
 
-      this.store.setUserProfile(toUserProfile(profile));
+      this.store.setAuth(res.access_token, res.user);
+      try {
+        const profile = await firstValueFrom(this.authService.getUserById(res.user.id));
+        this.store.setUserProfile(toUserProfile(profile));
+      } catch {
+        // Login correcto pero sin perfil: no se deja una sesión a medias.
+        this.store.clear();
+        this.notificationService.error('No pudimos cargar tu perfil. Intenta nuevamente.');
+        throw new Error('LOGIN_FAILED');
+      }
+
       this.notificationService.success('Inicio de sesion exitoso.');
       this.router.navigateByUrl(redirectUrl);
-    } catch {
-      this.notificationService.error('Credenciales invalidas. Intenta nuevamente.');
-      throw new Error('LOGIN_FAILED');
     } finally {
       this.store.setLoadingProfile(false);
     }
