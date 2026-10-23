@@ -191,7 +191,7 @@
 
     <div class="sticky bottom-0 z-10 rounded-xl border border-base-300/60 bg-base-100/95 backdrop-blur p-3 shadow-[0_-10px_20px_rgba(0,0,0,0.18)] flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <button class="btn btn-ghost w-full sm:w-auto" type="button" (click)="cancelled.emit()" [disabled]="isSaving || isUploadingImage">Cancelar</button>
-      <button class="btn btn-primary w-full sm:w-auto" type="submit" [disabled]="!productForm.valid || isSaving || isUploadingImage">
+      <button class="btn btn-primary w-full sm:w-auto" type="submit" [disabled]="!productForm.valid || isSaving || isUploadingImage || isAnalyzingImage()">
         @if (!isSaving) {
         <span>{{ mode === 'create' ? 'Crear producto' : 'Guardar producto' }}</span>
         } @else {

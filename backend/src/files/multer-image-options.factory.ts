@@ -1,11 +1,28 @@
 import { UnsupportedMediaTypeException } from '@nestjs/common';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { extname, join, resolve } from 'path';
 import { ALLOWED_IMAGE_EXTENSIONS, ALLOWED_IMAGE_MIME_TYPES, DEFAULT_MAX_IMAGE_SIZE_BYTES, UploadFolder } from './file.constants';
 import { existsSync, mkdirSync } from 'fs';
 
 const sanitizeName = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+export const imageFileFilter: MulterOptions['fileFilter'] = (_req, file, callback) => {
+  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+    callback(new UnsupportedMediaTypeException('Only jpg, jpeg, png and webp files are allowed'), false);
+    return;
+  }
+
+  callback(null, true);
+};
+
+export const imageFileSizeLimit = (): number => Number(process.env.MAX_IMAGE_SIZE_BYTES ?? DEFAULT_MAX_IMAGE_SIZE_BYTES);
+
+export const createImageMemoryMulterOptions = (): MulterOptions => ({
+  storage: memoryStorage(),
+  limits: { fileSize: imageFileSizeLimit(), files: 1, fields: 1, parts: 2, fieldSize: 64 * 1024 },
+  fileFilter: imageFileFilter,
+});
 
 export const createImageMulterOptions = (folder: UploadFolder): MulterOptions => ({
   storage: diskStorage({
@@ -25,15 +42,6 @@ export const createImageMulterOptions = (folder: UploadFolder): MulterOptions =>
       callback(null, filename);
     },
   }),
-  limits: {
-    fileSize: Number(process.env.MAX_IMAGE_SIZE_BYTES ?? DEFAULT_MAX_IMAGE_SIZE_BYTES),
-  },
-  fileFilter: (_req, file, callback) => {
-    if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.mimetype)) {
-      callback(new UnsupportedMediaTypeException('Only jpg, jpeg, png and webp files are allowed'), false);
-      return;
-    }
-
-    callback(null, true);
-  },
+  limits: { fileSize: imageFileSizeLimit() },
+  fileFilter: imageFileFilter,
 });

@@ -96,6 +96,13 @@ export class ProductService {
     return this.http.post<GenerateProductFromImageResponse>(`${this.apiUrl}/products/generate-from-image`, body);
   }
 
+  analyzeImageFile(file: File, categories: ProductImageCategoryOption[]): Observable<GenerateProductFromImageResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('categories', JSON.stringify(categories));
+    return this.http.post<GenerateProductFromImageResponse>(`${this.apiUrl}/products/analyze-image`, formData);
+  }
+
   editProduct(id:number , body:ProductModel): Observable<ProductResModel>{
     return this.http.put<ProductResModel>(`${this.apiUrl}/products/${id}`, body)
   }
