@@ -90,7 +90,7 @@ describe('MyOrdersPage', () => {
     expect(text()).toContain(date);
     expect(text()).toContain('Pagado');
     expect(text()).toContain(`$ ${total}`);
-    expect(text()).toMatch(/\b7\b/);
+    expect(text()).toContain('7 productos');
     expect(text()).not.toContain('Cargando');
   });
 
