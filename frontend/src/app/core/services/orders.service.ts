@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
@@ -42,6 +42,22 @@ export interface OrderSummaryResponse {
   allowedTransitions: OrderStatus[];
 }
 
+export interface MyOrderSummary {
+  id: number;
+  status: OrderStatus;
+  total: number;
+  createdAt: string;
+  itemCount: number;
+}
+
+export interface MyOrdersResponse {
+  items: MyOrderSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface OrderStatusUpdateResponse {
   id: number;
   status: OrderStatus;
@@ -61,6 +77,11 @@ export class OrdersService {
 
   getOrderById(orderId: number): Observable<OrderResponse> {
     return this.http.get<OrderResponse>(`${this.apiUrl}/orders/${orderId}`);
+  }
+
+  getMyOrders(page = 1, limit = 10): Observable<MyOrdersResponse> {
+    const params = new HttpParams().set('page', page).set('limit', limit);
+    return this.http.get<MyOrdersResponse>(`${this.apiUrl}/orders/me`, { params });
   }
 
   getAllOrders(): Observable<OrderSummaryResponse[]> {

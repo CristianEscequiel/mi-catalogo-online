@@ -1,7 +1,7 @@
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.enum';
-import { toOrderResponse, toOrderSummary } from './order.mapper';
+import { toMyOrderSummary, toOrderResponse, toOrderSummary } from './order.mapper';
 
 const createdAt = new Date('2026-10-01T10:00:00Z');
 
@@ -58,5 +58,18 @@ describe('order.mapper', () => {
     const first = toOrderResponse(buildOrder(OrderStatus.PENDING_PAYMENT));
     first.allowedTransitions.push(OrderStatus.DELIVERED);
     expect(toOrderResponse(buildOrder(OrderStatus.PENDING_PAYMENT)).allowedTransitions).toEqual(['PAID', 'CANCELLED']);
+  });
+
+  it('REQ-1.4: toMyOrderSummary devuelve exactamente id, status, total, createdAt e itemCount', () => {
+    const summary = toMyOrderSummary(buildOrder(OrderStatus.PAID), 4);
+    expect(summary).toEqual({ id: 7, status: 'PAID', total: 0.3, createdAt, itemCount: 4 });
+    expect(Object.keys(summary).sort()).toEqual(['createdAt', 'id', 'itemCount', 'status', 'total']);
+  });
+
+  it('REQ-1.4: toMyOrderSummary no expone datos personales ni allowedTransitions', () => {
+    const summary = toMyOrderSummary(buildOrder(OrderStatus.PENDING_PAYMENT), 1) as unknown as Record<string, unknown>;
+    for (const key of ['customerName', 'customerEmail', 'shippingAddress', 'allowedTransitions', 'userId', 'items']) {
+      expect(summary).not.toHaveProperty(key);
+    }
   });
 });

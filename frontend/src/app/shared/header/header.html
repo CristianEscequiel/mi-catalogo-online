@@ -131,6 +131,10 @@
                       (click)="userMenuTrigger.close()">
                       Mi perfil
                     </a>
+                    <a routerLink="/orders" class="flex w-full cursor-pointer items-center rounded-2xl px-4 py-3 text-sm hover:bg-base-200" cdkMenuItem
+                      (click)="userMenuTrigger.close()">
+                      Mis pedidos
+                    </a>
                     <div class="rounded-2xl px-4 py-3" (click)="$event.stopPropagation()">
                       <label class="flex cursor-pointer items-center justify-between gap-3">
                         <span class="text-sm">Tema oscuro</span>

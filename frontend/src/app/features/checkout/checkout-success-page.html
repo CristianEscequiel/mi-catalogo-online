@@ -36,19 +36,9 @@
           </div>
         </div>
 
-        <div class="w-full rounded-lg border border-base-300 p-3 bg-base-200">
-          <h2 class="font-semibold mb-2">Datos de transferencia</h2>
-          <p>Transferí a:</p>
-          <p><span class="font-semibold">Alias:</span> {{ bankData.alias }}</p>
-          <p><span class="font-semibold">CBU:</span> {{ bankData.cbu }}</p>
-          <p><span class="font-semibold">Titular:</span> {{ bankData.holder }}</p>
-          <p><span class="font-semibold">Banco:</span> {{ bankData.bank }}</p>
-        </div>
+        <app-order-payment-info [order]="orderData" />
 
         <div class="card-actions mt-2 w-full flex-col sm:flex-row">
-          <a [href]="whatsappUrl()" target="_blank" rel="noopener noreferrer" class="btn btn-success w-full sm:w-auto">
-            Enviar pedido por WhatsApp
-          </a>
           <a routerLink="/home" class="btn btn-primary w-full sm:w-auto">Volver al catálogo</a>
         </div>
       </div>

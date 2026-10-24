@@ -1,0 +1,15 @@
+# Baseline de tests de mis-pedidos (aprobado por el usuario el 2026-10-23, con el renombre de la interfaz MyOrdersPage -> MyOrdersResponse)
+6ead769ad2ca30701c1b4c4915e299bad981b086 backend/src/orders/dto/list-my-orders-query.dto.spec.ts
+228b6c4ec57ac552a3ad2227b83481525c1ac2d4 backend/src/orders/orders.service.spec.ts
+d449314ccc49b05a3ea5b2aee7c0466eb9abd496 backend/src/orders/orders.controller.spec.ts
+59de5a5f280f30bac2d5934b7c47eccbb6ad6130 backend/src/orders/order.mapper.spec.ts
+aabdf5754e6de3da3b2b0d100df49e6404d9d1bf frontend/src/app/shared/utils/order-status.spec.ts
+fe0ef07705e158cfa1c4d4a001de6c5d3d3d8343 frontend/src/app/shared/utils/order-whatsapp.spec.ts
+6f17f9359f8dab2ba8c42aee16f540c257ac19f8 frontend/src/app/shared/components/order-payment-info/order-payment-info.spec.ts
+a41f7599f398d9fa591530cdaac6d138095be791 frontend/src/app/core/services/orders.service.spec.ts
+c99409ea00ace615ae2f6bcba796c76476550257 frontend/src/app/features/orders/my-orders-page.spec.ts
+8a2b98d240259ba93303c5580482b053ca1b4770 frontend/src/app/features/orders/order-detail-page.spec.ts
+37f7e80673e217776cabd439f3496fa852410f76 frontend/src/app/shared/header/header.spec.ts
+e43cc352f85417c09a4883ac70a1f6878713d6fe frontend/src/app/app.routes.spec.ts
+# 2026-10-23: orders.service.spec.ts, solo formato (Prettier) y tipado de dos accesos mock.calls para pasar el lint; sin cambios de casos ni aserciones. Autorizado por el usuario.
+# 2026-10-23: header.spec.ts, solo OnPush en el componente anfitrión DummyPage para pasar el lint; sin cambios de casos ni aserciones. Autorizado por el usuario.

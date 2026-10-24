@@ -68,6 +68,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
   },
   {
+    path: 'orders',
+    canActivate:[authGuard],
+    loadComponent: () => import('./features/orders/my-orders-page').then((m) => m.MyOrdersPage),
+  },
+  {
+    path: 'orders/:id',
+    canActivate:[authGuard],
+    loadComponent: () => import('./features/orders/order-detail-page').then((m) => m.OrderDetailPage),
+  },
+  {
     path: 'cart',
     component: CartPage,
   },
