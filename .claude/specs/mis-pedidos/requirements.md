@@ -132,9 +132,9 @@
 | NFR-1 | SÍ | Sin cambios en `backend/src/database` |
 | NFR-2 | SÍ | Chunks perezosos de ambas páginas; bundle inicial 766,27 kB ≤ 800 |
 | NFR-3 | SÍ | `order-status.spec.ts`, `order-whatsapp.spec.ts`; «Esperando transferencia» solo en `order-status.ts`, panel admin y specs |
-| NFR-4 | NO VERIFICABLE | Falta T14 (`ego-verify-sdd` a 360 px sobre `/orders` y `/orders/:id`) |
+| NFR-4 | SÍ (con alcance acotado) | T14, 2026-10-24: `ego-verify-sdd` sobre `/orders` (primera página, 10 pedidos) y `/orders/1` a `/4` a 360, 390 y 1440 px: `scrollWidth` = `innerWidth` en las 15 combinaciones. **No medido:** estado tras «Cargar más» y panel de transferencia de un pedido `PENDING_PAYMENT` (quedan para T17). Detalle en «Registro de ejecución» de `tasks.md` |
 | NFR-5 | SÍ | Lint frontend 0 (exige OnPush); estado en signals |
 | NFR-6 | SÍ | Backend: lint 0, 46 suites y 456 tests en verde, build ok. Frontend: lint 0, 380 de 380, build ok |
 
 ---
-**Estado:** Aprobado e implementado (T0 a T13 y T15 hechas; T14 y T17 pendientes)
+**Estado:** Aprobado e implementado (T0 a T16 hechas; T14 con alcance acotado; T17 pendiente, manual)
