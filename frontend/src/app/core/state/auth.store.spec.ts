@@ -106,6 +106,38 @@ describe('AuthStore', () => {
       expect(store.userLite()).toBeNull();
     });
 
+    it('REQ-2.1: con un role fuera de ADMIN, CLIENT y GUEST arranca sin sesión y borra ambas claves', () => {
+      localStorage.setItem('token', 'jwt-2');
+      localStorage.setItem('userLite', JSON.stringify({ ...user, role: 'SUPERADMIN' }));
+
+      store.rehydrate();
+
+      expect(store.token()).toBeNull();
+      expect(store.userLite()).toBeNull();
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('userLite')).toBeNull();
+    });
+
+    it('REQ-2.2: con un role válido restaura la sesión', () => {
+      localStorage.setItem('token', 'jwt-2');
+      localStorage.setItem('userLite', JSON.stringify({ ...user, role: 'ADMIN' }));
+
+      store.rehydrate();
+
+      expect(store.userLite()?.role).toBe('ADMIN');
+      expect(store.isLoggedIn()).toBeTrue();
+    });
+
+    it('REQ-2.2: sin role restaura la sesión como hasta ahora', () => {
+      localStorage.setItem('token', 'jwt-2');
+      const sinRole = { id: 7, email: 'ana@example.com' };
+      localStorage.setItem('userLite', JSON.stringify(sinRole));
+
+      store.rehydrate();
+
+      expect(store.userLite()).toEqual(sinRole);
+    });
+
     it('REQ-1.7: con una sesión inválida borra ambas claves (JSON roto)', () => {
       localStorage.setItem('token', 'jwt-2');
       localStorage.setItem('userLite', '{no es json');

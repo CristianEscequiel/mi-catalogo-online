@@ -52,6 +52,38 @@ describe('PrdListComponent (insignias de estado)', () => {
   });
 });
 
+describe('PrdListComponent (columna Categorías)', () => {
+  const categoryCells = async (products: ProductResModel[]) => {
+    await TestBed.configureTestingModule({
+      imports: [PrdListComponent],
+      providers: [
+        provideZonelessChangeDetection(),
+        { provide: ProductService, useValue: { getProductsByUserId: () => of(products) } },
+        { provide: CategoryService, useValue: { getCategories: () => of([{ id: 1, name: 'Teclados' }, { id: 2, name: 'Mouse' }, { id: 3, name: 'Otra' }]) } },
+        { provide: AuthStore, useValue: { userLite: () => ({ id: 1 }) } },
+        { provide: Dialog, useValue: {} },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(PrdListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('table tbody tr td:nth-child(3)')).map((td) => td.textContent?.trim());
+  };
+
+  it('REQ-3.1: muestra los nombres de las categorías del producto separados por coma', async () => {
+    const cells = await categoryCells([{ ...row(1, 'PUBLISHED'), categories: [{ id: 1 }, { id: 2 }] }]);
+
+    expect(cells).toEqual(['Teclados, Mouse']);
+  });
+
+  it('REQ-3.2: sin categorías muestra un guion', async () => {
+    const cells = await categoryCells([row(1, 'PUBLISHED')]);
+
+    expect(cells).toEqual(['-']);
+  });
+});
+
 describe('PrdListComponent (estado asíncrono)', () => {
   let fixture: ComponentFixture<PrdListComponent>;
   let products: Subject<ProductResModel[]>;
