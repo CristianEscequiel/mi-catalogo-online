@@ -85,7 +85,7 @@ Convención: cada tarea con código lleva sus tests, que se nombran con el id de
 
 ## Cierre
 
-- [ ] **T14. Medición de interfaz en navegador** — NFR-4
+- [x] **T14. Medición de interfaz en navegador** — NFR-4 (alcance acotado, ver «Registro de ejecución»)
   - Con el stack local arriba, correr la skill `ego-verify-sdd` sobre `/orders` y `/orders/:id` a 360 px: ausencia de scroll horizontal, elementos principales visibles. Adjuntar la salida cruda en «Registro de ejecución».
   - Depende de: T12
   - Verificación: salida de `ego-verify-sdd` con los valores observados, identificada con `NFR-4`. Sin salida, el criterio queda `NO VERIFICABLE`.
@@ -173,3 +173,9 @@ Tras T0 son independientes entre sí T1, T2, T6 y T9; el backend (T1 a T5) y el 
 - **T13 (2026-10-23):** el usuario autorizó agregar `OnPush` al anfitrión `DummyPage` de `header.spec.ts` (hash actualizado). **Cierre: lint 0, Karma 380 de 380, build ok, bundle inicial 766,27 kB.**
 - **T15 (2026-10-23):** `code-auditor`: **aprobable**, sin hallazgos altos ni medios; hashes del baseline intactos. Bajos: L1 (`page` sin `@Max`, mismo patrón que `ListProductsQueryDto`; deuda aparte), L2 (el botón de WhatsApp ya no comparte fila con «Volver al catálogo» en escritorio; se mira en T14), L3 (textos de la spec desactualizados; **corregido**), L4 (`rapidas/` sin versionar, fuera del commit), L5 (id leído de `snapshot`, según el diseño). El usuario aceptó dejar L1, L2, L4 y L5 como están.
 - **T16 (2026-10-23):** `spec-verifier`: **cerrable**; 0 `NO`; tabla en «Verificación final» de `requirements.md`. `NO VERIFICABLE`: NFR-4 (depende de T14). REQ-1.12 con evidencia estática. Re-ejecutado: backend 46 suites / 456 tests, lint 0, build ok; frontend 380/380, lint 0, build ok (766,27 kB).
+
+- **T14 (2026-10-24):** `ego-verify-sdd` (ego lite 0.6.0.22) contra el stack Docker descartable `t14smoke` (backend `:3000`, frontend `:8080`, base `t14_db`) con un proxy de prueba en `:8090` (`/api/*` al backend sin prefijo, el resto al frontend), porque el nginx del contenedor no hace proxy de `/api`. Datos sembrados: usuario CLIENT y 12 pedidos con dirección larga y un producto de nombre larguísimo.
+  - **Método (NFR-4):** `document.documentElement.scrollWidth <= innerWidth`, viewport fijado con `Emulation.setDeviceMetricsOverride`.
+  - **Observado:** `/orders` (primera página: 10 enlaces a pedidos y botón «Cargar más») y `/orders/1`, `/2`, `/3`, `/4` (estados Pagado, Cancelado, Entregado): `scrollWidth` = `innerWidth` a 360, 390 y 1440 px (15 de 15 sin scroll horizontal). Cada medición lista 8 elementos con `left` negativo; el primero es el `aside` del menú lateral fuera de pantalla (`left: -288`), no generan scroll; solo se inspeccionaron los 4 primeros.
+  - **No medido, queda para T17:** (a) estado tras «Cargar más» (12 pedidos): las dos filas medidas salieron inconsistentes y los reintentos se colgaron, así que no se toman como evidencia; (b) panel de transferencia de un pedido `PENDING_PAYMENT`: la siembra no dejó ninguno en ese estado (el pedido 4 quedó `CANCELLED`); (c) L2 (botón de WhatsApp en escritorio); (d) capturas de pantalla: `page.screenshot` se colgó con la emulación activa.
+  - **Entorno:** la página `p1` del task space dejó de responder tras los reintentos; no se abrió otro space. Salida cruda: `C:\Users\Escequiel\ego\t14-20261024\resultados.json` (fuera del repo).

@@ -1,6 +1,6 @@
 # Pendientes y próximos pasos
 
-Última actualización: 2026-10-24. Hay dos ramas con código sin mergear en `main`: `fix/frontend-deuda-auth-categorias` (en el remoto) y `feat/mis-pedidos` (subida el 2026-10-24, sin PR abierto todavía). El `main` **local** puede estar atrás: `git checkout main && git pull`.
+Última actualización: 2026-10-24. No quedan ramas con código sin mergear: `feat/mis-pedidos` (PR #21 y el arreglo de su test en el PR #22), `fix/frontend-deuda-auth-categorias` (PR #20) y la spec rápida de la deuda del frontend (PR #23) están en `main`, y esas ramas y las viejas ya mergeadas se borraron (en el remoto solo queda `main`). El `main` **local** puede estar atrás: `git checkout main && git pull`.
 
 > **2026-10-16:** `specs/` y `steering/` se movieron a `.claude/specs/` y `.claude/steering/`. Las rutas `specs/...` del texto histórico de abajo ahora son `.claude/specs/...`. Las secciones 1, 2, 3 y 5 son registro de lo que pasó en su momento; el estado vigente es la sección 3b.
 
@@ -59,7 +59,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
 | 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada (PR #10 y #11) con el cierre de criterios del `spec-verifier` escrito; el 2026-10-22 se reprodujeron REQ-1.8, 3.3 y 3.6; REQ-3.2 (e2e) queda no verificado; falta el despliegue manual para tildar T10 |
-| 4 | Features para el e-commerce | En curso: "Mis pedidos" hecho en `feat/mis-pedidos` (sin mergear); el resto pendiente (abajo) |
+| 4 | Features para el e-commerce | En curso: "Mis pedidos" mergeado en `main` (falta solo el humo manual T17); el resto pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
 
@@ -122,14 +122,16 @@ Spec en `.claude/specs/ia-al-crear-producto/`. Mergeada con el PR #18; el humo c
 - Los topes `files/fields/parts/fieldSize` solo se aplican al endpoint nuevo; las subidas a disco (`/:id/image`) siguen sin límites de campos de texto.
 - Los límites de imagen siguen duplicados entre `image-rules.ts` y `MAX_IMAGE_SIZE_BYTES` del backend (ya anotado en `profile-and-images`).
 
-### Fase 4: `mis-pedidos` (hecha, rama `feat/mis-pedidos` subida, sin PR ni merge)
+### Fase 4: `mis-pedidos` (mergeada en `main` con el PR #21; falta el humo manual T17)
 
-Spec en `.claude/specs/mis-pedidos/`. Rama `feat/mis-pedidos`, 3 commits sobre `main` (`ae5ab93`, `9399881`, `1c13278`). **Hecho:** backend con `GET /orders/me` (paginado con `page` y `limit`, mapper propio; Swagger agrega solo esa ruta, sin migraciones); frontend con `MyOrdersPage` («Cargar más»), `OrderDetailPage`, rutas `orders` y `orders/:id` con `authGuard` e ítem «Mis pedidos» en el header; la pantalla de éxito del checkout reutiliza `OrderPaymentInfo` y las utilidades compartidas. Backend 46 suites y 456 tests, lint 0, build ok; frontend 380 de 380, lint 0, build ok (766,27 kB). `code-auditor` aprobable y `spec-verifier` cerrable (0 `NO`).
+Spec en `.claude/specs/mis-pedidos/`. Mergeada con el PR #21 (commits `ae5ab93`, `9399881`, `1c13278`). El PR #21 se mergeó con un test frágil que dejó el CI de `main` en rojo; lo corrigió el PR #22 (`REQ-3.3` buscaba `/\b7\b/` y pasaba solo en zonas horarias donde la hora contiene un 7; ahora usa `toContain('7 productos')`). Ojo con ese patrón: un test que dependa de la zona horaria del equipo puede pasar en local y fallar en el CI (UTC). **Hecho:** backend con `GET /orders/me` (paginado con `page` y `limit`, mapper propio; Swagger agrega solo esa ruta, sin migraciones); frontend con `MyOrdersPage` («Cargar más»), `OrderDetailPage`, rutas `orders` y `orders/:id` con `authGuard` e ítem «Mis pedidos» en el header; la pantalla de éxito del checkout reutiliza `OrderPaymentInfo` y las utilidades compartidas. Backend 46 suites y 456 tests, lint 0, build ok; frontend 380 de 380, lint 0, build ok (766,27 kB). `code-auditor` aprobable y `spec-verifier` cerrable (0 `NO`).
+
+**T14 hecha el 2026-10-24 (alcance acotado):** `ego-verify-sdd` midió `/orders` (primera página) y `/orders/1` a `/4` a 360, 390 y 1440 px: sin scroll horizontal en las 15 combinaciones (NFR-4 pasa a `SÍ` con ese alcance). No se midió el estado tras «Cargar más» ni el panel de transferencia de un pedido `PENDING_PAYMENT`, y L2 (botón de WhatsApp en escritorio) tampoco; quedan para T17. Detalle en `.claude/specs/mis-pedidos/tasks.md`.
 
 **Falta para cerrarla:**
-- [ ] **T14:** medición de interfaz en navegador (NFR-4, con `ego-verify-sdd`); es lo único `NO VERIFICABLE` del verificador.
-- [ ] **T17 (manual):** humo en local.
-- [ ] Abrir el PR de `feat/mis-pedidos` (`gh` sin autenticar: `! gh auth login`, o por la URL que imprime el push) y mergearlo.
+- [ ] **T17 (manual):** humo en local, incluyendo «Cargar más» con más de 10 pedidos, el panel de transferencia de un pedido pendiente y L2 a escritorio.
+
+**Entorno de la medición (limpiar cuando ya no haga falta):** hay un stack Docker descartable `t14smoke` (contenedores `catalog_frontend`, `catalog_backend`, `catalog_db`, base `t14_db`, con el usuario `t14@example.com` y 12 pedidos sembrados) y un proxy de prueba en `:8090` (`C:\Users\ESCEQU~1\AppData\Local\Temp\claude\...\scratchpad\proxy.mjs`, fuera del repo). Para repetir la medición el nginx del contenedor no hace proxy de `/api`, de ahí el proxy.
 
 **Abierto tras esta spec (aceptado por el usuario):** L1 `page` sin `@Max` en `ListMyOrdersQueryDto` (mismo patrón que `ListProductsQueryDto`); L2 el botón de WhatsApp ya no comparte fila con «Volver al catálogo» en escritorio (se mira en T14); `rapidas/` sin versionar.
 
@@ -156,7 +158,7 @@ Salieron probando la pila en local mientras se cierra T10 de `backend-architectu
 ### Fase 4: features del e-commerce (pendiente)
 - **Imprescindibles:**
   - Pasarela de pago (Mercado Pago Checkout Pro + webhook firmado), para que la orden pase a `PAID` sola.
-  - ~~"Mis pedidos" del cliente (`GET /orders/me` y su página)~~ hecho en `feat/mis-pedidos` (ver arriba; falta T14, T17 y el merge).
+  - ~~"Mis pedidos" del cliente (`GET /orders/me` y su página)~~ hecho y mergeado en `main` (ver arriba; falta solo el humo manual T17).
   - Emails transaccionales (orden creada, pago confirmado, enviada).
   - Carrito anónimo persistente que se fusiona al loguearse.
   - Orden (sort) del catálogo en el servidor: paginación, búsqueda y categoría ya están.
