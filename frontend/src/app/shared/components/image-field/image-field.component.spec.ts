@@ -219,6 +219,28 @@ describe('ImageFieldComponent (profile-and-images)', () => {
     expect(fileInput().files?.length).toBe(0);
   });
 
+  it('M5 REQ-2.1: «Quitar» vacía el input para poder volver a elegir el mismo archivo', () => {
+    setInput('mode', 'controls');
+    chooseFile(png());
+    expect(fileInput().files?.length).toBe(1);
+
+    quitar()!.click();
+    fixture.detectChanges();
+
+    expect(fileInput().value).toBe('');
+    expect(fileInput().files?.length).toBe(0);
+  });
+
+  it('M5 REQ-2.2: si llega un imageUrl nuevo con un archivo elegido, vacía el input', () => {
+    chooseFile(png());
+    expect(fileInput().files?.length).toBe(1);
+
+    setInput('imageUrl', 'https://cdn/ropa.png');
+
+    expect(fileInput().value).toBe('');
+    expect(fileInput().files?.length).toBe(0);
+  });
+
   it('REQ-3.1: en modo controls, al elegir un archivo válido avisa la URL temporal de la vista previa', () => {
     setInput('mode', 'controls');
 

@@ -174,6 +174,60 @@ describe('CategoryFormDialogComponent (profile-and-images)', () => {
     await settle();
   };
 
+  it('M3 REQ-1.4: en reposo el diálogo se puede cerrar (disableClose en false)', async () => {
+    await configureCreate();
+
+    expect(dialogRef.disableClose).toBeFalse();
+  });
+
+  it('M3 REQ-1.4: mientras guarda no se puede cerrar con Escape ni con el fondo (disableClose en true)', async () => {
+    await configureCreate();
+
+    void component.onSubmit();
+    await settle();
+
+    expect(component.isSaving()).toBeTrue();
+    expect(dialogRef.disableClose).toBeTrue();
+  });
+
+  it('M3 REQ-1.4: mientras sube la imagen no se puede cerrar', async () => {
+    await configureCreate();
+    component.onImageFileSelected(imageFile());
+    void component.onSubmit();
+    await settle();
+    creations[0].next({ id: 9, name: 'Ropa' });
+    await settle();
+
+    expect(component.isUploadingImage()).toBeTrue();
+    expect(dialogRef.disableClose).toBeTrue();
+  });
+
+  it('M3 REQ-1.4: si crear falla, el diálogo vuelve a poder cerrarse', async () => {
+    await configureCreate();
+    void component.onSubmit();
+    await settle();
+    creations[0].error(failure(500));
+    await settle();
+
+    expect(component.isSaving()).toBeFalse();
+    expect(dialogRef.disableClose).toBeFalse();
+  });
+
+  it('M3 REQ-1.4: tras crear con fallo de imagen sigue sin poder cerrarse, también cuando termina un reintento', async () => {
+    await createWithFailingUpload();
+    expect(dialogRef.disableClose).toBeTrue();
+
+    void component.onSubmit();
+    await settle();
+    expect(dialogRef.disableClose).toBeTrue();
+    uploads[1].error(failure(500));
+    await settle();
+
+    expect(component.isUploadingImage()).toBeFalse();
+    expect(component.created()).toBeTrue();
+    expect(dialogRef.disableClose).toBeTrue();
+  });
+
   it('REQ-4.15: si la categoría se crea y la subida falla muestra un único aviso «Categoría creada, pero…»', async () => {
     await createWithFailingUpload();
 
