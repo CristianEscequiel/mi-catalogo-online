@@ -1,6 +1,6 @@
 # Pendientes y próximos pasos
 
-Última actualización: 2026-10-22, contrastada con el repo (`origin/main` en `3bb4615`, PR #15). No hay ramas de trabajo abiertas con código sin mergear; el `main` **local** puede estar atrás: `git checkout main && git pull`.
+Última actualización: 2026-10-24. Hay dos ramas con código sin mergear en `main`: `fix/frontend-deuda-auth-categorias` (en el remoto) y `feat/mis-pedidos` (subida el 2026-10-24, sin PR abierto todavía). El `main` **local** puede estar atrás: `git checkout main && git pull`.
 
 > **2026-10-16:** `specs/` y `steering/` se movieron a `.claude/specs/` y `.claude/steering/`. Las rutas `specs/...` del texto histórico de abajo ahora son `.claude/specs/...`. Las secciones 1, 2, 3 y 5 son registro de lo que pasó en su momento; el estado vigente es la sección 3b.
 
@@ -59,7 +59,7 @@ Origen: la auditoría del 2026-10-12. El informe y el plan por fases están en `
 | 0 y 1 | Seguridad crítica (reset sin token, `/users` sin guards, filtración de tokens, contraseñas, throttling) | Hecha. Commit `aef1d67`, ya en `origin/main` |
 | 2 | Integridad del negocio | Hecha y desplegada (`orders-integrity`, `catalog-access`, `infra-hardening`). Solo queda comprobar a mano que el puerto 5433 no responda desde fuera (sección 3) |
 | 3 | Arquitectura y calidad | En curso: `quality-baseline`, `frontend-cleanup` (PR #12) y `profile-and-images` (PR #14) cerradas y mergeadas en `main`; `backend-architecture` mergeada (PR #10 y #11) con el cierre de criterios del `spec-verifier` escrito; el 2026-10-22 se reprodujeron REQ-1.8, 3.3 y 3.6; REQ-3.2 (e2e) queda no verificado; falta el despliegue manual para tildar T10 |
-| 4 | Features para el e-commerce | Pendiente (abajo) |
+| 4 | Features para el e-commerce | En curso: "Mis pedidos" hecho en `feat/mis-pedidos` (sin mergear); el resto pendiente (abajo) |
 
 ### Fase 3, spec 1: `quality-baseline` (cerrada el 2026-10-13)
 
@@ -92,11 +92,11 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 - **Hallazgos del humo manual (2026-10-19):** resueltos por la spec `profile-and-images` (guardar perfil, feedback y reglas de imagen, vista previa al crear un producto).
 - **Providers duplicados** entre `src/main.ts` (con zone.js, es el que arranca el navegador) y `app.config.ts` (zoneless, usado por SSR): hay que unificarlos o decidir SSR.
 - `LoginResponse.user.id` está tipado con el literal `1` y sin `role`.
-- La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`, que no existe en `ProductResModel`: probablemente siempre muestra «-».
+- ~~La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`~~ **Hecho el 2026-10-23** (spec rápida `frontend-deuda-auth-categorias`, rama `fix/frontend-deuda-auth-categorias`, sin mergear): ahora usa `row.categories`.
 - `AuthStore.loadingProfile` se escribe pero nadie lo lee.
-- **Login con perfil caído** (`AuthFacade.login`): si `getUserById` falla tras un login correcto, la sesión queda guardada en el store y en `localStorage`, pero la UI dice «Credenciales inválidas». Hacer `store.clear()` en ese caso y agregar test.
+- ~~**Login con perfil caído** (`AuthFacade.login`)~~ **Hecho el 2026-10-23** (misma spec rápida): limpia la sesión y avisa «No pudimos cargar tu perfil. Intenta nuevamente.».
 - **Diálogos de producto y categoría:** `uploadImageForEntity` y `deleteImageFromEntity` relanzan errores que, llamados desde la plantilla, terminan como promesas rechazadas sin manejar (`Profile` ya lo corrigió en T17).
-- **`role` de `userLite` sin validar** en `AuthStore.rehydrate()`: un valor editado a mano habilita el menú y las rutas de admin en el cliente (el backend protege con `@Roles`, así que es solo UX). Validar contra `ADMIN | CLIENT | GUEST`; considerar a la vez la expiración del token (Fase 4).
+- ~~**`role` de `userLite` sin validar** en `AuthStore.rehydrate()`~~ **Hecho el 2026-10-23** (misma spec rápida): se valida contra `ADMIN | CLIENT | GUEST`. Queda la expiración del token (Fase 4). Karma 344/344, lint 0, build ok (764,77 kB).
 - Si el bundle vuelve a pasar de 800 kB: T11/T12 de la spec (carga perezosa de login/registro, carrito, checkout y perfil).
 
 ### Fase 3, spec 4: `profile-and-images` (cerrada y mergeada en `main`, PR #14)
@@ -122,6 +122,17 @@ Spec en `.claude/specs/ia-al-crear-producto/`. Mergeada con el PR #18; el humo c
 - Los topes `files/fields/parts/fieldSize` solo se aplican al endpoint nuevo; las subidas a disco (`/:id/image`) siguen sin límites de campos de texto.
 - Los límites de imagen siguen duplicados entre `image-rules.ts` y `MAX_IMAGE_SIZE_BYTES` del backend (ya anotado en `profile-and-images`).
 
+### Fase 4: `mis-pedidos` (hecha, rama `feat/mis-pedidos` subida, sin PR ni merge)
+
+Spec en `.claude/specs/mis-pedidos/`. Rama `feat/mis-pedidos`, 3 commits sobre `main` (`ae5ab93`, `9399881`, `1c13278`). **Hecho:** backend con `GET /orders/me` (paginado con `page` y `limit`, mapper propio; Swagger agrega solo esa ruta, sin migraciones); frontend con `MyOrdersPage` («Cargar más»), `OrderDetailPage`, rutas `orders` y `orders/:id` con `authGuard` e ítem «Mis pedidos» en el header; la pantalla de éxito del checkout reutiliza `OrderPaymentInfo` y las utilidades compartidas. Backend 46 suites y 456 tests, lint 0, build ok; frontend 380 de 380, lint 0, build ok (766,27 kB). `code-auditor` aprobable y `spec-verifier` cerrable (0 `NO`).
+
+**Falta para cerrarla:**
+- [ ] **T14:** medición de interfaz en navegador (NFR-4, con `ego-verify-sdd`); es lo único `NO VERIFICABLE` del verificador.
+- [ ] **T17 (manual):** humo en local.
+- [ ] Abrir el PR de `feat/mis-pedidos` (`gh` sin autenticar: `! gh auth login`, o por la URL que imprime el push) y mergearlo.
+
+**Abierto tras esta spec (aceptado por el usuario):** L1 `page` sin `@Max` en `ListMyOrdersQueryDto` (mismo patrón que `ListProductsQueryDto`); L2 el botón de WhatsApp ya no comparte fila con «Volver al catálogo» en escritorio (se mira en T14); `rapidas/` sin versionar.
+
 ### Hallazgos de la prueba local (2026-10-22, informados por el usuario)
 
 Salieron probando la pila en local mientras se cierra T10 de `backend-architecture`. Sin investigar todavía; el resto de las funcionalidades probadas anda sin problema.
@@ -145,7 +156,7 @@ Salieron probando la pila en local mientras se cierra T10 de `backend-architectu
 ### Fase 4: features del e-commerce (pendiente)
 - **Imprescindibles:**
   - Pasarela de pago (Mercado Pago Checkout Pro + webhook firmado), para que la orden pase a `PAID` sola.
-  - "Mis pedidos" del cliente (`GET /orders/me` y su página).
+  - ~~"Mis pedidos" del cliente (`GET /orders/me` y su página)~~ hecho en `feat/mis-pedidos` (ver arriba; falta T14, T17 y el merge).
   - Emails transaccionales (orden creada, pago confirmado, enviada).
   - Carrito anónimo persistente que se fusiona al loguearse.
   - Orden (sort) del catálogo en el servidor: paginación, búsqueda y categoría ya están.
