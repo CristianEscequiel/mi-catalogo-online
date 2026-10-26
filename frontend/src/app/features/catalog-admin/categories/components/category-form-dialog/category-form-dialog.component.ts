@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Dialog, DialogModule, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
@@ -70,6 +70,11 @@ export class CategoryFormDialogComponent {
   readonly entityId = signal<number | null>(this.data.id ?? null);
 
   constructor() {
+    // Sin esto, Escape o el clic en el fondo cierran el diálogo con `undefined` mientras se guarda o se sube.
+    effect(() => {
+      this.dialogRef.disableClose = this.isSaving() || this.isUploadingImage() || this.created();
+    });
+
     const data = this.data;
     this.imageUrl.set(data.category?.imageUrl ?? null);
 
@@ -137,7 +142,6 @@ export class CategoryFormDialogComponent {
           this.entityId.set(createdCategory.id);
           this.mode.set('edit');
           this.created.set(true);
-          this.dialogRef.disableClose = true;
           this.notificationService.error('Categoría creada, pero no se pudo subir la imagen. Puedes reintentarlo.');
           this.isSaving.set(false);
           return;
