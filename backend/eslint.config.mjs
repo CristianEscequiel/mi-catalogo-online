@@ -33,4 +33,31 @@ export default tseslint.config(
       'prettier/prettier': ['error' , { endOfLine: 'auto' }],
     },
   },
+  {
+    // Los consumidores dependen del puerto (MailSender, ImageStorage, AiContentGenerator), no del adaptador.
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/mail.service', '**/file-storage.service', '**/openai.service'],
+              message:
+                'Importa el puerto (mail-sender.port, image-storage.port, ai-content-generator.port), no el adaptador.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Solo el módulo del adaptador y su spec pueden importarlo.
+    files: [
+      'src/mail/mail.module.ts',
+      'src/files/files.module.ts',
+      'src/ai/ai.module.ts',
+      '**/*.spec.ts',
+    ],
+    rules: { 'no-restricted-imports': 'off' },
+  },
 );
