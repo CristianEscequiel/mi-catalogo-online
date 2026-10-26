@@ -108,7 +108,7 @@ Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, des
 - Los límites de imagen son una constante del frontend (`image-rules.ts`) que debe igualar `MAX_IMAGE_SIZE_BYTES` del backend; si ese valor cambia en un despliegue, hay que tocar las dos.
 - Escape y clic en el fondo del diálogo se bloquean (`disableClose`) solo después de crear con fallo de imagen; no tienen test automático.
 - `NFR-8` (ruta `profile` con `loadComponent`) no tiene test automático: lo cubren el `grep` y el build.
-- **Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19):** (M3) `disableClose` se activa recién cuando la subida falla; mientras corre la creación o la subida posterior, Escape o el clic en el fondo cierran el diálogo con `undefined` y la lista no se refresca; (M5) `ImageFieldComponent.clearSelection()` no vacía el `<input type="file">`: tras «Quitar» no se puede volver a elegir el mismo archivo.
+- ~~**Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19)**~~ **Hecho el 2026-10-26** (spec rápida `profile-and-images-deuda-m3-m5`, rama `fix/profile-and-images-deuda-m3-m5`, commit `a3afc72`, sin mergear): (M3) los diálogos de producto y categoría fijan `disableClose = isSaving() || isUploadingImage() || created()` con un `effect()`; (M5) `ImageFieldComponent` vacía el `<input type="file">` al descartar la selección. Lint 0, Karma 400/400, build ok (767,30 kB). Sigue abierto: `isDeletingImage` no bloquea el cierre y Escape/clic en el fondo no se prueban con el CDK real.
 - Si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`: decisión del usuario.
 
 ### Mejora: `ia-al-crear-producto` (cerrada y mergeada en `main`, PR #18)
@@ -131,7 +131,7 @@ Spec en `.claude/specs/mis-pedidos/`. Mergeada con el PR #21 (commits `ae5ab93`,
 **Falta para cerrarla:**
 - [ ] **T17 (manual):** humo en local, incluyendo «Cargar más» con más de 10 pedidos, el panel de transferencia de un pedido pendiente y L2 a escritorio.
 
-**Entorno de la medición (limpiar cuando ya no haga falta):** hay un stack Docker descartable `t14smoke` (contenedores `catalog_frontend`, `catalog_backend`, `catalog_db`, base `t14_db`, con el usuario `t14@example.com` y 12 pedidos sembrados) y un proxy de prueba en `:8090` (`C:\Users\ESCEQU~1\AppData\Local\Temp\claude\...\scratchpad\proxy.mjs`, fuera del repo). Para repetir la medición el nginx del contenedor no hace proxy de `/api`, de ahí el proxy.
+**Entorno de la medición (borrado el 2026-10-24):** el stack Docker descartable `t14smoke` (contenedores, volúmenes y red, con el usuario `t14@example.com` y los 12 pedidos sembrados) y el proxy de prueba en `:8090` ya no existen. Solo quedan las imágenes `t14smoke-backend` y `t14smoke-frontend`. Para repetir la medición hay que reconstruir el stack, sembrar usuario y pedidos (incluido uno en `PENDING_PAYMENT`) y levantar un proxy que mande `/api/*` al backend sin el prefijo, porque el nginx del contenedor del frontend no hace proxy de `/api`.
 
 **Abierto tras esta spec (aceptado por el usuario):** L1 `page` sin `@Max` en `ListMyOrdersQueryDto` (mismo patrón que `ListProductsQueryDto`); L2 el botón de WhatsApp ya no comparte fila con «Volver al catálogo» en escritorio (se mira en T14); `rapidas/` sin versionar.
 
