@@ -206,6 +206,56 @@ describe('ProductFormDialogComponent (profile-and-images)', () => {
     await settle();
   };
 
+  it('M3 REQ-1.2: en reposo el diálogo se puede cerrar (disableClose en false)', async () => {
+    await settle();
+
+    expect(dialogRef.disableClose).toBeFalse();
+  });
+
+  it('M3 REQ-1.1: mientras guarda no se puede cerrar con Escape ni con el fondo (disableClose en true)', async () => {
+    void component.onSubmit();
+    await settle();
+
+    expect(component.isSaving()).toBeTrue();
+    expect(dialogRef.disableClose).toBeTrue();
+  });
+
+  it('M3 REQ-1.1: mientras sube la imagen no se puede cerrar', async () => {
+    component.onImageFileSelected(imageFile());
+    void component.onSubmit();
+    await settle();
+    resolvePost({ id: 9 } as ProductResModel);
+    await settle();
+
+    expect(component.isUploadingImage()).toBeTrue();
+    expect(dialogRef.disableClose).toBeTrue();
+  });
+
+  it('M3 REQ-1.2: si crear falla, el diálogo vuelve a poder cerrarse', async () => {
+    void component.onSubmit();
+    await settle();
+    rejectPost(new HttpErrorResponse({ status: 500 }));
+    await settle();
+
+    expect(component.isSaving()).toBeFalse();
+    expect(dialogRef.disableClose).toBeFalse();
+  });
+
+  it('M3 REQ-1.3: tras crear con fallo de imagen sigue sin poder cerrarse, también cuando termina un reintento', async () => {
+    await createWithFailingUpload();
+    expect(dialogRef.disableClose).toBeTrue();
+
+    void component.onSubmit();
+    await settle();
+    expect(dialogRef.disableClose).toBeTrue();
+    uploads[1].error(new HttpErrorResponse({ status: 500 }));
+    await settle();
+
+    expect(component.isUploadingImage()).toBeFalse();
+    expect(component.created()).toBeTrue();
+    expect(dialogRef.disableClose).toBeTrue();
+  });
+
   it('REQ-4.1: si el producto se crea y la subida falla muestra un único aviso «Producto creado, pero…»', async () => {
     await createWithFailingUpload();
 

@@ -16,7 +16,6 @@ export class AuthStore {
   private _token = signal<string | null>(null);
   private _userLite = signal<UserLite | null>(null);
   private _userProfile = signal<UserProfile | null>(null);
-  private _loadingProfile = signal(false);
 
   token = computed(() => this._token());
   userLite = computed(() => this._userLite());
@@ -34,8 +33,6 @@ export class AuthStore {
   setUserProfile(profile: UserProfile) {
     this._userProfile.set(profile);
   }
-
-  setLoadingProfile(v: boolean) { this._loadingProfile.set(v); }
 
   clear() {
     this._token.set(null);

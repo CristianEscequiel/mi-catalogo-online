@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, Output, signal, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Input, OnChanges, OnDestroy, Output, signal, SimpleChanges, viewChild } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
@@ -17,6 +17,7 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
   faTrash = faTrash;
   faEdit = faEdit;
   private dialog = inject(Dialog);
+  private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   @Input() label = 'Imagen';
   @Input() imageUrl: string | null = null;
@@ -88,6 +89,11 @@ export class ImageFieldComponent implements OnChanges, OnDestroy {
     this.revokePreview();
     this.selectedFile = null;
     this.previewUrl.set(null);
+    // Sin vaciar el input, el navegador no dispara `change` al volver a elegir el mismo archivo.
+    const input = this.fileInput();
+    if (input) {
+      input.nativeElement.value = '';
+    }
     this.fileSelected.emit(null);
   }
 

@@ -91,7 +91,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 ### Opcionales
 
-- [ ] **T11 (O). Borrar `MailController`** (vacío). Es código muerto, pero está fuera de alcance: solo con confirmación explícita.
+- [x] **T11 (O). Borrar `MailController`** (vacío). Hecho el 2026-10-26 con confirmación explícita del usuario: se borraron `mail.controller.ts` y su spec (su único test era «should be defined») y se sacó del `MailModule`.
 - [x] **T12 (O). Regla de lint contra imports de adaptadores.** Hecho el 2026-10-26 con confirmación del usuario: `no-restricted-imports` en `backend/eslint.config.mjs` para `mail.service`, `file-storage.service` y `openai.service`, desactivada solo en sus tres módulos y en los `*.spec.ts`. Comprobado con tres imports de prueba en `cart`, `product` y `users` (los tres fallan) y con el código actual (0 errores).
 
 ## Dependencias entre tareas
