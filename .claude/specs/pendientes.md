@@ -93,7 +93,7 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 - **Providers duplicados** entre `src/main.ts` (con zone.js, es el que arranca el navegador) y `app.config.ts` (zoneless, usado por SSR): hay que unificarlos o decidir SSR.
 - `LoginResponse.user.id` está tipado con el literal `1` y sin `role`.
 - ~~La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`~~ **Hecho el 2026-10-23** (spec rápida `frontend-deuda-auth-categorias`, rama `fix/frontend-deuda-auth-categorias`, sin mergear): ahora usa `row.categories`.
-- `AuthStore.loadingProfile` se escribe pero nadie lo lee.
+- ~~`AuthStore.loadingProfile` se escribe pero nadie lo lee.~~ **Hecho el 2026-10-26** (spec rápida `frontend-quitar-loading-profile`, rama `refactor/frontend-quitar-loading-profile`, sin mergear): se borró el signal, `setLoadingProfile` y sus llamadas en `AuthFacade`. Lint 0, Karma 388/388, build ok (766,28 kB).
 - ~~**Login con perfil caído** (`AuthFacade.login`)~~ **Hecho el 2026-10-23** (misma spec rápida): limpia la sesión y avisa «No pudimos cargar tu perfil. Intenta nuevamente.».
 - **Diálogos de producto y categoría:** `uploadImageForEntity` y `deleteImageFromEntity` relanzan errores que, llamados desde la plantilla, terminan como promesas rechazadas sin manejar (`Profile` ya lo corrigió en T17).
 - ~~**`role` de `userLite` sin validar** en `AuthStore.rehydrate()`~~ **Hecho el 2026-10-23** (misma spec rápida): se valida contra `ADMIN | CLIENT | GUEST`. Queda la expiración del token (Fase 4). Karma 344/344, lint 0, build ok (764,77 kB).
