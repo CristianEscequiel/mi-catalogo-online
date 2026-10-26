@@ -29,29 +29,24 @@ export class AuthFacade {
   private notificationService = inject(NotificationService);
 
   async loginUser(email: string, password: string, redirectUrl = '/home') {
+    const res = await firstValueFrom(this.authService.loginUser(email, password)).catch(() => {
+      this.notificationService.error('Credenciales invalidas. Intenta nuevamente.');
+      throw new Error('LOGIN_FAILED');
+    });
+
+    this.store.setAuth(res.access_token, res.user);
     try {
-      this.store.setLoadingProfile(true);
-      const res = await firstValueFrom(this.authService.loginUser(email, password)).catch(() => {
-        this.notificationService.error('Credenciales invalidas. Intenta nuevamente.');
-        throw new Error('LOGIN_FAILED');
-      });
-
-      this.store.setAuth(res.access_token, res.user);
-      try {
-        const profile = await firstValueFrom(this.authService.getUserById(res.user.id));
-        this.store.setUserProfile(toUserProfile(profile));
-      } catch {
-        // Login correcto pero sin perfil: no se deja una sesión a medias.
-        this.store.clear();
-        this.notificationService.error('No pudimos cargar tu perfil. Intenta nuevamente.');
-        throw new Error('LOGIN_FAILED');
-      }
-
-      this.notificationService.success('Inicio de sesion exitoso.');
-      this.router.navigateByUrl(redirectUrl);
-    } finally {
-      this.store.setLoadingProfile(false);
+      const profile = await firstValueFrom(this.authService.getUserById(res.user.id));
+      this.store.setUserProfile(toUserProfile(profile));
+    } catch {
+      // Login correcto pero sin perfil: no se deja una sesión a medias.
+      this.store.clear();
+      this.notificationService.error('No pudimos cargar tu perfil. Intenta nuevamente.');
+      throw new Error('LOGIN_FAILED');
     }
+
+    this.notificationService.success('Inicio de sesion exitoso.');
+    this.router.navigateByUrl(redirectUrl);
   }
 
   async registerUser(payload: RegisterRequest, returnUrl?: string) {
@@ -91,14 +86,11 @@ export class AuthFacade {
     const userLite = this.store.userLite();
     if (!this.store.token() || !userLite) return;
 
-    this.store.setLoadingProfile(true);
     try {
       const profile = await firstValueFrom(this.authService.getUserById(userLite.id));
       this.store.setUserProfile(toUserProfile(profile));
     } catch (error) {
       console.error('No se pudo cargar el perfil', error);
-    } finally {
-      this.store.setLoadingProfile(false);
     }
   }
 
