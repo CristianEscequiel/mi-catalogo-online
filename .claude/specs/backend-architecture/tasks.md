@@ -91,7 +91,7 @@ Commits (solo cuando el usuario los pida): código y docs de la spec van **separ
 
 ### Opcionales
 
-- [ ] **T11 (O). Borrar `MailController`** (vacío). Es código muerto, pero está fuera de alcance: solo con confirmación explícita.
+- [x] **T11 (O). Borrar `MailController`** (vacío). Hecho el 2026-10-26 con confirmación explícita del usuario: se borraron `mail.controller.ts` y su spec (su único test era «should be defined») y se sacó del `MailModule`.
 - [ ] **T12 (O). Regla de lint contra imports de adaptadores** (`no-restricted-imports` para `mail.service`, `file-storage.service`, `openai.service` fuera de su módulo), para que REQ-2.6 no dependa de un `grep` manual. Cambia la configuración de ESLint: confirmar antes.
 
 ## Dependencias entre tareas
