@@ -91,7 +91,7 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 **Abierto del frontend (anotado, fuera de la spec):**
 - **Hallazgos del humo manual (2026-10-19):** resueltos por la spec `profile-and-images` (guardar perfil, feedback y reglas de imagen, vista previa al crear un producto).
 - **Providers duplicados** entre `src/main.ts` (con zone.js, es el que arranca el navegador) y `app.config.ts` (zoneless, usado por SSR): hay que unificarlos o decidir SSR.
-- `LoginResponse.user.id` está tipado con el literal `1` y sin `role`.
+- ~~`LoginResponse.user.id` está tipado con el literal `1` y sin `role`.~~ **Hecho el 2026-10-26** (cambio directo de tipos, sin spec; rama `refactor/frontend-login-response-tipos`, sin mergear): `id: number` y `role: UserRole` (el backend ya devuelve `role`: la entidad `User` no lo excluye). Lint 0, Karma 388/388, build ok (766,50 kB).
 - ~~La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`~~ **Hecho el 2026-10-23** (spec rápida `frontend-deuda-auth-categorias`, rama `fix/frontend-deuda-auth-categorias`, sin mergear): ahora usa `row.categories`.
 - ~~`AuthStore.loadingProfile` se escribe pero nadie lo lee.~~ **Hecho el 2026-10-26** (spec rápida `frontend-quitar-loading-profile`, rama `refactor/frontend-quitar-loading-profile`, sin mergear): se borró el signal, `setLoadingProfile` y sus llamadas en `AuthFacade`. Lint 0, Karma 388/388, build ok (766,28 kB).
 - ~~**Login con perfil caído** (`AuthFacade.login`)~~ **Hecho el 2026-10-23** (misma spec rápida): limpia la sesión y avisa «No pudimos cargar tu perfil. Intenta nuevamente.».
