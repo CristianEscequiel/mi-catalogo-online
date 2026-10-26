@@ -1,8 +1,9 @@
-import { Body, Controller, UseGuards, Post, Request, Query, Get, HttpCode } from '@nestjs/common';
+import { Body, Controller, UseGuards, Post, Query, Get, HttpCode } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from '../services/auth.service';
 import { User } from 'src/users/entities/user.entity';
+import { LocalUser } from '../current-user.decorator';
 import { RegisterDto } from '../dto/register.dto';
 import { ResendVerificationEmailDto } from '../dto/resend-verification-email.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
@@ -23,8 +24,7 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('login')
-  login(@Request() req: { user: User }) {
-    const user = req.user;
+  login(@LocalUser() user: User) {
     return {
       user,
       access_token: this.authService.generateToken(user),

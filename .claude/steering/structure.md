@@ -66,7 +66,7 @@ Repositorios TypeORM → PostgreSQL
 - Controllers delgados; la lógica vive en services; los DTOs validan toda entrada.
 - Imágenes: se guarda una ruta relativa `/uploads/<carpeta>/<archivo>` en DB; el frontend la resuelve con `resolveImageUrl` y `API_BASE_URL`. Regla actual: 1 imagen por entidad.
 - Cada capa tiene una responsabilidad clara; no mezclar responsabilidades de frontend y backend.
-- Usuario autenticado: los controllers lo reciben con `@CurrentUser() user: Payload` (`backend/src/auth/current-user.decorator.ts`), no con `@Request()`. El único `@Request()` que queda es el login con la estrategia `local`.
+- Usuario autenticado: los controllers lo reciben con `@CurrentUser() user: Payload` (`backend/src/auth/current-user.decorator.ts`), no con `@Request()`. Ya no queda ningún `@Request()`: el login recibe el `User` que deja la estrategia `local` con `@LocalUser() user: User` (mismo archivo).
 - Proveedores externos detrás de puertos: los servicios de dominio no dependen de Resend, OpenAI ni del disco, sino de `MailSender` (`mail/mail-sender.port.ts`), `AiContentGenerator` (`ai/ai-content-generator.port.ts`) e `ImageStorage` (`files/image-storage.port.ts`).
   - El puerto es una clase abstracta (sirve de token de inyección de Nest, sin `@Inject`). El adaptador la implementa (`implements`) y su módulo lo registra **bajo el token del puerto**: `providers: [{ provide: MailSender, useClass: MailService }], exports: [MailSender]`. Solo se exporta el puerto.
   - Los consumidores importan el puerto, nunca el archivo del adaptador (`mail.service`, `file-storage.service`, `openai.service`), que solo se importa desde su módulo y su spec.
