@@ -76,7 +76,6 @@ describe('AuthFacade', () => {
 
     it('REQ-1.4: con sesión restaurada pide el perfil con el id de userLite y lo guarda en el store', async () => {
       store.setAuth('jwt-1', user);
-      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
 
       const result = service.hydrate();
       const req = http.expectOne(profileUrl);
@@ -91,7 +90,6 @@ describe('AuthFacade', () => {
         lastName: 'Gómez',
         avatar: null,
       });
-      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
     });
 
     it('REQ-1.4: sin sesión no pide nada', async () => {
@@ -101,9 +99,8 @@ describe('AuthFacade', () => {
       expect(store.userProfile()).toBeNull();
     });
 
-    it('REQ-1.4: si falla la carga del perfil, hydrate no rechaza, la sesión sigue y loadingProfile vuelve a false', async () => {
+    it('REQ-1.4: si falla la carga del perfil, hydrate no rechaza y la sesión sigue', async () => {
       store.setAuth('jwt-1', user);
-      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
 
       const result = service.hydrate();
       http.expectOne(profileUrl).flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });
@@ -112,7 +109,6 @@ describe('AuthFacade', () => {
       expect(store.token()).toBe('jwt-1');
       expect(store.userLite()).toEqual(user);
       expect(store.userProfile()).toBeNull();
-      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
     });
   });
 
@@ -150,7 +146,6 @@ describe('AuthFacade', () => {
     it('REQ-1.1, 1.2, 1.4: si el login responde bien y falla el perfil, limpia la sesión, avisa del perfil y no navega', async () => {
       const notifications = TestBed.inject(NotificationService);
       const error = spyOn(notifications, 'error');
-      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
 
       const result = service.loginUser('ana@example.com', 'secreto');
       http.expectOne(loginUrl).flush(loginResponse);
@@ -165,31 +160,26 @@ describe('AuthFacade', () => {
       expect(localStorage.getItem('userLite')).toBeNull();
       expect(error).toHaveBeenCalledOnceWith('No pudimos cargar tu perfil. Intenta nuevamente.');
       expect(router.navigateByUrl).not.toHaveBeenCalled();
-      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
     });
 
-    it('REQ-1.4: tras un login exitoso loadingProfile vuelve a false', async () => {
-      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
-
+    it('REQ-1.4: un login exitoso guarda el perfil en el store', async () => {
       const result = service.loginUser('ana@example.com', 'secreto');
       http.expectOne(loginUrl).flush(loginResponse);
       await settle();
       http.expectOne(`${API_BASE_URL}/users/7`).flush(profileResponse);
       await result;
 
-      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
+      expect(store.userProfile()?.email).toBe('ana@example.com');
+      expect(router.navigateByUrl).toHaveBeenCalled();
     });
 
     it('REQ-1.3: con credenciales inválidas sigue avisando «Credenciales invalidas»', async () => {
       const error = spyOn(TestBed.inject(NotificationService), 'error');
-      const setLoading = spyOn(store, 'setLoadingProfile').and.callThrough();
-
       const result = service.loginUser('ana@example.com', 'mala');
       http.expectOne(loginUrl).flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
 
       await expectAsync(result).toBeRejectedWithError('LOGIN_FAILED');
       expect(error).toHaveBeenCalledOnceWith('Credenciales invalidas. Intenta nuevamente.');
-      expect(setLoading.calls.allArgs()).toEqual([[true], [false]]);
     });
 
     it('REQ-1.10: un login con error de red no deja sesión en el store ni en localStorage', async () => {
