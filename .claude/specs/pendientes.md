@@ -1,6 +1,6 @@
 # Pendientes y próximos pasos
 
-Última actualización: 2026-10-24. No quedan ramas con código sin mergear: `feat/mis-pedidos` (PR #21 y el arreglo de su test en el PR #22), `fix/frontend-deuda-auth-categorias` (PR #20) y la spec rápida de la deuda del frontend (PR #23) están en `main`, y esas ramas y las viejas ya mergeadas se borraron (en el remoto solo queda `main`). El `main` **local** puede estar atrás: `git checkout main && git pull`.
+Última actualización: 2026-10-26. Todo el código está en `main`: los PR #25 a #30 (M3 y M5 de `profile-and-images`, `loadingProfile`, tipos de `LoginResponse`, `MailController`, regla de lint T12 y `@LocalUser()` en el login) se mergearon el 2026-10-26. Quedan en el remoto las 6 ramas de esos PR, ya mergeadas y sin borrar (borrarlas pide confirmación). Las deudas chicas del frontend y del backend anotadas en 3b están cerradas; lo que sigue abierto es trabajo grande (ver 3b y Fase 4) y lo manual (T17 de `mis-pedidos`, T10 de `backend-architecture`, puerto 5433). El `main` **local** puede estar atrás: `git checkout main && git pull`.
 
 > **2026-10-16:** `specs/` y `steering/` se movieron a `.claude/specs/` y `.claude/steering/`. Las rutas `specs/...` del texto histórico de abajo ahora son `.claude/specs/...`. Las secciones 1, 2, 3 y 5 son registro de lo que pasó en su momento; el estado vigente es la sección 3b.
 
@@ -80,9 +80,9 @@ Spec en `.claude/specs/backend-architecture/`. Mergeada con los PR #10 y #11 (co
 **Abierto del backend (sin spec todavía):**
 - **DTOs/presenters de respuesta:** los controllers devuelven entidades de TypeORM y dependen de `@Exclude()` + `ClassSerializerInterceptor` para no filtrar campos.
 - **Repositorios por contexto y reglas de dominio** (límite de demo, transiciones de orden) fuera de los services; empezar por `ordering` e `identity`.
-- ~~**`MailController`** está vacío (código muerto).~~ **Hecho el 2026-10-26** (T11 de `backend-architecture`, rama `refactor/backend-borrar-mail-controller`, sin mergear): se borraron `mail.controller.ts` y su spec y se sacó del `MailModule`. Lint 0, jest 455/455 (45 suites), build ok; sin rutas, Swagger no cambia.
+- ~~**`MailController`** está vacío (código muerto).~~ **Hecho el 2026-10-26** (T11 de `backend-architecture`, PR #28): se borraron `mail.controller.ts` y su spec y se sacó del `MailModule`. Lint 0, jest 455/455 (45 suites), build ok; sin rutas, Swagger no cambia.
 - **El puerto no pertenece al consumidor:** viven en el módulo del adaptador. Revisar si aparece un segundo adaptador.
-- ~~**`login`** sigue con `@Request() req: { user: User }`~~ **Hecho el 2026-10-26** (spec rápida `backend-login-sin-request`, rama `refactor/backend-login-sin-request`, sin mergear): nuevo decorador `@LocalUser()` en `current-user.decorator.ts`; ya no queda ningún `@Request()` en `backend/src`. `structure.md` actualizado. Lint 0, jest 458/458 (46 suites), build ok.
+- ~~**`login`** sigue con `@Request() req: { user: User }`~~ **Hecho el 2026-10-26** (spec rápida `backend-login-sin-request`, PR #30): nuevo decorador `@LocalUser()` en `current-user.decorator.ts`; ya no queda ningún `@Request()` en `backend/src`. `structure.md` actualizado. Lint 0, jest 458/458 (46 suites), build ok.
 
 ### Fase 3, spec 3: `frontend-cleanup` (cerrada y mergeada en `main`, PR #12)
 
@@ -91,9 +91,9 @@ Spec en `.claude/specs/frontend-cleanup/`. Rama `refactor/frontend-cleanup`. Hec
 **Abierto del frontend (anotado, fuera de la spec):**
 - **Hallazgos del humo manual (2026-10-19):** resueltos por la spec `profile-and-images` (guardar perfil, feedback y reglas de imagen, vista previa al crear un producto).
 - **Providers duplicados** entre `src/main.ts` (con zone.js, es el que arranca el navegador) y `app.config.ts` (zoneless, usado por SSR): hay que unificarlos o decidir SSR.
-- ~~`LoginResponse.user.id` está tipado con el literal `1` y sin `role`.~~ **Hecho el 2026-10-26** (cambio directo de tipos, sin spec; rama `refactor/frontend-login-response-tipos`, sin mergear): `id: number` y `role: UserRole` (el backend ya devuelve `role`: la entidad `User` no lo excluye). Lint 0, Karma 388/388, build ok (766,50 kB).
-- ~~La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`~~ **Hecho el 2026-10-23** (spec rápida `frontend-deuda-auth-categorias`, rama `fix/frontend-deuda-auth-categorias`, sin mergear): ahora usa `row.categories`.
-- ~~`AuthStore.loadingProfile` se escribe pero nadie lo lee.~~ **Hecho el 2026-10-26** (spec rápida `frontend-quitar-loading-profile`, rama `refactor/frontend-quitar-loading-profile`, sin mergear): se borró el signal, `setLoadingProfile` y sus llamadas en `AuthFacade`. Lint 0, Karma 388/388, build ok (766,28 kB).
+- ~~`LoginResponse.user.id` está tipado con el literal `1` y sin `role`.~~ **Hecho el 2026-10-26** (cambio directo de tipos, sin spec; PR #27): `id: number` y `role: UserRole` (el backend ya devuelve `role`: la entidad `User` no lo excluye). Lint 0, Karma 388/388, build ok (766,50 kB).
+- ~~La columna «Categorías» de la tabla de productos del admin lee `row.categoryIds`~~ **Hecho el 2026-10-23** (spec rápida `frontend-deuda-auth-categorias`, rama `fix/frontend-deuda-auth-categorias`, PR #20): ahora usa `row.categories`.
+- ~~`AuthStore.loadingProfile` se escribe pero nadie lo lee.~~ **Hecho el 2026-10-26** (spec rápida `frontend-quitar-loading-profile`, PR #26): se borró el signal, `setLoadingProfile` y sus llamadas en `AuthFacade`. Lint 0, Karma 388/388, build ok (766,28 kB).
 - ~~**Login con perfil caído** (`AuthFacade.login`)~~ **Hecho el 2026-10-23** (misma spec rápida): limpia la sesión y avisa «No pudimos cargar tu perfil. Intenta nuevamente.».
 - ~~**Diálogos de producto y categoría:** `uploadImageForEntity` y `deleteImageFromEntity` relanzan errores que, llamados desde la plantilla, terminan como promesas rechazadas sin manejar~~ **Ya resuelto (verificado leyendo el código el 2026-10-26):** la plantilla llama a `onUploadImage()` y `onDeleteImage()`, que envuelven la llamada en `try/catch` (el aviso lo da el método privado). Entró con el commit `783926d` (`profile-and-images`).
 - ~~**`role` de `userLite` sin validar** en `AuthStore.rehydrate()`~~ **Hecho el 2026-10-23** (misma spec rápida): se valida contra `ADMIN | CLIENT | GUEST`. Queda la expiración del token (Fase 4). Karma 344/344, lint 0, build ok (764,77 kB).
@@ -108,7 +108,7 @@ Spec en `.claude/specs/profile-and-images/`. Rama `feat/profile-and-images`, des
 - Los límites de imagen son una constante del frontend (`image-rules.ts`) que debe igualar `MAX_IMAGE_SIZE_BYTES` del backend; si ese valor cambia en un despliegue, hay que tocar las dos.
 - Escape y clic en el fondo del diálogo se bloquean (`disableClose`) solo después de crear con fallo de imagen; no tienen test automático.
 - `NFR-8` (ruta `profile` con `loadComponent`) no tiene test automático: lo cubren el `grep` y el build.
-- ~~**Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19)**~~ **Hecho el 2026-10-26** (spec rápida `profile-and-images-deuda-m3-m5`, rama `fix/profile-and-images-deuda-m3-m5`, commit `a3afc72`, sin mergear): (M3) los diálogos de producto y categoría fijan `disableClose = isSaving() || isUploadingImage() || created()` con un `effect()`; (M5) `ImageFieldComponent` vacía el `<input type="file">` al descartar la selección. Lint 0, Karma 400/400, build ok (767,30 kB). Sigue abierto: `isDeletingImage` no bloquea el cierre y Escape/clic en el fondo no se prueban con el CDK real.
+- ~~**Deuda de la auditoría de `profile-and-images` (M3 y M5, decidida por el usuario el 2026-10-19)**~~ **Hecho el 2026-10-26** (spec rápida `profile-and-images-deuda-m3-m5`, rama `fix/profile-and-images-deuda-m3-m5`, commit `a3afc72`, PR #25): (M3) los diálogos de producto y categoría fijan `disableClose = isSaving() || isUploadingImage() || created()` con un `effect()`; (M5) `ImageFieldComponent` vacía el `<input type="file">` al descartar la selección. Lint 0, Karma 400/400, build ok (767,30 kB). Sigue abierto: `isDeletingImage` no bloquea el cierre y Escape/clic en el fondo no se prueban con el CDK real.
 - Si `.claude/steering/structure.md` debe mencionar `shared/utils/image-rules.ts`: decisión del usuario.
 
 ### Mejora: `ia-al-crear-producto` (cerrada y mergeada en `main`, PR #18)
