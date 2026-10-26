@@ -26,11 +26,11 @@ describe('AuthController', () => {
     controller = module.get(AuthController);
   });
 
-  it('login devuelve el usuario autenticado y el token firmado por el servicio', () => {
+  it('REQ-1.4: login devuelve el usuario autenticado y el token firmado por el servicio', () => {
     const user = { id: 3, email: 'a@b.com' } as User;
     authService.generateToken.mockReturnValue('jwt-firmado');
 
-    expect(controller.login({ user })).toEqual({ user, access_token: 'jwt-firmado' });
+    expect(controller.login(user)).toEqual({ user, access_token: 'jwt-firmado' });
     expect(authService.generateToken).toHaveBeenCalledWith(user);
   });
 

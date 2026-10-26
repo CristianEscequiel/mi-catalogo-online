@@ -82,7 +82,7 @@ Spec en `.claude/specs/backend-architecture/`. Mergeada con los PR #10 y #11 (co
 - **Repositorios por contexto y reglas de dominio** (límite de demo, transiciones de orden) fuera de los services; empezar por `ordering` e `identity`.
 - ~~**`MailController`** está vacío (código muerto).~~ **Hecho el 2026-10-26** (T11 de `backend-architecture`, rama `refactor/backend-borrar-mail-controller`, sin mergear): se borraron `mail.controller.ts` y su spec y se sacó del `MailModule`. Lint 0, jest 455/455 (45 suites), build ok; sin rutas, Swagger no cambia.
 - **El puerto no pertenece al consumidor:** viven en el módulo del adaptador. Revisar si aparece un segundo adaptador.
-- **`login`** sigue con `@Request() req: { user: User }` (usuario de la estrategia `local`, no el `Payload`).
+- ~~**`login`** sigue con `@Request() req: { user: User }`~~ **Hecho el 2026-10-26** (spec rápida `backend-login-sin-request`, rama `refactor/backend-login-sin-request`, sin mergear): nuevo decorador `@LocalUser()` en `current-user.decorator.ts`; ya no queda ningún `@Request()` en `backend/src`. `structure.md` actualizado. Lint 0, jest 458/458 (46 suites), build ok.
 
 ### Fase 3, spec 3: `frontend-cleanup` (cerrada y mergeada en `main`, PR #12)
 
