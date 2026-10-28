@@ -54,6 +54,7 @@ export class User {
   })
   emailVerified: boolean;
 
+  @Exclude()
   @Column({ type: 'varchar', length: 64, nullable: true, name: 'verification_token' })
   @ApiProperty({
     description: 'Verification token for email verification',
@@ -62,6 +63,7 @@ export class User {
   })
   verificationToken: string | null;
 
+  @Exclude()
   @Column({
     type: 'timestamp',
     nullable: true,
@@ -74,6 +76,7 @@ export class User {
   })
   verificationExpiresAt: Date | null;
 
+  @Exclude()
   @Column({ type: 'varchar', length: 64, nullable: true, name: 'password_reset_token' })
   @ApiProperty({
     description: 'Password reset token',
@@ -82,6 +85,7 @@ export class User {
   })
   passwordResetToken: string | null;
 
+  @Exclude()
   @Column({
     type: 'timestamp',
     nullable: true,

@@ -47,7 +47,6 @@ export class ResetPasswordComponent {
 
     this.isLoading = true;
     try {
-      console.log('Resetting password with token:', this.token() , 'and new password:', newPassword);
       const response = await firstValueFrom(this.authService.resetPassword(this.token(), newPassword));
       this.notificationService.success(response.message || 'Contrasena actualizada correctamente.');
       this.successMessage.set('Tu contrasena fue actualizada correctamente.');
